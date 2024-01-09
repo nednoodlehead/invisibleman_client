@@ -1,6 +1,13 @@
-from auto import Ui_MainWindow
+from gui.default_screen import MainProgram
+from PyQt5.QtWidgets import QApplication, QMainWindow
+import sys
+
+# thank you: https://stackoverflow.com/questions/40817687/adding-functions-to-buttons-via-importing-pyqt5-ui
+# idk why pyqt5 is so hard comparatively
 
 def main():
-     ui = Ui_MainWindow
-     ui.setupUi(ui, Ui_MainWindow)
-main()
+     app = QApplication(sys.argv)
+     ui = MainProgram()
+     ui.show()
+     sys.exit(app.exec_())
+
