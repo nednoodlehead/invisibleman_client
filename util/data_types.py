@@ -35,7 +35,10 @@ class InventoryObject:
          yield self.notes
          yield self.status  
          yield self.uniqueid           
-          
+     def __str__(self):
+          return f"Inventory_Object: {self.name} id: {self.uniqueid}"          
+     def __repr__(self):
+          return f"Inventory_Object: {self.name} id: {self.uniqueid}"          
 def create_inventory_object(name: str, serial: str, manufacturer: str, price: float, assetcategory: str, assettype: str, assignedto: str, assetlocation: str, purchasedate: datetime.date, installdate: datetime.date, notes: str) -> InventoryObject:     
      with open(".\\volatile\\assetcategory.json") as f:
           raw_json = json.load(f)
