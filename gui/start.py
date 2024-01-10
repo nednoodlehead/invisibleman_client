@@ -1,4 +1,4 @@
-from gui.default_screen import MainProgram
+from gui.ui_functions import MainProgram
 from PyQt5.QtWidgets import QApplication, QMainWindow
 import sys
 
