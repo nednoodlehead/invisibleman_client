@@ -60,8 +60,8 @@ class TableObject:
           self.purchasedate = purchasedate  # day item was purchased
           self.installdate = installdate  # day item was installed,
           self.replacementdate = replacementdate  # day the item should be replaced (years ahead from installdate. hardware = 4yr, print = 5yr)
+          self.uniqueid = uniqueid
           self.notes = notes  # Will either be something (which will become a button to view notes), or nothing, that will be "No Notes"
-          self.uniqueid = uniqueid  # uuid-4 for the device
           # similar to 
      def __iter__(self):
          yield self.name 
@@ -76,9 +76,10 @@ class TableObject:
          yield self.installdate  
          yield self.replacementdate 
          yield self.notes
-         yield self.uniqueid           
+     def __len__(self):
+          return 12
      def __str__(self):
-          return f"Inventory_Object: {self.name} id: {self.uniqueid}"          
+          return f"Inventory_Object: {self.name}"          
      def __repr__(self):
-          return f"Inventory_Object: {self.name} id: {self.uniqueid}"          
+          return f"Inventory_Object: {self.name}"          
                     
