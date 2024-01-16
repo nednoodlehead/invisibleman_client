@@ -5,28 +5,27 @@ def update_replacement_date(self):
      """
      updates the date of the replacement date based on the type of gear selected          
      """
-     item = self.insert_asset_type_combobox.currentText()
+     print("pluh?")
+     item = self.insert_asset_category_combobox.currentText()
      today = QDate.currentDate()
+     if item == "":  # if default value
+          self.insert_replacement_date_fmt.setDate(today)
+          return None
      # turn into json, and have user be able to change this from settings
-     json_new = {
-          "Network": 4,
-          "Security": 4,
-          "Hardware and Accessories": 4,
-          "Telecommunications": 4,
-          "Printing": 5,
-          "Software": 1
-       }
-     self.insert_replacement_date_fmt.setDate(today.addYears(json_new[item]))
 
-# called 
-def refresh_asset_types(self):
-     # will pull from a json (maybe send to volatile?)
-     asset_types = []
+     with open("./volatile/assetcategory.json", "r") as f:
+          raw_json = json.load(f)["Category"]
+     
+     self.insert_replacement_date_fmt.setDate(today.addYears(raw_json[item]))
+
+# might be quicker to also have a function to open the file once and return all the json, 1rw instead of 3.. 
+def refresh_asset_categories(self) -> [str]:
+     asset_categories = []
      with open("./volatile/assetcategory.json") as f:
           raw_json = json.load(f)["Category"]
           for key, val in raw_json.items():
-               asset_types.append(key)
-     return asset_types
+               asset_categories.append(key)
+     return asset_categories 
 
 def add_asset_type(self, item_type: str, years_ahead: int):
      with open("./volatile/assetcategory.json", "r") as f:
@@ -35,4 +34,39 @@ def add_asset_type(self, item_type: str, years_ahead: int):
           json_data = json.dumps(raw, indent=4)
      with open("./volatile/assetcategory.json") as w:
           w.write(json_data)
-          
+
+def refresh_asset_types(self) -> [str]:
+     asset_types = []
+     with open("./volatile/assetcategory.json") as f:
+          raw_json = json.load(f)["Type"]
+          for key, val in raw_json.items():
+               asset_types.append(key)
+     return asset_types 
+
+def refresh_asset_location(self) -> [str]:
+     asset_location = []
+     with open("./volatile/assetcategory.json") as f:  # maybe change the name of the json? assets.json? asset_info.json
+          raw_json = json.load(f)["Location"]
+          for key, val in raw_json.items():
+               asset_location.append(key)
+     return asset_location 
+     
+def fetch_all_asset_types(self) -> ([str], [str], [str]):  # category, type, location
+     asset_types = []
+     asset_categories = []
+     asset_location = []
+     with open("./volatile/assetcategory.json") as f:
+          raw_json = json.load(f)
+          post_first = False  # used to mark that we have parsed past the first dict
+          for key, data in raw_json.items():
+               if key == "Category":
+                    for cat, val in data.items():
+                         asset_categories.append(cat)
+               elif key == "Type":
+                    for asset in data:
+                         asset_types.append(asset)
+               else:
+                    for location in data:
+                         asset_location.append(location)
+     return (asset_categories, asset_types, asset_location)             
+     
