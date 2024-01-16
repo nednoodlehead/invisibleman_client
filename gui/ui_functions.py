@@ -5,8 +5,10 @@ from util.data_types import InventoryObject, TableObject
 from db.fetch import fetch_all, fetch_all_for_table
 from gui.notes_window import NotesWindow
 from types import MethodType
-from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type
+from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type, refresh_asset_categories, fetch_all_asset_types, refresh_asset_location
 from gui.add_item_window import GenericAddJsonWindow
+from gui.edit_json_window import EditJsonWindow
+
 class MainProgram(QMainWindow, Ui_MainWindow):
      def __init__(self, parent=None):
           super().__init__(parent)
@@ -21,8 +23,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
           self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
           self.ham_button_reports.clicked.connect(lambda: self.swap_to_window(3))
-          self.insert_asset_type_combobox.currentIndexChanged.connect(self.update_replacement_date)
-          self.insert_asset_type_combobox.addItems(self.refresh_asset_types())
+          self.insert_asset_category_combobox.currentIndexChanged.connect(self.update_replacement_date)
+          # populating combo boxes. "" is an empty default value
+          cat, typ, loc = self.fetch_all_asset_types()
+          self.insert_asset_category_combobox.addItem("")
+          self.insert_asset_type_combobox.addItem("")
+          self.insert_asset_location_combobox.addItem("")
+          self.insert_asset_category_combobox.addItems(cat)
+          self.insert_asset_type_combobox.addItems(typ)
+          self.insert_asset_location_combobox.addItems(loc)
           self.insert_status_bool.addItems(["Enabled", "Disabled"])
           # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
           self.insert_install_date_fmt.setDate(QDate.currentDate())
@@ -31,12 +40,17 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_category_add_option.clicked.connect(lambda: self.display_generic_json("Category"))
           self.insert_asset_type_add_option.clicked.connect(lambda: self.display_generic_json("Type"))
           self.insert_asset_location_add_option.clicked.connect(lambda: self.display_generic_json("Location"))
+          # edit buttons
+          
           
      def imported_methods(self):
           # for loop at some point? lmao
           self.update_replacement_date = MethodType(update_replacement_date, self)
           self.refresh_asset_types = MethodType(refresh_asset_types, self)
-
+          self.refresh_asset_category = MethodType(refresh_asset_categories, self)
+          self.refresh_asset_location = MethodType(refresh_asset_location, self)
+          self.fetch_all_asset_types = MethodType(fetch_all_asset_types, self)
+          
      def toggle_burger(self):
           if self.ham_menu_frame.height() == 250:
                self.ham_menu_frame.setFixedHeight(50)
@@ -57,7 +71,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     item = QTableWidgetItem(str(value))
                     if col == 11:
                          if value == '':
-                              item = QTableWidgetItem("No Notes")
+                              item = QTableWidgetItem("No Notes")  # should be a button anyways, to add notes
                          else:
                               button = self.generate_notes_button(data[row].uniqueid)
                               self.main_table.setCellWidget(row, col, button)
