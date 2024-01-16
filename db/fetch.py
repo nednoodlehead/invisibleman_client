@@ -17,3 +17,9 @@ def fetch_all_for_table() -> [TableObject]:
           for item in data:
                return_list.append(TableObject(*item))
      return return_list
+
+# should only ever be called from a noteswindow being create, always with valid uuid.
+def fetch_notes_from_uuid(uuid: str) -> str:
+     with sqlite3.connect("main.db") as conn:
+          data = conn.execute("SELECT notes FROM main WHERE uniqueid = ?", [uuid])
+     return data.fetchone()[0]  # grab the only option
