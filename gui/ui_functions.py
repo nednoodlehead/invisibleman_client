@@ -7,7 +7,6 @@ from gui.notes_window import NotesWindow
 from types import MethodType
 from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type, refresh_asset_categories, fetch_all_asset_types, refresh_asset_location
 from gui.add_item_window import GenericAddJsonWindow
-from gui.edit_json_window import EditJsonWindow
 
 class MainProgram(QMainWindow, Ui_MainWindow):
      def __init__(self, parent=None):
