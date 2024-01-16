@@ -1,5 +1,25 @@
 {
-"HARDWARE": 4,
-"PRINTING": 5,
-"SOFTWATE": 3
+    "Category": {
+        "Network": 4,
+        "Security": 4,
+        "Hardware and Accessories": 4,
+        "Telecommunications": 4,
+        "Printing": 5,
+        "Software": 1,
+        "new valuer": 3
+    },
+    "Type": [
+        "Desktop",
+        "Laptop",
+        "Phone",
+        "Router",
+        "NEW"
+    ],
+    "Location": [
+        "GOVH",
+        "HLTH",
+        "ATOW",
+        "EDUPSD",
+        "FIELDH"
+    ]
 }
