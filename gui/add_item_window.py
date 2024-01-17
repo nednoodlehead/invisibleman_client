@@ -1,7 +1,7 @@
-
 from PyQt5.QtWidgets import QWidget, QLabel, QTextEdit, QPushButton, QComboBox, QLineEdit, QFrame, QVBoxLayout, QHBoxLayout
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QFont
+from gui.insert_functions import refresh_asset_categories, refresh_asset_location, refresh_asset_types, fetch_categories_and_years
 from volatile.write_to_volatile import add_to_asset_list, add_to_type_or_location
 
 class GenericAddJsonWindow(QWidget):
@@ -37,7 +37,6 @@ class GenericAddJsonWindow(QWidget):
           self.json_value_frame = QFrame(self)
           self.json_value_frame.setObjectName(u"json_value_frame")
           self.json_value_frame.setGeometry(QRect(90, 40, 201, 211))
-          self.json_value_frame.setStyleSheet(u"QFrame { border: 2px solid black; }")
           self.json_value_frame.setFrameShape(QFrame.StyledPanel)
           self.json_value_frame.setFrameShadow(QFrame.Raised)
           self.verticalLayoutWidget = QWidget(self.json_value_frame)
@@ -49,7 +48,6 @@ class GenericAddJsonWindow(QWidget):
           self.json_years_frame = QFrame(self)
           self.json_years_frame.setObjectName(u"json_years_frame")
           self.json_years_frame.setGeometry(QRect(290, 40, 41, 211))
-          self.json_years_frame.setStyleSheet(u"QFrame { border: 2px solid black; }")
           self.json_years_frame.setFrameShape(QFrame.StyledPanel)
           self.json_years_frame.setFrameShadow(QFrame.Raised)
           self.verticalLayoutWidget_2 = QWidget(self.json_years_frame)
@@ -61,7 +59,6 @@ class GenericAddJsonWindow(QWidget):
           self.json_button_frame = QFrame(self)
           self.json_button_frame.setObjectName(u"json_button_frame")
           self.json_button_frame.setGeometry(QRect(50, 40, 41, 211))
-          self.json_button_frame.setStyleSheet(u"QFrame { border: 2px solid black; }")
           self.json_button_frame.setFrameShape(QFrame.StyledPanel)
           self.json_button_frame.setFrameShadow(QFrame.Raised)
           self.verticalLayoutWidget_3 = QWidget(self.json_button_frame)
@@ -81,12 +78,15 @@ class GenericAddJsonWindow(QWidget):
           self.json_add_new_value_button.setGeometry(QRect(250, 270, 91, 23))
           font1 = QFont()
           font1.setPointSize(8)
+          self.json_add_new_value_button.setFont(font1)
           self.json_add_new_value_button.setFont(font1)        
           if self.target != "Category":
                 self.json_conditional_years_label.hide()
                 self.json_conditional_years_text.hide()
                 self.json_years_frame.setStyleSheet("")
                 self.json_years_label.hide()
+          self.fill_layout_with_content()
+          self.json_value_frame.raise_()
                 
 
      def get_values_and_process(self):
@@ -99,3 +99,27 @@ class GenericAddJsonWindow(QWidget):
                add_to_type_or_location(data, self.target)
           self.close()
           # also need to send signal to main program to tell it to refresh the relevant combobox
+
+     def fill_layout_with_content(self):
+          print(f"self.cate: {self.target} {self.target == "Category"}")
+          data = None
+          if self.target == "Category":
+               data = fetch_categories_and_years(self)
+               for index, (cate, years) in enumerate(data.items()):
+                    self.json_value_layout.addWidget(QLineEdit(cate))
+                    self.json_years_layout.addWidget(QLineEdit(str(years)))
+                    button = self.make_x_button(index)
+                    self.json_button_layout.addWidget(button)
+                    
+          elif self.target == "Type":
+               data = refresh_asset_types(self)
+          else:
+               data = refresh_asset_location(self)
+
+     def make_x_button(self, index: int):
+          button = QPushButton("X")
+          button.clicked.connect(lambda: self.button_remove_item(index))
+          return button
+     
+     def button_remove_item(self, index: str):
+          print(f'index {index} to be removed')
