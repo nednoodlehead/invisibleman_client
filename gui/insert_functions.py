@@ -39,16 +39,16 @@ def refresh_asset_types(self) -> [str]:
      asset_types = []
      with open("./volatile/assetcategory.json") as f:
           raw_json = json.load(f)["Type"]
-          for key, val in raw_json.items():
-               asset_types.append(key)
+          for val in raw_json:
+               asset_types.append(val)
      return asset_types 
 
 def refresh_asset_location(self) -> [str]:
      asset_location = []
      with open("./volatile/assetcategory.json") as f:  # maybe change the name of the json? assets.json? asset_info.json
           raw_json = json.load(f)["Location"]
-          for key, val in raw_json.items():
-               asset_location.append(key)
+          for val in raw_json:
+               asset_location.append(val)
      return asset_location 
      
 def fetch_all_asset_types(self) -> ([str], [str], [str]):  # category, type, location
@@ -68,5 +68,9 @@ def fetch_all_asset_types(self) -> ([str], [str], [str]):  # category, type, loc
                else:
                     for location in data:
                          asset_location.append(location)
-     return (asset_categories, asset_types, asset_location)             
+     return (asset_categories, asset_types, asset_location)
+
+def fetch_categories_and_years(self):
+     with open("volatile/assetcategory.json", "r") as f:
+          return json.load(f)["Category"]          
      
