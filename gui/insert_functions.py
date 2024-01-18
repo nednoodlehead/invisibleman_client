@@ -34,7 +34,7 @@ def add_asset_type(self, item_type: str, years_ahead: int):
           json_data = json.dumps(raw, indent=4)
      with open("./volatile/assetcategory.json") as w:
           w.write(json_data)
-
+# idk full reach of these, might want to re-write into
 def refresh_asset_types(self) -> [str]:
      asset_types = []
      with open("./volatile/assetcategory.json") as f:
@@ -72,5 +72,15 @@ def fetch_all_asset_types(self) -> ([str], [str], [str]):  # category, type, loc
 
 def fetch_categories_and_years(self):
      with open("volatile/assetcategory.json", "r") as f:
-          return json.load(f)["Category"]          
+          return json.load(f)["Category"]
+
+def replace_json_target(target: str, data: dict):
+     with open("volatile/assetcategory.json", "r") as f:
+          raw_json = json.load(f)
+          raw_json[target] = data
+          json_data = json.dumps(raw_json, indent=4)
+     with open("volatile/assetcategory.json", "w") as w:
+          w.write(json_data)
+          
+
      

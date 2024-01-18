@@ -99,9 +99,23 @@ class MainProgram(QMainWindow, Ui_MainWindow):
               pass 
 
      def display_generic_json(self, target: str):
-          self.active_json_window = GenericAddJsonWindow(target)
+          self.active_json_window = GenericAddJsonWindow(target, self)
           self.active_json_window.show()
           position = self.pos()
           position.setX(position.x() + 250)
           position.setY(position.y() + 250)
           self.active_json_window.move(position)
+
+     def refresh_combobox(self, target: str):
+          if target == "Category":
+               self.insert_asset_category_combobox.clear()
+               self.insert_asset_category_combobox.addItem("")
+               self.insert_asset_category_combobox.addItems(self.refresh_asset_category())
+          elif target == "Type":
+               self.insert_asset_type_combobox.clear()
+               self.insert_asset_type_combobox.addItem("")
+               self.insert_asset_type_combobox.addItems(self.refresh_asset_types())
+          else:
+               self.insert_asset_location_combobox.clear()
+               self.insert_asset_location_combobox.addItem("")
+               self.insert_asset_location_combobox.addItems(self.refresh_asset_location())

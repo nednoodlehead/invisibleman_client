@@ -1,13 +1,14 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QTextEdit, QPushButton, QComboBox, QLineEdit, QFrame, QVBoxLayout, QHBoxLayout
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QFont
-from gui.insert_functions import refresh_asset_categories, refresh_asset_location, refresh_asset_types, fetch_categories_and_years
+from gui.insert_functions import refresh_asset_categories, refresh_asset_location, refresh_asset_types, fetch_categories_and_years, replace_json_target
 from volatile.write_to_volatile import add_to_asset_list, add_to_type_or_location
 
 class GenericAddJsonWindow(QWidget):
-     def __init__(self, target: str):
+     def __init__(self, target: str, parent_window):
           super().__init__()
           self.target = target  # deciding what json file to write to
+          self.parent_window = parent_window  # used to tell parent to update the comboboxes when done
           # value should be either: "Category", "Type", "Location"
           # should each of these have their own file? or one file?
 
@@ -87,6 +88,8 @@ class GenericAddJsonWindow(QWidget):
                 self.json_years_label.hide()
           self.fill_layout_with_content()
           self.json_value_frame.raise_()
+          self.json_add_new_value_button.clicked.connect(self.add_new_value_from_user)
+          self.json_write_to_button.clicked.connect(self.write_changes)
                 
 
      def get_values_and_process(self):
@@ -105,21 +108,67 @@ class GenericAddJsonWindow(QWidget):
           data = None
           if self.target == "Category":
                data = fetch_categories_and_years(self)
-               for index, (cate, years) in enumerate(data.items()):
+               for cate, years in data.items():
                     self.json_value_layout.addWidget(QLineEdit(cate))
                     self.json_years_layout.addWidget(QLineEdit(str(years)))
-                    button = self.make_x_button(index)
+                    button = self.make_x_button()
                     self.json_button_layout.addWidget(button)
                     
-          elif self.target == "Type":
-               data = refresh_asset_types(self)
           else:
-               data = refresh_asset_location(self)
-
-     def make_x_button(self, index: int):
+               if self.target == "Type":
+                    data = refresh_asset_types(self)
+               else:
+                    data = refresh_asset_location(self)
+               for item in data:
+                    self.json_value_layout.addWidget(QLineEdit(item))
+                    button = self.make_x_button()
+                    self.json_button_layout.addWidget(button)
+                    
+     def make_x_button(self):
           button = QPushButton("X")
-          button.clicked.connect(lambda: self.button_remove_item(index))
+          button.clicked.connect(lambda: self.button_remove_item(button))
           return button
      
-     def button_remove_item(self, index: str):
-          print(f'index {index} to be removed')
+     def button_remove_item(self,button):
+          index = self.json_button_layout.indexOf(button)
+          self.remove_wid(index)
+
+     def remove_wid(self, index):
+          parts = [self.json_value_layout, self.json_button_layout]
+          if self.target == "Category":  # if the additional rows exist, also affect that part :D
+               parts.append(self.json_years_layout)
+          for layout in parts:
+               item = layout.itemAt(index)
+               wid = item.widget()
+               wid.setParent(None)
+
+     def add_new_value_from_user(self):
+          if not self.json_new_value_text.text() == "":
+               current_index = len(self.json_button_layout) + 1
+               if self.target == "Category":
+                    self.json_years_layout.addWidget(QLineEdit(self.json_conditional_years_text.text()))
+               self.json_value_layout.addWidget(QLineEdit(self.json_new_value_text.text()))
+               button = self.make_x_button()
+               self.json_button_layout.addWidget(button)
+          else:
+               # maybe make prompt to tell user to be smart
+               print("please enter value")
+          
+     def write_changes(self):
+          data = []
+          length = range(self.json_value_layout.count())
+          if self.target == "Category":
+               data = {}
+               for index in length:
+                    key = self.json_value_layout.itemAt(index).widget().text()
+                    val = self.json_years_layout.itemAt(index).widget().text()
+                    data[key] = val
+          else:
+               for index in length:
+                    val = self.json_value_layout.itemAt(index).widget().text()
+                    data.append(val)
+          replace_json_target(self.target, data)
+          self.parent_window.refresh_combobox(self.target)
+          self.close()                   
+          # write changes to json file
+          # probably just pull from the layouts and create a dict, then write it?
