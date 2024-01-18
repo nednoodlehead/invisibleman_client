@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerruqgaj.ui'
+## Form generated from reading UI file 'inventory_managerPSvmRI.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -199,9 +199,9 @@ class Ui_MainWindow(object):
         self.insert_asset_location_add_option.setObjectName(u"insert_asset_location_add_option")
         self.insert_asset_location_add_option.setGeometry(QRect(290, 340, 25, 25))
         self.insert_asset_location_add_option.setLayoutDirection(Qt.LeftToRight)
-        self.pushButton = QPushButton(self.stacked_add_to_db_page)
-        self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setGeometry(QRect(420, 380, 61, 23))
+        self.insert_insert_button = QPushButton(self.stacked_add_to_db_page)
+        self.insert_insert_button.setObjectName(u"insert_insert_button")
+        self.insert_insert_button.setGeometry(QRect(420, 380, 61, 23))
         self.stackedWidget.addWidget(self.stacked_add_to_db_page)
         self.stacked_analytic_page = QWidget()
         self.stacked_analytic_page.setObjectName(u"stacked_analytic_page")
@@ -277,7 +277,7 @@ class Ui_MainWindow(object):
         self.insert_asset_category_add_option.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.insert_asset_type_add_option.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.insert_asset_location_add_option.setText(QCoreApplication.translate("MainWindow", u"+", None))
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Insert!", None))
+        self.insert_insert_button.setText(QCoreApplication.translate("MainWindow", u"Insert!", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"This is the analyitics page :D", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"This is the reports page :Ddd", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
