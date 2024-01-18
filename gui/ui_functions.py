@@ -1,5 +1,5 @@
 from gui.auto import Ui_MainWindow
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox
 from PyQt5.QtCore import QDate
 from util.data_types import InventoryObject, TableObject
 from db.fetch import fetch_all, fetch_all_for_table
@@ -23,7 +23,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
           self.ham_button_reports.clicked.connect(lambda: self.swap_to_window(3))
           self.insert_asset_category_combobox.currentIndexChanged.connect(self.update_replacement_date)
-          # populating combo boxes. "" is an empty default value
+          # populating combo boxes. "" is an empty default value 
           cat, typ, loc = self.fetch_all_asset_types()
           self.insert_asset_category_combobox.addItem("")
           self.insert_asset_type_combobox.addItem("")
@@ -40,7 +40,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_type_add_option.clicked.connect(lambda: self.display_generic_json("Type"))
           self.insert_asset_location_add_option.clicked.connect(lambda: self.display_generic_json("Location"))
           # edit buttons
-          
+          self.insert_insert_button.clicked.connect(self.check_data_and_insert)
           
      def imported_methods(self):
           # for loop at some point? lmao
@@ -49,7 +49,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.refresh_asset_category = MethodType(refresh_asset_categories, self)
           self.refresh_asset_location = MethodType(refresh_asset_location, self)
           self.fetch_all_asset_types = MethodType(fetch_all_asset_types, self)
-          
+
+     def display_error_message(self, error: str):
+          msg = QMessageBox()
+          msg.setText(error)
+          msg.setWindowTitle("Error")
+          msg.exec_()
+                    
      def toggle_burger(self):
           if self.ham_menu_frame.height() == 250:
                self.ham_menu_frame.setFixedHeight(50)
@@ -119,3 +125,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.insert_asset_location_combobox.clear()
                self.insert_asset_location_combobox.addItem("")
                self.insert_asset_location_combobox.addItems(self.refresh_asset_location())
+
+     def check_data_and_insert(self):
+          print("ok gonna insert!")

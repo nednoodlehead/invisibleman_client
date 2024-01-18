@@ -154,8 +154,8 @@ class GenericAddJsonWindow(QWidget):
                button = self.make_x_button()
                self.json_button_layout.addWidget(button)
           else:
-               # maybe make prompt to tell user to be smart (srry alex lol)
-               pass  # maybe do something with one of those little status bars      
+               self.parent_window.display_error_message("Error adding empty string!")
+               
      def write_changes(self):
           length = range(self.json_value_layout.count())  # get how many times we have to iter over layout to get all items
           if self.target == "Category":
