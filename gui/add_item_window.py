@@ -163,7 +163,7 @@ class GenericAddJsonWindow(QWidget):
                for index in length:
                     key = self.json_value_layout.itemAt(index).widget().text()
                     val = self.json_years_layout.itemAt(index).widget().text()
-                    data[key] = val  # create dict key, val pair to put into json
+                    data[key] = int(val)  # create dict key, val pair to put into json
           else:
                data = []
                for index in length:

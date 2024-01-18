@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerPSvmRI.ui'
+## Form generated from reading UI file 'inventory_managerUvlqdH.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -157,7 +157,11 @@ class Ui_MainWindow(object):
         self.insert_install_date_label = QLabel(self.stacked_add_to_db_page)
         self.insert_install_date_label.setObjectName(u"insert_install_date_label")
         self.insert_install_date_label.setGeometry(QRect(20, 460, 110, 21))
-        self.insert_install_date_label.setFont(font1)
+        font2 = QFont()
+        font2.setPointSize(10)
+        font2.setBold(False)
+        font2.setWeight(50)
+        self.insert_install_date_label.setFont(font2)
         self.insert_install_date_label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
         self.insert_install_date_fmt = QDateEdit(self.stacked_add_to_db_page)
         self.insert_install_date_fmt.setObjectName(u"insert_install_date_fmt")

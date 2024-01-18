@@ -1,8 +1,9 @@
 from gui.auto import Ui_MainWindow
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox
 from PyQt5.QtCore import QDate
-from util.data_types import InventoryObject, TableObject
+from util.data_types import InventoryObject, TableObject, create_inventory_object
 from db.fetch import fetch_all, fetch_all_for_table
+from db.insert import new_entry
 from gui.notes_window import NotesWindow
 from types import MethodType
 from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type, refresh_asset_categories, fetch_all_asset_types, refresh_asset_location
@@ -100,6 +101,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           position.setY(position.y() + 250)
           self.active_notes_window.move(position)      
 
+     
      def filter_columns(self, *args):
           for selected_column in args:
               pass 
@@ -127,4 +129,39 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.insert_asset_location_combobox.addItems(self.refresh_asset_location())
 
      def check_data_and_insert(self):
-          print("ok gonna insert!")
+          required = {"Serial": self.insert_serial_text, "Manufacturer": self.insert_manufacturer_text, "Asset Category":self.insert_asset_category_combobox,
+          "Asset Type": self.insert_asset_type_combobox, "Asset Location": self.insert_asset_location_combobox}
+          missing = []
+          for name, item in required.items():
+               try:
+                    if item.text() == "":
+                         missing.append(name)
+               except AttributeError:  # comboboxes !!
+                    if item.currentText() == "":
+                         missing.append(name)
+          if len(missing) != 0:
+               self.display_error_message(f"Missing fields: {missing}")
+          else:
+               obj = create_inventory_object(self.insert_name_text.text(), self.insert_serial_text.text(), self.insert_manufacturer_text.text(),
+                                       self.insert_price_spinbox.text(), self.insert_asset_category_combobox.currentText(), self.insert_asset_type_combobox.currentText(),
+                                       self.insert_asset_location_combobox.currentText(), self.insert_assigned_to_text.text(), self.insert_purchase_date_fmt.text(), 
+                                       self.insert_install_date_fmt.text(), self.insert_replacement_date_fmt.text(), self.insert_notes_text.toPlainText(),
+                                       self.insert_status_bool.currentText())
+               new_entry(obj)               
+               self.set_insert_data_to_default()
+
+     def set_insert_data_to_default(self):
+          today = QDate.currentDate()
+          self.insert_name_text.setText("")
+          self.insert_serial_text.setText("")
+          self.insert_manufacturer_text.setText("")
+          self.insert_price_spinbox.setValue(0.00)
+          self.insert_asset_category_combobox.setCurrentIndex(0)  # to the empty string!
+          self.insert_asset_type_combobox.setCurrentIndex(0)
+          self.insert_asset_location_combobox.setCurrentIndex(0)
+          self.insert_assigned_to_text.setText("")
+          self.insert_purchase_date_fmt.setDate(today)
+          self.insert_install_date_fmt.setDate(today)
+          self.insert_replacement_date_fmt.setDate(today)
+          self.insert_notes_text.setText("")
+          self.insert_status_bool.setCurrentIndex(0)
