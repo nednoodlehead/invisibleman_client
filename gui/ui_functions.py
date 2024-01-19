@@ -36,12 +36,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
           self.insert_install_date_fmt.setDate(QDate.currentDate())
           self.insert_purchase_date_fmt.setDate(QDate.currentDate())
+          self.insert_price_spinbox.setMaximum(99999.99)
           # leave the insert_replacement_date_fmt for when the user selects the hardware type
           self.insert_asset_category_add_option.clicked.connect(lambda: self.display_generic_json("Category"))
           self.insert_asset_type_add_option.clicked.connect(lambda: self.display_generic_json("Type"))
           self.insert_asset_location_add_option.clicked.connect(lambda: self.display_generic_json("Location"))
           # edit buttons
           self.insert_insert_button.clicked.connect(self.check_data_and_insert)
+          self.set_table_headers(["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
+                                 "Purchase Date", "Install Date", "Replacement Date", "Notes"])
           
      def imported_methods(self):
           # for loop at some point? lmao
@@ -144,7 +147,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           else:
                obj = create_inventory_object(self.insert_name_text.text(), self.insert_serial_text.text(), self.insert_manufacturer_text.text(),
                                        self.insert_price_spinbox.text(), self.insert_asset_category_combobox.currentText(), self.insert_asset_type_combobox.currentText(),
-                                       self.insert_asset_location_combobox.currentText(), self.insert_assigned_to_text.text(), self.insert_purchase_date_fmt.text(), 
+                                       self.insert_assigned_to_text.text(), self.insert_asset_location_combobox.currentText(), self.insert_purchase_date_fmt.text(), 
                                        self.insert_install_date_fmt.text(), self.insert_replacement_date_fmt.text(), self.insert_notes_text.toPlainText(),
                                        self.insert_status_bool.currentText())
                new_entry(obj)               
@@ -165,3 +168,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_replacement_date_fmt.setDate(today)
           self.insert_notes_text.setText("")
           self.insert_status_bool.setCurrentIndex(0)
+
+     def set_table_headers(self, headers: [str]):
+          self.main_table.setColumnCount(len(headers))
+          self.main_table.setHorizontalHeaderLabels(headers)

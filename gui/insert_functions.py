@@ -5,7 +5,6 @@ def update_replacement_date(self):
      """
      updates the date of the replacement date based on the type of gear selected          
      """
-     print("pluh?")
      item = self.insert_asset_category_combobox.currentText()
      today = QDate.currentDate()
      if item == "":  # if default value
