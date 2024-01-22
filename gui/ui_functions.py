@@ -1,6 +1,7 @@
 from gui.auto import Ui_MainWindow
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox
-from PyQt5.QtCore import QDate
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox, QMenu, QTableWidget
+from PyQt5.QtCore import QDate, Qt
+from PyQt5.QtGui import QCursor
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from db.fetch import fetch_all, fetch_all_for_table
 from db.insert import new_entry
@@ -43,8 +44,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_location_add_option.clicked.connect(lambda: self.display_generic_json("Location"))
           # edit buttons
           self.insert_insert_button.clicked.connect(self.check_data_and_insert)
-          self.set_table_headers(["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
+          self.set_table_size_and_headers(["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
                                  "Purchase Date", "Install Date", "Replacement Date", "Notes"])
+          self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
+          self.main_table.customContextMenuRequested.connect(self.display_table_context_menu)
           
      def imported_methods(self):
           # for loop at some point? lmao
@@ -59,6 +62,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           msg.setText(error)
           msg.setWindowTitle("Error")
           msg.exec_()
+
+     def display_table_context_menu(self, position=None):
+          menu = QMenu()
+          menu.addAction("Update", lambda: self.update_entry(self.main_table.itemAt(position).row()))
+          menu.exec_(QCursor.pos())
+
+     def update_entry(self, index):
+          print("gonna update entry at index:", index) 
                     
      def toggle_burger(self):
           if self.ham_menu_frame.height() == 250:
@@ -145,12 +156,22 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           if len(missing) != 0:
                self.display_error_message(f"Missing fields: {missing}")
           else:
-               obj = create_inventory_object(self.insert_name_text.text(), self.insert_serial_text.text(), self.insert_manufacturer_text.text(),
-                                       self.insert_price_spinbox.text(), self.insert_asset_category_combobox.currentText(), self.insert_asset_type_combobox.currentText(),
-                                       self.insert_assigned_to_text.text(), self.insert_asset_location_combobox.currentText(), self.insert_purchase_date_fmt.text(), 
-                                       self.insert_install_date_fmt.text(), self.insert_replacement_date_fmt.text(), self.insert_notes_text.toPlainText(),
-                                       self.insert_status_bool.currentText())
-               new_entry(obj)               
+               # we are creating a new entry if this is an empty value 
+               if self.insert_uuid_text.text() == '':
+                    
+                    obj = create_inventory_object(self.insert_name_text.text(), self.insert_serial_text.text(), self.insert_manufacturer_text.text(),
+                                            self.insert_price_spinbox.text(), self.insert_asset_category_combobox.currentText(), self.insert_asset_type_combobox.currentText(),
+                                            self.insert_assigned_to_text.text(), self.insert_asset_location_combobox.currentText(), self.insert_purchase_date_fmt.text(), 
+                                            self.insert_install_date_fmt.text(), self.insert_replacement_date_fmt.text(), self.insert_notes_text.toPlainText(),
+                                            self.insert_status_bool.currentText())
+                    new_entry(obj)               
+               else:
+                    # we are updating an existing entry! (since the uuid string was set)
+                    obj = InventoryObject(self.insert_name_text.text(), self.insert_serial_text.text(), self.insert_manufacturer_text.text(), self.insert_price_spinbox.text(),
+                                          self.insert_asset_category_combobox.currentText(), self.insert_asset_type_combobox.currentText(), self.insert_asset_location_combobox.currentText(),
+                                          self.insert_assigned_to_text.text(), self.insert_purchase_date_fmt.text(), self.insert_install_date_fmt.text(), self.insert_replacement_date_fmt.text(),
+                                          self.insert_notes_text.toPlainText(), self.insert_status_bool.currentText(), self.insert_uuid_text.text())
+                    
                self.set_insert_data_to_default()
 
      def set_insert_data_to_default(self):
@@ -169,6 +190,18 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_notes_text.setText("")
           self.insert_status_bool.setCurrentIndex(0)
 
-     def set_table_headers(self, headers: [str]):
+     def set_table_size_and_headers(self, headers: [str]):
+          # kept sort of abigious since headers can be changed. if it was always all the headers it could be hardcoded
           self.main_table.setColumnCount(len(headers))
           self.main_table.setHorizontalHeaderLabels(headers)
+          # set the sizes of certain columns as needed
+          for count, column_title in enumerate(headers):
+               if column_title == "Asset Category":
+                    header = self.main_table.columnWidth(count)
+                    # maybe value should be calculated based off the longest string from the relevant json
+                    self.main_table.setColumnWidth(count, 150)
+               elif column_title == "Replacement Date":
+                    self.main_table.setColumnWidth(count, 120)
+          # alternating row colors :D
+          self.main_table.setAlternatingRowColors(True)
+               
