@@ -39,12 +39,15 @@ class InventoryObject:
           return f"Inventory_Object: {self.name} id: {self.uniqueid}"          
      def __repr__(self):
           return f"Inventory_Object: {self.name} id: {self.uniqueid}"          
-def create_inventory_object(name: str, serial: str, manufacturer: str, price: float, assetcategory: str, assettype: str, assignedto: str, assetlocation: str, purchasedate: datetime.date, installdate: datetime.date, notes: str) -> InventoryObject:     
+def create_inventory_object(name: str, serial: str, manufacturer: str, price: float, assetcategory: str, assettype: str, assignedto: str, assetlocation: str, purchasedate: datetime.date, installdate: datetime.date, replacementdate: datetime.date, notes: str, status: str) -> InventoryObject:     
      with open(".\\volatile\\assetcategory.json") as f:
           raw_json = json.load(f)
-     replacementdate = installdate + relativedelta(years=raw_json[assetcategory])  # if no asset type is found, it should panic
      id = str(uuid4())
-     return InventoryObject(name, serial, manufacturer, price, assetcategory, assettype, assignedto, assetlocation, purchasedate, installdate, replacementdate, notes, True, id)
+     if status == "Enabled":
+          stat = True
+     else:
+          stat = False
+     return InventoryObject(name, serial, manufacturer, price, assetcategory, assettype, assignedto, assetlocation, purchasedate, installdate, replacementdate, notes, stat, id)
      
 class TableObject:
      # same as inventory object, but no self.enabled
