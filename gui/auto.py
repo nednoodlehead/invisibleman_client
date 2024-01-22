@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerUvlqdH.ui'
+## Form generated from reading UI file 'inventory_managersTsGAV.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -205,7 +205,20 @@ class Ui_MainWindow(object):
         self.insert_asset_location_add_option.setLayoutDirection(Qt.LeftToRight)
         self.insert_insert_button = QPushButton(self.stacked_add_to_db_page)
         self.insert_insert_button.setObjectName(u"insert_insert_button")
-        self.insert_insert_button.setGeometry(QRect(420, 380, 61, 23))
+        self.insert_insert_button.setGeometry(QRect(420, 410, 61, 23))
+        self.insert_uuid_label = QLabel(self.stacked_add_to_db_page)
+        self.insert_uuid_label.setObjectName(u"insert_uuid_label")
+        self.insert_uuid_label.setGeometry(QRect(350, 370, 110, 21))
+        self.insert_uuid_label.setFont(font)
+        self.insert_uuid_label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.insert_uuid_text = QLineEdit(self.stacked_add_to_db_page)
+        self.insert_uuid_text.setObjectName(u"insert_uuid_text")
+        self.insert_uuid_text.setGeometry(QRect(480, 370, 145, 25))
+        self.insert_uuid_text.setStyleSheet(u"QLineEdit {\n"
+"	background-color: #E5E4E2;\n"
+"	border: 2px solid #E5E4E2\n"
+"}")
+        self.insert_uuid_text.setReadOnly(True)
         self.stackedWidget.addWidget(self.stacked_add_to_db_page)
         self.stacked_analytic_page = QWidget()
         self.stacked_analytic_page.setObjectName(u"stacked_analytic_page")
@@ -238,7 +251,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -282,6 +295,8 @@ class Ui_MainWindow(object):
         self.insert_asset_type_add_option.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.insert_asset_location_add_option.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.insert_insert_button.setText(QCoreApplication.translate("MainWindow", u"Insert!", None))
+        self.insert_uuid_label.setText(QCoreApplication.translate("MainWindow", u"UUID", None))
+        self.insert_uuid_text.setText("")
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"This is the analyitics page :D", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"This is the reports page :Ddd", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
