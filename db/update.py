@@ -7,22 +7,28 @@ def update_notes(notes: str, uuid: str):
           conn.commit()
 
 def update_full_obj(obj: InventoryObject):
+     rel = {
+          "Enabled": 1,
+          "Disabled": 2
+     }
+     obj.status = rel[obj.status]
      with sqlite3.connect("main.db") as conn:
           conn.execute("""
                        UPDATE main 
                        SET name = ?,
-                       SET serial = ?,
-                       SET manufacturer = ?,
-                       SET price = ?,
-                       SET assetcategory = ?,
-                       SET assettype = ?,
-                       SET assignedto = ?,
-                       SET assetlocation = ?,
-                       SET purchasedate = ?,
-                       SET installdate = ?,
-                       SET replacementdate = ?,
-                       SET notes = ?,
-                       SET status = ?,
+                       serial = ?,
+                       manufacturer = ?,
+                       price = ?,
+                       assetcategory = ?,
+                       assettype = ?,
+                       assignedto = ?,
+                       assetlocation = ?,
+                       purchasedate = ?,
+                       installdate = ?,
+                       replacementdate = ?,
+                       notes = ?,
+                       status = ?
                        WHERE uniqueid = ?
                         """,
-                       *obj)
+                       (*obj, ))
+          
