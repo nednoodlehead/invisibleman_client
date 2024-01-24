@@ -5,6 +5,7 @@ from PyQt5.QtGui import QCursor
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from db.fetch import fetch_all, fetch_all_for_table, fetch_from_uuid_to_update
 from db.insert import new_entry
+from db.update import update_full_obj
 from gui.notes_window import NotesWindow
 from types import MethodType
 from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type, refresh_asset_categories, fetch_all_asset_types, refresh_asset_location
@@ -26,6 +27,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
           self.ham_button_reports.clicked.connect(lambda: self.swap_to_window(3))
           self.insert_asset_category_combobox.currentIndexChanged.connect(self.update_replacement_date)
+          self.insert_insert_button.clicked.connect(self.check_data_and_insert)
           # populating combo boxes. "" is an empty default value 
           cat, typ, loc = self.fetch_all_asset_types()
           self.insert_asset_category_combobox.addItem("")
@@ -175,6 +177,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.insert_asset_location_combobox.addItems(self.refresh_asset_location())
 
      def check_data_and_insert(self):
+          print('ok GOIN!')
           required = {"Serial": self.insert_serial_text, "Manufacturer": self.insert_manufacturer_text, "Asset Category":self.insert_asset_category_combobox,
           "Asset Type": self.insert_asset_type_combobox, "Asset Location": self.insert_asset_location_combobox}
           missing = []
@@ -200,10 +203,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                else:
                     # we are updating an existing entry! (since the uuid string was set)
                     obj = InventoryObject(self.insert_name_text.text(), self.insert_serial_text.text(), self.insert_manufacturer_text.text(), self.insert_price_spinbox.text(),
-                                          self.insert_asset_category_combobox.currentText(), self.insert_asset_type_combobox.currentText(), self.insert_asset_location_combobox.currentText(),
-                                          self.insert_assigned_to_text.text(), self.insert_purchase_date_fmt.text(), self.insert_install_date_fmt.text(), self.insert_replacement_date_fmt.text(),
+                                          self.insert_asset_category_combobox.currentText(), self.insert_asset_type_combobox.currentText(), self.insert_assigned_to_text.text(), self.insert_asset_location_combobox.currentText(),
+                                          self.insert_purchase_date_fmt.text(), self.insert_install_date_fmt.text(), self.insert_replacement_date_fmt.text(),
                                           self.insert_notes_text.toPlainText(), self.insert_status_bool.currentText(), self.insert_uuid_text.text())
-                    
+                    update_full_obj(obj)
                self.set_insert_data_to_default()
 
      def set_insert_data_to_default(self):
@@ -221,6 +224,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_replacement_date_fmt.setDate(today)
           self.insert_notes_text.setText("")
           self.insert_status_bool.setCurrentIndex(0)
+          self.insert_uuid_text.setText("")
 
      def set_table_size_and_headers(self, headers: [str]):
           # kept sort of abigious since headers can be changed. if it was always all the headers it could be hardcoded
