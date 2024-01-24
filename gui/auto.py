@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managersTsGAV.ui'
+## Form generated from reading UI file 'inventory_managerwByqLT.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -60,19 +60,16 @@ class Ui_MainWindow(object):
         self.stacked_view_db_page.setObjectName(u"stacked_view_db_page")
         self.sort_by_button = QPushButton(self.stacked_view_db_page)
         self.sort_by_button.setObjectName(u"sort_by_button")
-        self.sort_by_button.setGeometry(QRect(110, 30, 75, 23))
+        self.sort_by_button.setGeometry(QRect(100, 30, 75, 23))
         self.main_table = QTableWidget(self.stacked_view_db_page)
         self.main_table.setObjectName(u"main_table")
         self.main_table.setGeometry(QRect(10, 60, 1160, 550))
         self.view_columns_button = QPushButton(self.stacked_view_db_page)
         self.view_columns_button.setObjectName(u"view_columns_button")
         self.view_columns_button.setGeometry(QRect(10, 30, 75, 23))
-        self.new_inventory_obj_button = QPushButton(self.stacked_view_db_page)
-        self.new_inventory_obj_button.setObjectName(u"new_inventory_obj_button")
-        self.new_inventory_obj_button.setGeometry(QRect(190, 30, 75, 23))
-        self.delete_row_button = QPushButton(self.stacked_view_db_page)
-        self.delete_row_button.setObjectName(u"delete_row_button")
-        self.delete_row_button.setGeometry(QRect(1070, 30, 75, 23))
+        self.pushButton = QPushButton(self.stacked_view_db_page)
+        self.pushButton.setObjectName(u"pushButton")
+        self.pushButton.setGeometry(QRect(190, 30, 75, 23))
         self.stackedWidget.addWidget(self.stacked_view_db_page)
         self.stacked_add_to_db_page = QWidget()
         self.stacked_add_to_db_page.setObjectName(u"stacked_add_to_db_page")
@@ -251,7 +248,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -271,8 +268,7 @@ class Ui_MainWindow(object):
         self.ham_button_view.setText(QCoreApplication.translate("MainWindow", u"View", None))
         self.sort_by_button.setText(QCoreApplication.translate("MainWindow", u"Sort by...", None))
         self.view_columns_button.setText(QCoreApplication.translate("MainWindow", u"View", None))
-        self.new_inventory_obj_button.setText(QCoreApplication.translate("MainWindow", u"New..", None))
-        self.delete_row_button.setText(QCoreApplication.translate("MainWindow", u"Delete", None))
+        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Refresh", None))
         self.insert_bold_equals_required_info.setText(QCoreApplication.translate("MainWindow", u"Bold indicates a required field", None))
         self.insert_name_text.setText("")
         self.insert_name_label.setText(QCoreApplication.translate("MainWindow", u"Name", None))
