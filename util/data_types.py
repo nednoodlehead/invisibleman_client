@@ -79,8 +79,9 @@ class TableObject:
          yield self.installdate  
          yield self.replacementdate 
          yield self.notes
+         yield self.uniqueid
      def __len__(self):
-          return 12
+          return 13
      def __str__(self):
           return f"Inventory_Object: {self.name}"          
      def __repr__(self):
