@@ -23,3 +23,10 @@ def fetch_notes_from_uuid(uuid: str) -> str:
      with sqlite3.connect("main.db") as conn:
           data = conn.execute("SELECT notes FROM main WHERE uniqueid = ?", [uuid])
      return data.fetchone()[0]  # grab the only option
+
+def fetch_from_uuid_to_update(uuid: str) -> InventoryObject:
+     with sqlite3.connect("main.db") as conn:
+          data = conn.execute("SELECT * FROM main WHERE uniqueid = ?", [uuid])
+     processed = data.fetchone()
+     obj = InventoryObject(*processed)
+     return obj 
