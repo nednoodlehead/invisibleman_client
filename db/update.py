@@ -5,6 +5,10 @@ def update_notes(notes: str, uuid: str):
      with sqlite3.connect("main.db") as conn:
           conn.execute("UPDATE main SET notes = ? WHERE uniqueid = ?", (notes, uuid))
           conn.commit()
+     # it could be an idea to refresh the notes button, so when its update, it changes to either 'View Notes' or
+     # 'Add Notes' based on the value of the field. But seems sort of silly bcs of the overhead
+     # of passing in a reference to the main class, then the logic of changing the button. 
+     # i dont think its worth it really...
 
 def update_full_obj(obj: InventoryObject):
      rel = {
@@ -31,4 +35,4 @@ def update_full_obj(obj: InventoryObject):
                        WHERE uniqueid = ?
                         """,
                        (*obj, ))
-          
+          conn.commit()          
