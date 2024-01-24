@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerwByqLT.ui'
+## Form generated from reading UI file 'inventory_managerfXfNHB.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -67,9 +67,9 @@ class Ui_MainWindow(object):
         self.view_columns_button = QPushButton(self.stacked_view_db_page)
         self.view_columns_button.setObjectName(u"view_columns_button")
         self.view_columns_button.setGeometry(QRect(10, 30, 75, 23))
-        self.pushButton = QPushButton(self.stacked_view_db_page)
-        self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setGeometry(QRect(190, 30, 75, 23))
+        self.refresh_table_button = QPushButton(self.stacked_view_db_page)
+        self.refresh_table_button.setObjectName(u"refresh_table_button")
+        self.refresh_table_button.setGeometry(QRect(190, 30, 75, 23))
         self.stackedWidget.addWidget(self.stacked_view_db_page)
         self.stacked_add_to_db_page = QWidget()
         self.stacked_add_to_db_page.setObjectName(u"stacked_add_to_db_page")
@@ -268,7 +268,7 @@ class Ui_MainWindow(object):
         self.ham_button_view.setText(QCoreApplication.translate("MainWindow", u"View", None))
         self.sort_by_button.setText(QCoreApplication.translate("MainWindow", u"Sort by...", None))
         self.view_columns_button.setText(QCoreApplication.translate("MainWindow", u"View", None))
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Refresh", None))
+        self.refresh_table_button.setText(QCoreApplication.translate("MainWindow", u"Refresh", None))
         self.insert_bold_equals_required_info.setText(QCoreApplication.translate("MainWindow", u"Bold indicates a required field", None))
         self.insert_name_text.setText("")
         self.insert_name_label.setText(QCoreApplication.translate("MainWindow", u"Name", None))
