@@ -20,7 +20,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.active_json_window = None
           # ui functions
           self.ham_menu_button.clicked.connect(self.toggle_burger)
-          self.populate_table_with(fetch_all_for_table())
+          self.populate_table_with(fetch_all_for_table())  # TODO do this more! (when make / update data)
           self.ham_button_insert.clicked.connect(lambda: self.swap_to_window(1))
           self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
           self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
@@ -91,9 +91,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           print(f'indexes: {cat_index, inventory_obj.assetcategory} | {type_index} | {loc_index}')
           self.insert_asset_location_combobox.setCurrentIndex(loc_index)
           self.insert_assigned_to_text.setText(inventory_obj.assignedto)
-          self.insert_purchase_date_fmt.setDate(QDate.fromString(inventory_obj.purchasedate))
-          self.insert_install_date_fmt.setDate(QDate.fromString(inventory_obj.installdate))
-          self.insert_replacement_date_fmt.setDate(QDate.fromString(inventory_obj.replacementdate))
+          print(f'dates: {self.insert_purchase_date_fmt.text()}')
+          self.insert_purchase_date_fmt.setDate(datetime.fromisoformat(inventory_obj.purchasedate))
+          self.insert_install_date_fmt.setDate(datetime.fromisoformat(inventory_obj.installdate))
+          self.insert_replacement_date_fmt.setDate(datetime.fromisoformat(inventory_obj.replacementdate))
           self.insert_notes_text.setText(inventory_obj.notes)
           if self.insert_status_bool == 0:
                self.insert_status_bool.setCurrentIndex(1)
