@@ -1,14 +1,15 @@
 from gui.auto import Ui_MainWindow
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox, QMenu, QTableWidget
-from PyQt5.QtCore import QDate, Qt
+from PyQt5.QtCore import QDate, Qt, QDate
 from PyQt5.QtGui import QCursor
 from util.data_types import InventoryObject, TableObject, create_inventory_object
-from db.fetch import fetch_all, fetch_all_for_table
+from db.fetch import fetch_all, fetch_all_for_table, fetch_from_uuid_to_update
 from db.insert import new_entry
 from gui.notes_window import NotesWindow
 from types import MethodType
 from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type, refresh_asset_categories, fetch_all_asset_types, refresh_asset_location
 from gui.add_item_window import GenericAddJsonWindow
+from datetime import datetime
 
 class MainProgram(QMainWindow, Ui_MainWindow):
      def __init__(self, parent=None):
@@ -35,6 +36,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_location_combobox.addItems(loc)
           self.insert_status_bool.addItems(["Enabled", "Disabled"])
           # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
+          print('set defaults')
           self.insert_install_date_fmt.setDate(QDate.currentDate())
           self.insert_purchase_date_fmt.setDate(QDate.currentDate())
           self.insert_price_spinbox.setMaximum(99999.99)
@@ -48,6 +50,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                                  "Purchase Date", "Install Date", "Replacement Date", "Notes"])
           self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
           self.main_table.customContextMenuRequested.connect(self.display_table_context_menu)
+
           
      def imported_methods(self):
           # for loop at some point? lmao
@@ -65,12 +68,40 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
      def display_table_context_menu(self, position=None):
           menu = QMenu()
-          menu.addAction("Update", lambda: self.update_entry(self.main_table.itemAt(position).row()))
+          menu.addAction("Update", lambda: self.send_update_data_to_insert(self.main_table.itemAt(position).row()))
           menu.exec_(QCursor.pos())
 
-     def update_entry(self, index):
-          print("gonna update entry at index:", index) 
-                    
+     def send_update_data_to_insert(self, index):
+          print("gonna update entry at index:", index)
+          uuid = self.main_table.item(index, self.main_table.columnCount() -1).text()
+          obj = fetch_from_uuid_to_update(uuid)
+          self.swap_to_window(1)
+          self.update_insert_page_from_obj(obj)
+
+     def update_insert_page_from_obj(self, inventory_obj: InventoryObject):
+          self.insert_name_text.setText(inventory_obj.name)
+          self.insert_serial_text.setText(inventory_obj.serial)
+          self.insert_manufacturer_text.setText(inventory_obj.manufacturer)
+          self.insert_price_spinbox.setValue(float(inventory_obj.price))
+          cat_index = self.insert_asset_category_combobox.findText(inventory_obj.assetcategory)
+          self.insert_asset_category_combobox.setCurrentIndex(cat_index)
+          type_index = self.insert_asset_type_combobox.findText(inventory_obj.assettype)
+          self.insert_asset_type_combobox.setCurrentIndex(type_index)
+          loc_index = self.insert_asset_location_combobox.findText(inventory_obj.assetlocation)
+          print(f'indexes: {cat_index, inventory_obj.assetcategory} | {type_index} | {loc_index}')
+          self.insert_asset_location_combobox.setCurrentIndex(loc_index)
+          self.insert_assigned_to_text.setText(inventory_obj.assignedto)
+          self.insert_purchase_date_fmt.setDate(QDate.fromString(inventory_obj.purchasedate))
+          self.insert_install_date_fmt.setDate(QDate.fromString(inventory_obj.installdate))
+          self.insert_replacement_date_fmt.setDate(QDate.fromString(inventory_obj.replacementdate))
+          self.insert_notes_text.setText(inventory_obj.notes)
+          if self.insert_status_bool == 0:
+               self.insert_status_bool.setCurrentIndex(1)
+          else:
+               self.insert_status_bool.setCurrentIndex(0)
+          self.insert_uuid_text.setText(inventory_obj.uniqueid)
+          
+                              
      def toggle_burger(self):
           if self.ham_menu_frame.height() == 250:
                self.ham_menu_frame.setFixedHeight(50)
@@ -192,7 +223,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
      def set_table_size_and_headers(self, headers: [str]):
           # kept sort of abigious since headers can be changed. if it was always all the headers it could be hardcoded
-          self.main_table.setColumnCount(len(headers))
+          headers.append("UUID")
+          length = len(headers)
+          self.main_table.setColumnCount(length)
           self.main_table.setHorizontalHeaderLabels(headers)
           # set the sizes of certain columns as needed
           for count, column_title in enumerate(headers):
@@ -204,4 +237,5 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     self.main_table.setColumnWidth(count, 120)
           # alternating row colors :D
           self.main_table.setAlternatingRowColors(True)
+          self.main_table.setColumnHidden(length -1, True)  # must be done here
                
