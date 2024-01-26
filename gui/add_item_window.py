@@ -107,7 +107,6 @@ class GenericAddJsonWindow(QWidget):
           # also need to send signal to main program to tell it to refresh the relevant combobox
 
      def fill_layout_with_content(self):
-          print(f"self.cate: {self.target} {self.target == "Category"}")
           data = None
           if self.target == "Category":
                data = fetch_categories_and_years(self)
