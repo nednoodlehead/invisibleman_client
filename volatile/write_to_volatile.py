@@ -17,6 +17,23 @@ def add_to_type_or_location(new: str, type_or_loc: str):
           raw = json.load(f)
           raw[type_or_loc].append(new)
           json_data = json.dumps(raw, indent=4)
-     with open("./volatile/assetcategory.json", "w") as w:  # stupid, didnt work otherwise..
+     with open("./volatile/assetcategory.json", "w") as w:
           w.write(json_data)
 
+def read_from_config() -> dict:
+     """
+     "ham_menu_status" & "checkboxes"
+     """
+     with open("./volatile/config.json", "r") as f:
+          raw = json.load(f)
+     return raw
+
+def write_to_config(ham_menu: bool, checkboxes: dict):
+     # completely overwrite the current config
+     pre_json = {
+          "ham_menu_status": ham_menu,
+          "checkboxes": checkboxes
+     }
+     with open("./volatile/config.json", "w") as w:
+          prep = json.dumps(pre_json)
+          w.write(prep)
