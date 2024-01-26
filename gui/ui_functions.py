@@ -7,6 +7,7 @@ from db.fetch import fetch_all, fetch_all_for_table, fetch_from_uuid_to_update
 from db.insert import new_entry
 from db.update import update_full_obj
 from gui.notes_window import NotesWindow
+from volatile.write_to_volatile import write_to_config, read_from_config
 from types import MethodType
 from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type, refresh_asset_categories, fetch_all_asset_types, refresh_asset_location
 from gui.add_item_window import GenericAddJsonWindow
@@ -38,6 +39,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.refresh_table_button.clicked.connect(lambda: self.populate_table_with(fetch_all_for_table()))
           self.main_table.setSortingEnabled(True)
           self.sort_by_button.clicked.connect(lambda: self.filter_all_columns("Hard"))
+          self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
+          # make all the checboxes checked by default and make the checkboxes do something when clicked
+          # probably worth adding json support at some point, so when app is closed, it is written to json, and loaded on start
+          # but that also requires setting the exit function. TODO later :>
+          self.config = read_from_config()
+          self.default_columns = ["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
+                                 "Purchase Date", "Install Date", "Replacement Date", "Notes"]
           for count, checkbox in enumerate((self.checkbox_name, self.checkbox_serial, self.checkbox_manufacturer, self.checkbox_price,
           self.checkbox_assetcategory, self.checkbox_assettype, self.checkbox_assignedto, self.checkbox_assetlocation, self.checkbox_purchasedate,
           self.checkbox_installdate, self.checkbox_replacementdate, self.checkbox_notes)):
@@ -60,12 +68,18 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_type_add_option.clicked.connect(lambda: self.display_generic_json("Type"))
           self.insert_asset_location_add_option.clicked.connect(lambda: self.display_generic_json("Location"))
           # edit buttons
-          self.set_table_size_and_headers(["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
-                                 "Purchase Date", "Install Date", "Replacement Date", "Notes"])
+          self.set_table_size_and_headers(self.default_columns)
           self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
           self.main_table.customContextMenuRequested.connect(self.display_table_context_menu)
-
           
+     # overwritten methods
+     
+     def closeEvent(self, event):
+          self.write_config()
+          event.accept()
+          
+
+     # regular methods
      def imported_methods(self):
           # for loop at some point? lmao
           self.update_replacement_date = MethodType(update_replacement_date, self)
@@ -85,14 +99,24 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           menu.addAction("Update", lambda: self.send_update_data_to_insert(self.main_table.itemAt(position).row()))
           menu.exec_(QCursor.pos())
 
+     def view_button_reveal_checkboxes(self):
+          if self.view_toggle_frame.width() == 690:
+               self.view_toggle_frame.setFixedWidth(80)
+          else:
+               self.view_toggle_frame.setFixedWidth(690)
+
      def handle_checkboxes_and_columns(self, column: int, box: QCheckBox):
           # box.clicked.connect(lambda: self.main_table.setColumnHidden(column, not box.isChecked))
+          
           def button_target():
                self.main_table.setColumnHidden(column, not box.isChecked())
           # if you replace this function and col with lambda, it does not work. on god
-          
           box.clicked.connect(button_target)
-          box.setChecked(True)               
+          if self.config["checkboxes"][self.default_columns[column]] is True:
+               box.setChecked(True)               
+          else:
+               self.main_table.setColumnHidden(column, True)
+               pass  # set setchecked false by default on startup?
 
      def tester(self):
           print("here")
@@ -137,6 +161,25 @@ class MainProgram(QMainWindow, Ui_MainWindow):
      def swap_to_window(self, index: int):
           self.stackedWidget.setCurrentIndex(index)
           # grey out button that is selected by index?
+
+     def write_config(self):
+          to_write = {
+               "Name": self.checkbox_name.isChecked(),
+               "Serial Number": self.checkbox_serial.isChecked(),
+               "Manufacturer": self.checkbox_manufacturer.isChecked(),
+               "Price": self.checkbox_price.isChecked(),
+               "Asset Category": self.checkbox_assetcategory.isChecked(),
+               "Asset Type": self.checkbox_assettype.isChecked(),
+               "Assigned To": self.checkbox_assignedto.isChecked(),
+               "Asset Location": self.checkbox_assetlocation.isChecked(),
+               "Purchase Date": self.checkbox_purchasedate.isChecked(),
+               "Install Date": self.checkbox_installdate.isChecked(),
+               "Replacement Date": self.checkbox_replacementdate.isChecked(),
+               "Notes": self.checkbox_notes.isChecked()
+          }
+          print("to write:", to_write)
+          checked = True if self.ham_menu_frame.height() == 250 else False
+          write_to_config(checked, to_write)
      
 
      def populate_table_with(self, data: [TableObject]):
