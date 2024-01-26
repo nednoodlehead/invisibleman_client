@@ -1,5 +1,5 @@
 from gui.auto import Ui_MainWindow
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox, QMenu, QTableWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox, QMenu, QTableWidget, QCheckBox
 from PyQt5.QtCore import QDate, Qt, QDate
 from PyQt5.QtGui import QCursor
 from util.data_types import InventoryObject, TableObject, create_inventory_object
@@ -19,6 +19,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.imported_methods()  # call the imported methods into scope of the class
           self.active_notes_window = None
           self.active_json_window = None
+          # there is some argument to use a QTableView instead of a QTableWidget, since the view better supports
+          # M/V style programming, which would (in theory) significantly improve the performance of certain
+          # operations, namely filtering. would require quite a lot of refactoring though. so maybe another time :)
+          # https://stackoverflow.com/questions/6785481/how-to-implement-a-filter-option-in-qtablewidget
+          # the concept is that QTableWidget has a built-in model, and a QTableView does not, so you can edit it
+          
           # ui functions
           self.ham_menu_button.clicked.connect(self.toggle_burger)
           self.populate_table_with(fetch_all_for_table())  # TODO do this more! (when make / update data)
@@ -28,6 +34,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.ham_button_reports.clicked.connect(lambda: self.swap_to_window(3))
           self.insert_asset_category_combobox.currentIndexChanged.connect(self.update_replacement_date)
           self.insert_insert_button.clicked.connect(self.check_data_and_insert)
+          self.insert_clear_selections_button.clicked.connect(self.set_insert_data_to_default)
+          self.refresh_table_button.clicked.connect(lambda: self.populate_table_with(fetch_all_for_table()))
+          self.main_table.setSortingEnabled(True)
+          self.sort_by_button.clicked.connect(lambda: self.filter_all_columns("Hard"))
+          for count, checkbox in enumerate((self.checkbox_name, self.checkbox_serial, self.checkbox_manufacturer, self.checkbox_price,
+          self.checkbox_assetcategory, self.checkbox_assettype, self.checkbox_assignedto, self.checkbox_assetlocation, self.checkbox_purchasedate,
+          self.checkbox_installdate, self.checkbox_replacementdate, self.checkbox_notes)):
+               self.handle_checkboxes_and_columns(count, checkbox)
           # populating combo boxes. "" is an empty default value 
           cat, typ, loc = self.fetch_all_asset_types()
           self.insert_asset_category_combobox.addItem("")
@@ -38,7 +52,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_location_combobox.addItems(loc)
           self.insert_status_bool.addItems(["Enabled", "Disabled"])
           # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
-          print('set defaults')
           self.insert_install_date_fmt.setDate(QDate.currentDate())
           self.insert_purchase_date_fmt.setDate(QDate.currentDate())
           self.insert_price_spinbox.setMaximum(99999.99)
@@ -47,7 +60,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_type_add_option.clicked.connect(lambda: self.display_generic_json("Type"))
           self.insert_asset_location_add_option.clicked.connect(lambda: self.display_generic_json("Location"))
           # edit buttons
-          self.insert_insert_button.clicked.connect(self.check_data_and_insert)
           self.set_table_size_and_headers(["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
                                  "Purchase Date", "Install Date", "Replacement Date", "Notes"])
           self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -73,8 +85,20 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           menu.addAction("Update", lambda: self.send_update_data_to_insert(self.main_table.itemAt(position).row()))
           menu.exec_(QCursor.pos())
 
+     def handle_checkboxes_and_columns(self, column: int, box: QCheckBox):
+          # box.clicked.connect(lambda: self.main_table.setColumnHidden(column, not box.isChecked))
+          def button_target():
+               self.main_table.setColumnHidden(column, not box.isChecked())
+          # if you replace this function and col with lambda, it does not work. on god
+          
+          box.clicked.connect(button_target)
+          box.setChecked(True)               
+
+     def tester(self):
+          print("here")
+
+          
      def send_update_data_to_insert(self, index):
-          print("gonna update entry at index:", index)
           uuid = self.main_table.item(index, self.main_table.columnCount() -1).text()
           obj = fetch_from_uuid_to_update(uuid)
           self.swap_to_window(1)
@@ -90,10 +114,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           type_index = self.insert_asset_type_combobox.findText(inventory_obj.assettype)
           self.insert_asset_type_combobox.setCurrentIndex(type_index)
           loc_index = self.insert_asset_location_combobox.findText(inventory_obj.assetlocation)
-          print(f'indexes: {cat_index, inventory_obj.assetcategory} | {type_index} | {loc_index}')
           self.insert_asset_location_combobox.setCurrentIndex(loc_index)
           self.insert_assigned_to_text.setText(inventory_obj.assignedto)
-          print(f'dates: {self.insert_purchase_date_fmt.text()}')
           self.insert_purchase_date_fmt.setDate(datetime.fromisoformat(inventory_obj.purchasedate))
           self.insert_install_date_fmt.setDate(datetime.fromisoformat(inventory_obj.installdate))
           self.insert_replacement_date_fmt.setDate(datetime.fromisoformat(inventory_obj.replacementdate))
@@ -125,17 +147,17 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     item = QTableWidgetItem(str(value))
                     if col == 11:
                          if value == '':
-                              item = QTableWidgetItem("No Notes")  # should be a button anyways, to add notes
-                         else:
-                              button = self.generate_notes_button(data[row].uniqueid)
+                              button = self.generate_notes_button(data[row].uniqueid, "Add Notes")                              
                               self.main_table.setCellWidget(row, col, button)
-                              continue
+                         else:
+                              button = self.generate_notes_button(data[row].uniqueid, "View Notes")
+                              self.main_table.setCellWidget(row, col, button)
                     else:
                          self.main_table.setItem(row, col, item)
 
-     def generate_notes_button(self, uuid: str):  # uuid so we can update to the right column
+     def generate_notes_button(self, uuid: str, display: str):  # uuid so we can update to the right column
           button = QPushButton()
-          button.setText("View Notes")
+          button.setText(display)
           button.clicked.connect(lambda: self.display_notes(uuid))
           return button
           
@@ -177,7 +199,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.insert_asset_location_combobox.addItems(self.refresh_asset_location())
 
      def check_data_and_insert(self):
-          print('ok GOIN!')
           required = {"Serial": self.insert_serial_text, "Manufacturer": self.insert_manufacturer_text, "Asset Category":self.insert_asset_category_combobox,
           "Asset Type": self.insert_asset_type_combobox, "Asset Location": self.insert_asset_location_combobox}
           missing = []
@@ -208,6 +229,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                                           self.insert_notes_text.toPlainText(), self.insert_status_bool.currentText(), self.insert_uuid_text.text())
                     update_full_obj(obj)
                self.set_insert_data_to_default()
+               self.populate_table_with(fetch_all_for_table())  # this will overwrite any filters / views
 
      def set_insert_data_to_default(self):
           today = QDate.currentDate()
@@ -243,4 +265,24 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           # alternating row colors :D
           self.main_table.setAlternatingRowColors(True)
           self.main_table.setColumnHidden(length -1, True)  # must be done here
+               
+     def filter_all_columns(self, word: str):
+          for row_num in range(self.main_table.rowCount()):
+               match = False
+               for col_num in range(self.main_table.columnCount()):
+                    cell = self.main_table.item(row_num, col_num)
+                    if cell is None:
+                         continue
+                    else:
+                         cell_content = cell.text()
+                         if word in cell_content:
+                              match = True
+                              break
+               if match is False:
+                    self.main_table.setRowHidden(row_num, True)
+
+     def clear_filter(self):
+          pass
+                              
+          
                
