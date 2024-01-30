@@ -10,11 +10,13 @@ from PyQt5.QtCore import Qt, QFile, QTextStream
 
 def dark_light_mode_switch(self: QWidget, is_dark: bool):  # cant do MainProgram cause of circular import :(
      if is_dark:
-          file = QFile("./gui/styles/dark.qss")
-          file.open(QFile.ReadOnly | QFile.Text)
-          stream = QTextStream(file)
-          self.setStyleSheet(stream.readAll())
+          set_dark(self)
      else:
           self.setStyleSheet("")  # lol bye bye style sheet 
           # resets it to default bte
      
+def set_dark(self):
+     file = QFile("./gui/styles/dark.qss")
+     file.open(QFile.ReadOnly | QFile.Text)
+     stream = QTextStream(file)
+     self.setStyleSheet(stream.readAll())

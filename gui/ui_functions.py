@@ -7,7 +7,7 @@ from db.fetch import fetch_all, fetch_all_for_table, fetch_from_uuid_to_update
 from db.insert import new_entry
 from db.update import update_full_obj
 from gui.notes_window import NotesWindow
-from gui.settings import dark_light_mode_switch
+from gui.settings import dark_light_mode_switch, set_dark
 from volatile.write_to_volatile import write_to_config, read_from_config
 from types import MethodType
 from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type, refresh_asset_categories, fetch_all_asset_types, refresh_asset_location
@@ -50,6 +50,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.config = read_from_config()
           if self.config["ham_menu_status"] is False:  # configure ham menu based on loaded config
                self.ham_menu_frame.setFixedHeight(50)
+          if self.config["dark_mode"] is True:
+               self.settings_darkmode_checkbox.setChecked(True)
+               set_dark(self)
           # opens with height == 250, so no need to `else` set that..
           self.default_columns = ["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
                                  "Purchase Date", "Install Date", "Replacement Date", "Notes"]
@@ -186,7 +189,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                "Notes": self.checkbox_notes.isChecked()
           }
           checked = True if self.ham_menu_frame.height() == 250 else False
-          write_to_config(checked, to_write)
+          write_to_config(checked, to_write, self.settings_darkmode_checkbox.isChecked())
      
 
      def populate_table_with(self, data: [TableObject]):

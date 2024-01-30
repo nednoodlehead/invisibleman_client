@@ -28,11 +28,12 @@ def read_from_config() -> dict:
           raw = json.load(f)
      return raw
 
-def write_to_config(ham_menu: bool, checkboxes: dict):
+def write_to_config(ham_menu: bool, checkboxes: dict, dark_mode_on: bool):
      # completely overwrite the current config
      pre_json = {
           "ham_menu_status": ham_menu,
-          "checkboxes": checkboxes
+          "checkboxes": checkboxes,
+          "dark_mode": dark_mode_on
      }
      with open("./volatile/config.json", "w") as w:
           prep = json.dumps(pre_json, indent=4)
