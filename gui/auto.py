@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managergDywDU.ui'
+## Form generated from reading UI file 'inventory_managerpbIfFx.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -63,18 +63,15 @@ class Ui_MainWindow(object):
         self.stackedWidget.setGeometry(QRect(100, 0, 1161, 661))
         self.stacked_view_db_page = QWidget()
         self.stacked_view_db_page.setObjectName(u"stacked_view_db_page")
-        self.sort_by_button = QPushButton(self.stacked_view_db_page)
-        self.sort_by_button.setObjectName(u"sort_by_button")
-        self.sort_by_button.setGeometry(QRect(100, 30, 75, 23))
         self.main_table = QTableWidget(self.stacked_view_db_page)
         self.main_table.setObjectName(u"main_table")
-        self.main_table.setGeometry(QRect(10, 60, 1160, 550))
+        self.main_table.setGeometry(QRect(10, 60, 1151, 550))
         self.new_entry_button = QPushButton(self.stacked_view_db_page)
         self.new_entry_button.setObjectName(u"new_entry_button")
         self.new_entry_button.setGeometry(QRect(10, 30, 75, 23))
         self.refresh_table_button = QPushButton(self.stacked_view_db_page)
         self.refresh_table_button.setObjectName(u"refresh_table_button")
-        self.refresh_table_button.setGeometry(QRect(190, 30, 75, 23))
+        self.refresh_table_button.setGeometry(QRect(100, 30, 75, 23))
         self.view_toggle_frame = QFrame(self.stacked_view_db_page)
         self.view_toggle_frame.setObjectName(u"view_toggle_frame")
         self.view_toggle_frame.setGeometry(QRect(10, 610, 80, 41))
@@ -119,6 +116,18 @@ class Ui_MainWindow(object):
         self.checkbox_notes = QCheckBox(self.view_toggle_frame)
         self.checkbox_notes.setObjectName(u"checkbox_notes")
         self.checkbox_notes.setGeometry(QRect(570, 20, 71, 21))
+        self.filter_column_button = QPushButton(self.stacked_view_db_page)
+        self.filter_column_button.setObjectName(u"filter_column_button")
+        self.filter_column_button.setGeometry(QRect(190, 30, 75, 23))
+        self.filter_options_combobox = QComboBox(self.stacked_view_db_page)
+        self.filter_options_combobox.setObjectName(u"filter_options_combobox")
+        self.filter_options_combobox.setGeometry(QRect(270, 30, 101, 22))
+        self.filter_user_text = QLineEdit(self.stacked_view_db_page)
+        self.filter_user_text.setObjectName(u"filter_user_text")
+        self.filter_user_text.setGeometry(QRect(380, 30, 151, 20))
+        self.filter_clear_button = QPushButton(self.stacked_view_db_page)
+        self.filter_clear_button.setObjectName(u"filter_clear_button")
+        self.filter_clear_button.setGeometry(QRect(530, 30, 21, 20))
         self.stackedWidget.addWidget(self.stacked_view_db_page)
         self.stacked_add_to_db_page = QWidget()
         self.stacked_add_to_db_page.setObjectName(u"stacked_add_to_db_page")
@@ -333,7 +342,6 @@ class Ui_MainWindow(object):
         self.ham_button_analytics.setText(QCoreApplication.translate("MainWindow", u"Analytics", None))
         self.ham_button_reports.setText(QCoreApplication.translate("MainWindow", u"Reports", None))
         self.ham_button_view.setText(QCoreApplication.translate("MainWindow", u"View", None))
-        self.sort_by_button.setText(QCoreApplication.translate("MainWindow", u"Sort by...", None))
         self.new_entry_button.setText(QCoreApplication.translate("MainWindow", u"New", None))
         self.refresh_table_button.setText(QCoreApplication.translate("MainWindow", u"Refresh", None))
         self.view_columns_button.setText(QCoreApplication.translate("MainWindow", u"View", None))
@@ -349,6 +357,8 @@ class Ui_MainWindow(object):
         self.checkbox_installdate.setText(QCoreApplication.translate("MainWindow", u"Install Date", None))
         self.checkbox_replacementdate.setText(QCoreApplication.translate("MainWindow", u"Replacement Date", None))
         self.checkbox_notes.setText(QCoreApplication.translate("MainWindow", u"Notes", None))
+        self.filter_column_button.setText(QCoreApplication.translate("MainWindow", u"Filter", None))
+        self.filter_clear_button.setText(QCoreApplication.translate("MainWindow", u"X", None))
         self.insert_bold_equals_required_info.setText(QCoreApplication.translate("MainWindow", u"Bold indicates a required field", None))
         self.insert_name_text.setText("")
         self.insert_name_label.setText(QCoreApplication.translate("MainWindow", u"Name", None))
