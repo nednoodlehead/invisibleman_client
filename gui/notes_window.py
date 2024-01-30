@@ -2,6 +2,8 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextEdit, QPushButton
 from PyQt5.QtCore import QRect, QDate, QDateTime
 from db.update import update_notes
 from db.fetch import fetch_notes_from_uuid
+from gui.settings import set_dark
+from volatile.write_to_volatile import read_from_config
 
 class NotesWindow(QWidget):
      """
@@ -16,6 +18,9 @@ class NotesWindow(QWidget):
           self.label = QLabel("Notes")
           self.setGeometry(0, 0, 600, 500)
           self.label.setGeometry(0, 0, 50, 50)
+          self.config = read_from_config()
+          if self.config["dark_mode"] is True:
+               set_dark(self)
           self.notes_window_note_browser = QTextEdit(notes, self)
           self.notes_window_note_browser.setObjectName(u"notes_window_note_browser")
           self.notes_window_note_browser.setGeometry(QRect(40, 30, 500, 290))

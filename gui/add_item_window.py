@@ -3,6 +3,7 @@ from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QFont
 from gui.insert_functions import refresh_asset_categories, refresh_asset_location, refresh_asset_types, fetch_categories_and_years, replace_json_target
 from volatile.write_to_volatile import add_to_asset_list, add_to_type_or_location
+from gui.settings import set_dark
 
 class GenericAddJsonWindow(QWidget):
      def __init__(self, target: str, parent_window):
@@ -15,6 +16,8 @@ class GenericAddJsonWindow(QWidget):
           font = QFont()
           font.setPointSize(10)
           self.setFont(font)
+          if parent_window.config["dark_mode"] is True:
+               set_dark(self)
           self.json_write_to_button = QPushButton(self)
           self.json_write_to_button.setObjectName(u"json_write_to_button")
           self.json_write_to_button.setGeometry(QRect(370, 380, 75, 23))
