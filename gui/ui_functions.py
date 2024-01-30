@@ -21,6 +21,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.imported_methods()  # call the imported methods into scope of the class
           self.active_notes_window = None
           self.active_json_window = None
+          self.default_columns = ["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
+                                 "Purchase Date", "Install Date", "Replacement Date", "Notes"]
           # self.setStyle(QStyleFactory.create("Fusion"))
           # there is some argument to use a QTableView instead of a QTableWidget, since the view better supports
           # M/V style programming, which would (in theory) significantly improve the performance of certain
@@ -39,8 +41,11 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_clear_selections_button.clicked.connect(self.set_insert_data_to_default)
           self.refresh_table_button.clicked.connect(lambda: self.populate_table_with(fetch_all_for_table()))
           self.main_table.setSortingEnabled(True)
-          self.sort_by_button.clicked.connect(lambda: self.filter_all_columns("Hard"))
           self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
+          self.settings_update_button.clicked.connect(self.write_config)
+          self.filter_column_button.clicked.connect(self.handle_filter_request)
+          self.filter_options_combobox.addItem("Global")
+          self.filter_options_combobox.addItems(self.default_columns)
           # allow us to reach settings
           self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
           self.settings_darkmode_checkbox.clicked.connect(lambda: dark_light_mode_switch(self, self.settings_darkmode_checkbox.isChecked()))
@@ -54,8 +59,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.settings_darkmode_checkbox.setChecked(True)
                set_dark(self)
           # opens with height == 250, so no need to `else` set that..
-          self.default_columns = ["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
-                                 "Purchase Date", "Install Date", "Replacement Date", "Notes"]
           self.insert_widgets = [self.checkbox_name, self.checkbox_serial, self.checkbox_manufacturer, self.checkbox_price,
           self.checkbox_assetcategory, self.checkbox_assettype, self.checkbox_assignedto, self.checkbox_assetlocation, self.checkbox_purchasedate,
           self.checkbox_installdate, self.checkbox_replacementdate, self.checkbox_notes]
@@ -78,6 +81,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_category_add_option.clicked.connect(lambda: self.display_generic_json("Category"))
           self.insert_asset_type_add_option.clicked.connect(lambda: self.display_generic_json("Type"))
           self.insert_asset_location_add_option.clicked.connect(lambda: self.display_generic_json("Location"))
+          self.filter_clear_button.clicked.connect(self.clear_filter)
           # edit buttons
           self.set_table_size_and_headers(self.default_columns)
           self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -189,7 +193,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                "Notes": self.checkbox_notes.isChecked()
           }
           checked = True if self.ham_menu_frame.height() == 250 else False
-          write_to_config(checked, to_write, self.settings_darkmode_checkbox.isChecked())
+          write_to_config(checked, to_write, self.settings_darkmode_checkbox.isChecked(),
+                          self.settings_backup_dir_text.text())
      
 
      def populate_table_with(self, data: [TableObject]):
@@ -225,10 +230,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.active_notes_window.move(position)      
 
      
-     def filter_columns(self, *args):
-          for selected_column in args:
-              pass 
-
      def display_generic_json(self, target: str):
           self.active_json_window = GenericAddJsonWindow(target, self)
           self.active_json_window.show()
@@ -333,9 +334,34 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                               break
                if match is False:
                     self.main_table.setRowHidden(row_num, True)
+                    
+     def filter_certain_column(self, word: str, column: int):
+          for row_num in range(self.main_table.rowCount()):
+               match = False
+               for col_num in range(self.main_table.columnCount()):
+                    if col_num != column:
+                         continue
+                         cell = self.main_table.item(row_num, col_num)
+                         if word in cell:
+                              match = True
+                              break  # break is logically implied, but since it would search meaningless columns...
+               if match is False:
+                    self.main_table.setRowHidden(row_num, True)
+               
 
+     def handle_filter_request(self):
+          word = self.filter_user_text.text()
+          category = self.filter_options_combobox.currentText()
+          if category != "Global":
+               column = self.default_columns.index(category)
+               self.filter_certain_column(word, column)
+          else:
+               self.filter_all_columns(word)
+               
      def clear_filter(self):
-          pass
+          for count in range(self.main_table.rowCount()):
+               self.main_table.setRowHidden(count, False)
+               
                               
           
                
