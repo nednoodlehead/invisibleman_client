@@ -35,5 +35,5 @@ def write_to_config(ham_menu: bool, checkboxes: dict):
           "checkboxes": checkboxes
      }
      with open("./volatile/config.json", "w") as w:
-          prep = json.dumps(pre_json)
+          prep = json.dumps(pre_json, indent=4)
           w.write(prep)
