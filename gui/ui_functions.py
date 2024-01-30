@@ -1,12 +1,13 @@
 from gui.auto import Ui_MainWindow
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox, QMenu, QTableWidget, QCheckBox
-from PyQt5.QtCore import QDate, Qt, QDate
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox, QMenu, QTableWidget, QCheckBox, QAction, QStyleFactory
+from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream
 from PyQt5.QtGui import QCursor
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from db.fetch import fetch_all, fetch_all_for_table, fetch_from_uuid_to_update
 from db.insert import new_entry
 from db.update import update_full_obj
 from gui.notes_window import NotesWindow
+from gui.settings import dark_light_mode_switch
 from volatile.write_to_volatile import write_to_config, read_from_config
 from types import MethodType
 from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type, refresh_asset_categories, fetch_all_asset_types, refresh_asset_location
@@ -20,12 +21,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.imported_methods()  # call the imported methods into scope of the class
           self.active_notes_window = None
           self.active_json_window = None
+          # self.setStyle(QStyleFactory.create("Fusion"))
           # there is some argument to use a QTableView instead of a QTableWidget, since the view better supports
           # M/V style programming, which would (in theory) significantly improve the performance of certain
           # operations, namely filtering. would require quite a lot of refactoring though. so maybe another time :)
           # https://stackoverflow.com/questions/6785481/how-to-implement-a-filter-option-in-qtablewidget
           # the concept is that QTableWidget has a built-in model, and a QTableView does not, so you can edit it
-          
           # ui functions
           self.ham_menu_button.clicked.connect(self.toggle_burger)
           self.populate_table_with(fetch_all_for_table())  # TODO do this more! (when make / update data)
@@ -40,15 +41,22 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.main_table.setSortingEnabled(True)
           self.sort_by_button.clicked.connect(lambda: self.filter_all_columns("Hard"))
           self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
+          # allow us to reach settings
+          self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
+          self.settings_darkmode_checkbox.clicked.connect(lambda: dark_light_mode_switch(self, self.settings_darkmode_checkbox.isChecked()))
           # make all the checboxes checked by default and make the checkboxes do something when clicked
           # probably worth adding json support at some point, so when app is closed, it is written to json, and loaded on start
           # but that also requires setting the exit function. TODO later :>
           self.config = read_from_config()
+          if self.config["ham_menu_status"] is False:  # configure ham menu based on loaded config
+               self.ham_menu_frame.setFixedHeight(50)
+          # opens with height == 250, so no need to `else` set that..
           self.default_columns = ["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
                                  "Purchase Date", "Install Date", "Replacement Date", "Notes"]
-          for count, checkbox in enumerate((self.checkbox_name, self.checkbox_serial, self.checkbox_manufacturer, self.checkbox_price,
+          self.insert_widgets = [self.checkbox_name, self.checkbox_serial, self.checkbox_manufacturer, self.checkbox_price,
           self.checkbox_assetcategory, self.checkbox_assettype, self.checkbox_assignedto, self.checkbox_assetlocation, self.checkbox_purchasedate,
-          self.checkbox_installdate, self.checkbox_replacementdate, self.checkbox_notes)):
+          self.checkbox_installdate, self.checkbox_replacementdate, self.checkbox_notes]
+          for count, checkbox in enumerate(self.insert_widgets):
                self.handle_checkboxes_and_columns(count, checkbox)
           # populating combo boxes. "" is an empty default value 
           cat, typ, loc = self.fetch_all_asset_types()
@@ -177,7 +185,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                "Replacement Date": self.checkbox_replacementdate.isChecked(),
                "Notes": self.checkbox_notes.isChecked()
           }
-          print("to write:", to_write)
           checked = True if self.ham_menu_frame.height() == 250 else False
           write_to_config(checked, to_write)
      
