@@ -1,1 +1,17 @@
-{"ham_menu_status": true, "checkboxes": {"Name": true, "Serial Number": true, "Manufacturer": true, "Price": true, "Asset Category": true, "Asset Type": true, "Assigned To": true, "Asset Location": true, "Purchase Date": true, "Install Date": true, "Replacement Date": true, "Notes": true}}
+{
+    "ham_menu_status": true,
+    "checkboxes": {
+        "Name": true,
+        "Serial Number": true,
+        "Manufacturer": true,
+        "Price": true,
+        "Asset Category": true,
+        "Asset Type": true,
+        "Assigned To": true,
+        "Asset Location": true,
+        "Purchase Date": true,
+        "Install Date": true,
+        "Replacement Date": true,
+        "Notes": true
+    }
+}
