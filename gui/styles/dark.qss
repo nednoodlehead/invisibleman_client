@@ -196,7 +196,7 @@ QTableView {
 }
 
 QTableCornerButton::section {
-	background-color: COLOR_DARK;
+	background-color: #353535;
 }
 
 QTabBar {
