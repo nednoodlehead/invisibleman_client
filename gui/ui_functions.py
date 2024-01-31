@@ -31,7 +31,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           # the concept is that QTableWidget has a built-in model, and a QTableView does not, so you can edit it
           # ui functions
           self.ham_menu_button.clicked.connect(self.toggle_burger)
-          self.populate_table_with(fetch_all_for_table())  # TODO do this more! (when make / update data)
+          self.populate_table_with(fetch_all_for_table())
           self.ham_button_insert.clicked.connect(lambda: self.swap_to_window(1))
           self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
           self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
@@ -51,13 +51,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.settings_darkmode_checkbox.clicked.connect(lambda: dark_light_mode_switch(self, self.settings_darkmode_checkbox.isChecked()))
           # make all the checboxes checked by default and make the checkboxes do something when clicked
           # probably worth adding json support at some point, so when app is closed, it is written to json, and loaded on start
-          # but that also requires setting the exit function. TODO later :>
           self.config = read_from_config()
           if self.config["ham_menu_status"] is False:  # configure ham menu based on loaded config
                self.ham_menu_frame.setFixedHeight(50)
           if self.config["dark_mode"] is True:
                self.settings_darkmode_checkbox.setChecked(True)
                set_dark(self)
+          else:
+               self.setStyleSheet("QFrame#reports_export_frame{border: 1px solid black;\nborder-radius: 15px;}")
           # opens with height == 250, so no need to `else` set that..
           self.insert_widgets = [self.checkbox_name, self.checkbox_serial, self.checkbox_manufacturer, self.checkbox_price,
           self.checkbox_assetcategory, self.checkbox_assettype, self.checkbox_assignedto, self.checkbox_assetlocation, self.checkbox_purchasedate,
@@ -178,6 +179,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           # grey out button that is selected by index?
 
      def write_config(self):
+          # get checkbox value
+          report_export = True
           to_write = {
                "Name": self.checkbox_name.isChecked(),
                "Serial Number": self.checkbox_serial.isChecked(),
@@ -194,7 +197,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           }
           checked = True if self.ham_menu_frame.height() == 250 else False
           write_to_config(checked, to_write, self.settings_darkmode_checkbox.isChecked(),
-                          self.settings_backup_dir_text.text())
+                          self.settings_backup_dir_text.text(), report_export)
      
 
      def populate_table_with(self, data: [TableObject]):
