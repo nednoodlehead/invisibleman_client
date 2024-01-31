@@ -12,7 +12,8 @@ def dark_light_mode_switch(self: QWidget, is_dark: bool):  # cant do MainProgram
      if is_dark:
           set_dark(self)
      else:
-          self.setStyleSheet("")  # lol bye bye style sheet 
+          print("SWAP!!")
+          self.setStyleSheet("QFrame#reports_export_frame{border: 1px solid black;\nborder-radius: 15px;}")  # lol bye bye style sheet 
           # resets it to default bte
      
 def set_dark(self):

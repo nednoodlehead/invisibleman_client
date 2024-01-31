@@ -9,9 +9,12 @@
         "Asset Type": true,
         "Assigned To": true,
         "Asset Location": true,
-        "Purchase Date": true,
+        "Purchase Date": false,
         "Install Date": true,
         "Replacement Date": true,
         "Notes": true
-    }
+    },
+    "dark_mode": true,
+    "backup_path": "",
+    "auto_open_report_on_create": true
 }
