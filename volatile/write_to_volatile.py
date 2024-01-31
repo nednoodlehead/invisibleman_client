@@ -28,13 +28,14 @@ def read_from_config() -> dict:
           raw = json.load(f)
      return raw
 
-def write_to_config(ham_menu: bool, checkboxes: dict, dark_mode_on: bool, backup_path: str):
+def write_to_config(ham_menu: bool, checkboxes: dict, dark_mode_on: bool, backup_path: str, report: bool):
      # completely overwrite the current config
      pre_json = {
           "ham_menu_status": ham_menu,
           "checkboxes": checkboxes,
           "dark_mode": dark_mode_on,
-          "backup_path": backup_path
+          "backup_path": backup_path,
+          "auto_open_report_on_create": report
      }
      with open("./volatile/config.json", "w") as w:
           prep = json.dumps(pre_json, indent=4)
