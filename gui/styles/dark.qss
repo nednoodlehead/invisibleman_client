@@ -39,6 +39,15 @@ QTextEdit {
 	border: 1px solid #5A5A5A;
 }
 
+QFrame#reports_export_frame {
+	border: 1px solid white;
+	border-radius: 15px;
+}
+
+QFrame[frameShape="4"] {
+	border: 1px solid white;
+}
+
 QLineEdit[readOnly="true"] {
 	background: gray;
 }
