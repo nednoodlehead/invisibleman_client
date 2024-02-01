@@ -66,6 +66,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                set_dark(self)
           else:
                self.setStyleSheet("QFrame#reports_export_frame{border: 1px solid black;\nborder-radius: 15px;}")
+          if self.config["auto_open_report_on_create"] is True:
+               self.settings_report_auto_open_checkbox.setChecked(True)
           # opens with height == 250, so no need to `else` set that..
           self.insert_widgets = [self.checkbox_name, self.checkbox_serial, self.checkbox_manufacturer, self.checkbox_price,
           self.checkbox_assetcategory, self.checkbox_assettype, self.checkbox_assignedto, self.checkbox_assetlocation, self.checkbox_purchasedate,
@@ -235,7 +237,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
      def write_config(self):
           # get checkbox value
-          report_export = True
           to_write = {
                "Name": self.checkbox_name.isChecked(),
                "Serial Number": self.checkbox_serial.isChecked(),
@@ -252,7 +253,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           }
           checked = True if self.ham_menu_frame.height() == 250 else False
           write_to_config(checked, to_write, self.settings_darkmode_checkbox.isChecked(),
-                          self.settings_backup_dir_text.text(), report_export, self.export_file_path_choice.text())
+                          self.settings_backup_dir_text.text(), self.settings_report_auto_open_checkbox.isChecked(), self.export_file_path_choice.text())
      
 
      def populate_table_with(self, data: [TableObject]):
@@ -399,10 +400,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                for col_num in range(self.main_table.columnCount()):
                     if col_num != column:
                          continue
-                         cell = self.main_table.item(row_num, col_num)
-                         if word in cell:
-                              match = True
-                              break  # break is logically implied, but since it would search meaningless columns...
+                    cell = self.main_table.item(row_num, col_num)
+                    if word.lower() in cell.text().lower():
+                         match = True
+                         break  # break is logically implied, but since it would search meaningless columns...
                if match is False:
                     self.main_table.setRowHidden(row_num, True)
                
@@ -419,7 +420,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
      def clear_filter(self):
           for count in range(self.main_table.rowCount()):
                self.main_table.setRowHidden(count, False)
-               
+          self.filter_user_text.setText("")  
                               
           
                
