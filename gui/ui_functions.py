@@ -92,6 +92,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.filter_clear_button.clicked.connect(self.clear_filter)
           self.export_file_dialog.clicked.connect(self.open_report_file_dialog)
           self.export_file_path_choice.setText(self.config["default_report_path"])
+          self.reports_export_main_export_button.clicked.connect(self.interface_handle_export)
           # edit buttons
           self.set_table_size_and_headers(self.default_columns)
           self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -171,8 +172,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
      def interface_handle_export(self):
           csv_val = True if self.reports_export_file_combobox.currentText() == "CSV" else False
-          
-          filename = f'{self.export_file_path_choice.text()}/{datetime.now()}'  # should always end in a /, need to validate elsewhere
+          # ensure there is a / at the end :)
+          user_file = self.export_file_path_choice.text()
+          user_file = user_file if user_file.endswith("/") is False else f"{user_file}/"
+          filename = f'{user_file}/{str(datetime.now()).replace(":", "-")[:19]}'  # should always end in a /, need to validate elsewhere
           if self.reports_export_export_all_radio.isChecked():
                export_all(self, csv_val, filename)
           elif self.reports_export_export_EOL_radio.isChecked():
@@ -184,9 +187,11 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           elif self.reports_export_export_location_radio.isChecked():
                # cant be none...
                export_loc(self, csv_val, filename, self.reports_export_location_combobox.currentText())
-          else:
+          elif self.reports_export_export_retired_radio.isChecked():
                # also cant be none, no null check required.. :)
-               export_ret(self, csv_val, filename, self.reports_export_retired_assets_combobox.currentIndex())  # retired assets by year
+               export_ret(self, csv_val, filename, self.reports_export_retired_assets_combobox.currentText())  # retired assets by year
+          else:  # edge case where the user selects none of them
+               self.display_error_message("Please select one of the radio buttons!")
                
      def send_update_data_to_insert(self, index):
           uuid = self.main_table.item(index, self.main_table.columnCount() -1).text()
