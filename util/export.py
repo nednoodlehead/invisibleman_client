@@ -3,6 +3,7 @@
 # capabilities to export data to csv / excel sheet
 # uses openpxyl & csv
 # examples: https://foss.heptapod.net/openpyxl/openpyxl
+import os
 import openpyxl
 import csv
 import sqlite3
@@ -23,8 +24,8 @@ def export_all(self, csv: bool, file: str):
      if csv:
           write_iter_into_csv(self.default_columns, data, file)
      else:  # excel export :D
-          pass
-
+          write_iter_into_excel(self.default_columns, data, file)
+     open_explorer_at_file(self, file)
 def export_eol(self, csv: bool, file: str, year: str):
      csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
      file = f"{file}_EOL{csv_or_xlsx_str}"
@@ -32,8 +33,8 @@ def export_eol(self, csv: bool, file: str, year: str):
      if csv:
           write_iter_into_csv(self.default_columns, data, file)
      else:  # excel export :D
-          pass
-
+          write_iter_into_excel(self.default_columns, data, file)
+     open_explorer_at_file(self, file)
 def export_loc(self, csv: bool, file: str, place: str):
      csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
      file = f"{file}_location{csv_or_xlsx_str}"
@@ -41,8 +42,8 @@ def export_loc(self, csv: bool, file: str, place: str):
      if csv:
           write_iter_into_csv(self.default_columns, data, file)
      else:  # excel export :D
-          pass
-
+          write_iter_into_excel(self.default_columns, data, file)
+     open_explorer_at_file(self, file)
 def export_ret(self, csv: bool, file: str, year: str):  # can be year or 'All'
      csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
      file = f"{file}_retired{csv_or_xlsx_str}"
@@ -50,11 +51,29 @@ def export_ret(self, csv: bool, file: str, year: str):  # can be year or 'All'
      if csv:
           write_iter_into_csv(self.default_columns, data, file)
      else:  # excel export :D
-          pass
-
+          write_iter_into_excel(self.default_columns, data, file)
+     open_explorer_at_file(self, file)
 def write_iter_into_csv(columns, iterable, filename: str):
      with open(filename, "w") as csv_file:
           wr = csv.writer(csv_file, delimiter=",")
           wr.writerow(columns)
           for item in iterable:
                wr.writerow(list(item))
+
+def write_iter_into_excel(columns, iterable, filename: str):
+     wb = openpyxl.Workbook()
+     active_ws = wb.active
+     active_ws.append(columns)
+     for row in iterable:
+          active_ws.append(row)
+     wb.save(filename)
+
+# not really an 'export' file, but is only used here, an fits nowhere else really..
+def open_explorer_at_file(self, file: str):
+     # maybe have setting (only one or the other) to open the file in explorer, or to open the file..
+     file = os.path.dirname(file)
+
+     
+     if self.settings_report_auto_open_checkbox.isChecked():
+          file = os.path.realpath(file)
+          os.startfile(file)
