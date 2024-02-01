@@ -16,5 +16,6 @@
     },
     "dark_mode": true,
     "backup_path": "",
+    "default_report_path": "D:/goofin",
     "auto_open_report_on_create": true
 }
