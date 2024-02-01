@@ -1,8 +1,9 @@
 from gui.auto import Ui_MainWindow
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox, QMenu, QTableWidget, QCheckBox, QAction, QStyleFactory
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox, QMenu, QTableWidget, QCheckBox, QAction, QStyleFactory, QFileDialog
 from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream
 from PyQt5.QtGui import QCursor
 from util.data_types import InventoryObject, TableObject, create_inventory_object
+from util.export import export_all, export_eol, export_loc, export_ret
 from db.fetch import fetch_all, fetch_all_for_table, fetch_from_uuid_to_update
 from db.insert import new_entry
 from db.update import update_full_obj
@@ -23,6 +24,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.active_json_window = None
           self.default_columns = ["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
                                  "Purchase Date", "Install Date", "Replacement Date", "Notes"]
+          self.retired_asset_years = ["All", "1999", "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
+                                                               "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018",
+                                                               "2019", "2020", "2021", "2022", "2023", "2024"]
           # self.setStyle(QStyleFactory.create("Fusion"))
           # there is some argument to use a QTableView instead of a QTableWidget, since the view better supports
           # M/V style programming, which would (in theory) significantly improve the performance of certain
@@ -35,7 +39,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.ham_button_insert.clicked.connect(lambda: self.swap_to_window(1))
           self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
           self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
-          self.ham_button_reports.clicked.connect(lambda: self.swap_to_window(3))
+          self.ham_button_reports.clicked.connect(self.swap_reports_refresh)
           self.insert_asset_category_combobox.currentIndexChanged.connect(self.update_replacement_date)
           self.insert_insert_button.clicked.connect(self.check_data_and_insert)
           self.insert_clear_selections_button.clicked.connect(self.set_insert_data_to_default)
@@ -46,6 +50,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.filter_column_button.clicked.connect(self.handle_filter_request)
           self.filter_options_combobox.addItem("Global")
           self.filter_options_combobox.addItems(self.default_columns)
+          self.reports_export_file_combobox.addItems(["Excel", "CSV"])
+          self.reports_export_location_combobox.addItems(self.refresh_asset_location())
+          self.reports_export_retired_assets_combobox.addItems(self.retired_asset_years)
           # allow us to reach settings
           self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
           self.settings_darkmode_checkbox.clicked.connect(lambda: dark_light_mode_switch(self, self.settings_darkmode_checkbox.isChecked()))
@@ -83,6 +90,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_type_add_option.clicked.connect(lambda: self.display_generic_json("Type"))
           self.insert_asset_location_add_option.clicked.connect(lambda: self.display_generic_json("Location"))
           self.filter_clear_button.clicked.connect(self.clear_filter)
+          self.export_file_dialog.clicked.connect(self.open_report_file_dialog)
+          self.export_file_path_choice.setText(self.config["default_report_path"])
           # edit buttons
           self.set_table_size_and_headers(self.default_columns)
           self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -137,7 +146,48 @@ class MainProgram(QMainWindow, Ui_MainWindow):
      def tester(self):
           print("here")
 
+     def open_report_file_dialog(self):
+          filedialog = QFileDialog(self)
+          filedialog.setFileMode(QFileDialog.FileMode.DirectoryOnly)
+          path = filedialog.getExistingDirectory(self)
+          if path is not None:
+               self.export_file_path_choice.setText(path)
           
+     def refresh_asset_value(self):
+          # i dont see a scenario where the db would have different data than self.main_table
+          total = 0
+          for row_count in range(self.main_table.rowCount()):
+               for column_count in range(self.main_table.columnCount()):
+                    if column_count == 3:
+                         item = self.main_table.item(row_count, column_count)
+                         if item is not None:  # no reason to check for non int/float, since input is sanitized
+                              total += (float(item.text()))
+          # add commas between numbers...
+          self.reports_asset_integer_label.setText(f"{total:,}")
+                              
+     def swap_reports_refresh(self):
+          self.stackedWidget.setCurrentIndex(3)
+          self.refresh_asset_value()
+
+     def interface_handle_export(self):
+          csv_val = True if self.reports_export_file_combobox.currentText() == "CSV" else False
+          
+          filename = f'{self.export_file_path_choice.text()}/{datetime.now()}'  # should always end in a /, need to validate elsewhere
+          if self.reports_export_export_all_radio.isChecked():
+               export_all(self, csv_val, filename)
+          elif self.reports_export_export_EOL_radio.isChecked():
+               text = self.reports_export_EOL_text.text()
+               if text is None:
+                    self.display_error_message("End of Life Value not filled")          
+               else:
+                    export_eol(self, csv_val, filename, text)
+          elif self.reports_export_export_location_radio.isChecked():
+               # cant be none...
+               export_loc(self, csv_val, filename, self.reports_export_location_combobox.currentText())
+          else:
+               # also cant be none, no null check required.. :)
+               export_ret(self, csv_val, filename, self.reports_export_retired_assets_combobox.currentIndex())  # retired assets by year
+               
      def send_update_data_to_insert(self, index):
           uuid = self.main_table.item(index, self.main_table.columnCount() -1).text()
           obj = fetch_from_uuid_to_update(uuid)
@@ -197,7 +247,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           }
           checked = True if self.ham_menu_frame.height() == 250 else False
           write_to_config(checked, to_write, self.settings_darkmode_checkbox.isChecked(),
-                          self.settings_backup_dir_text.text(), report_export)
+                          self.settings_backup_dir_text.text(), report_export, self.export_file_path_choice.text())
      
 
      def populate_table_with(self, data: [TableObject]):
