@@ -9,6 +9,7 @@ from db.insert import new_entry
 from db.update import update_full_obj
 from gui.notes_window import NotesWindow
 from gui.settings import dark_light_mode_switch, set_dark
+from util.export import create_backup
 from volatile.write_to_volatile import write_to_config, read_from_config
 from types import MethodType
 from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type, refresh_asset_categories, fetch_all_asset_types, refresh_asset_location
@@ -53,8 +54,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.reports_export_file_combobox.addItems(["Excel", "CSV"])
           self.reports_export_location_combobox.addItems(self.refresh_asset_location())
           self.reports_export_retired_assets_combobox.addItems(self.retired_asset_years)
+          self.insert_install_date_fmt.dateChanged.connect(lambda: update_replacement_date(self))
           # allow us to reach settings
           self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
+          self.actionCreate_Backup.triggered.connect(lambda: create_backup(self))
           self.settings_darkmode_checkbox.clicked.connect(lambda: dark_light_mode_switch(self, self.settings_darkmode_checkbox.isChecked()))
           # make all the checboxes checked by default and make the checkboxes do something when clicked
           # probably worth adding json support at some point, so when app is closed, it is written to json, and loaded on start
@@ -68,6 +71,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.setStyleSheet("QFrame#reports_export_frame{border: 1px solid black;\nborder-radius: 15px;}")
           if self.config["auto_open_report_on_create"] is True:
                self.settings_report_auto_open_checkbox.setChecked(True)
+          self.settings_backup_dir_text.setText(self.config["backup_path"])
           # opens with height == 250, so no need to `else` set that..
           self.insert_widgets = [self.checkbox_name, self.checkbox_serial, self.checkbox_manufacturer, self.checkbox_price,
           self.checkbox_assetcategory, self.checkbox_assettype, self.checkbox_assignedto, self.checkbox_assetlocation, self.checkbox_purchasedate,
