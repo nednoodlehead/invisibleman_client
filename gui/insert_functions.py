@@ -6,16 +6,14 @@ def update_replacement_date(self):
      updates the date of the replacement date based on the type of gear selected          
      """
      item = self.insert_asset_category_combobox.currentText()
-     today = QDate.currentDate()
+     add_from = QDate.fromString(self.insert_install_date_fmt.text(), "yyyy-MM-dd")
      if item == "":  # if default value
-          self.insert_replacement_date_fmt.setDate(today)
-          return None
-     # turn into json, and have user be able to change this from settings
+          self.insert_replacement_date_fmt.setDate(QDate.currentDate())
+          return None  # teminate..
 
      with open("./volatile/assetcategory.json", "r") as f:
           raw_json = json.load(f)["Category"]
-     
-     self.insert_replacement_date_fmt.setDate(today.addYears(raw_json[item]))
+     self.insert_replacement_date_fmt.setDate(add_from.addYears(raw_json[item]))
 
 # might be quicker to also have a function to open the file once and return all the json, 1rw instead of 3.. 
 def refresh_asset_categories(self) -> [str]:
