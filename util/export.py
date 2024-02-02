@@ -4,9 +4,11 @@
 # uses openpxyl & csv
 # examples: https://foss.heptapod.net/openpyxl/openpyxl
 import os
+import shutil
 import openpyxl
 import csv
 import sqlite3
+import datetime
 from util.data_types import InventoryObject
 from db.fetch import fetch_all_enabled, fetch_obj_from_eol, fetch_obj_from_loc, fetch_obj_from_eol, fetch_retired_assets
 # self is passed in so we can update the self.reports_export_status_content label
@@ -77,3 +79,17 @@ def open_explorer_at_file(self, file: str):
      if self.settings_report_auto_open_checkbox.isChecked():
           file = os.path.realpath(file)
           os.startfile(file)
+
+def create_backup(self):
+     print(type(datetime.datetime.now()))
+     time_and_date = str(datetime.datetime.now()).replace(":", "-")[:19]
+     filename = f"INVMAN_BACKUP__{time_and_date}"
+     backup_dir = self.config["backup_path"]
+     if not backup_dir.endswith("/") or not backup_dir.endswith("\\"):
+          backup_dir += "/"
+     filename += ".db"
+     end_file = f"{backup_dir}{filename}"
+     print(end_file)
+     shutil.copyfile("main.db", end_file)     
+     self.display_error_message(f"Backup created successfully: {filename}")
+     open_explorer_at_file(self, end_file)
