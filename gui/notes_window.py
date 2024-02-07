@@ -37,7 +37,7 @@ class NotesWindow(QWidget):
             
      def update_notes(self):
           notes = self.notes_window_note_browser.toPlainText()
-          update_notes(self, notes, self.uuid)
+          update_notes(notes, self.uuid)
           time = QDateTime.currentDateTime()
           str_ver = time.toString("HH:mm:ss")
           self.feedback_label.setText(f"Last written: {str_ver}")
