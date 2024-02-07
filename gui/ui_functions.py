@@ -170,7 +170,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                          if item is not None:  # no reason to check for non int/float, since input is sanitized
                               total += (float(item.text()))
           # add commas between numbers...
-          self.reports_asset_integer_label.setText(f"{total:,}")
+          self.reports_asset_integer_label.setText(f"{total:,.2f}")
                               
      def swap_reports_refresh(self):
           self.stackedWidget.setCurrentIndex(3)
