@@ -11,6 +11,7 @@ from gui.notes_window import NotesWindow
 from gui.settings import dark_light_mode_switch, set_dark
 from util.export import create_backup
 from volatile.write_to_volatile import write_to_config, read_from_config
+from data.visualization import DataCanvas
 from types import MethodType
 from gui.insert_functions import update_replacement_date, refresh_asset_types, add_asset_type, refresh_asset_categories, fetch_all_asset_types, refresh_asset_location
 from gui.add_item_window import GenericAddJsonWindow
@@ -103,6 +104,16 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.set_table_size_and_headers(self.default_columns)
           self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
           self.main_table.customContextMenuRequested.connect(self.display_table_context_menu)
+
+          # threaded analyitics spawning :)
+          self.graphs_and_charts = ["Line", "Pie", "Bar"]
+          self.analytics_field_combobox_top.addItems(self.default_columns)
+          self.analytics_field_combobox_top.removeItem(len(self.default_columns))  # remove the 'uuid' field.
+          self.graph_1 = DataCanvas(parent=self.analytics_graph_top, width=5,height=4, dpi=100)
+          self.graph_1.axes.plot([0,1,2,3,4,5], [10,11,11,10, 1, 10])
+          self.analytics_field_combobox_top_2.addItems(self.graphs_and_charts)
+          self.analytics_field_combobox_top_2.currentIndexChanged.connect(lambda: self.graph_1.change_graph(self.analytics_field_combobox_top.currentText(), self.analytics_field_combobox_top_2.currentText())) 
+          self.analytics_field_combobox_top.currentIndexChanged.connect(lambda: self.graph_1.change_graph(self.analytics_field_combobox_top.currentText(), self.analytics_field_combobox_top_2.currentText())) 
           
      # overwritten methods
      
@@ -162,6 +173,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           
      def refresh_asset_value(self):
           # i dont see a scenario where the db would have different data than self.main_table
+          # with a whole lot of rows this might be slower than db query...
           total = 0
           for row_count in range(self.main_table.rowCount()):
                for column_count in range(self.main_table.columnCount()):

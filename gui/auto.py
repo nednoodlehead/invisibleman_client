@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerJjLHSd.ui'
+## Form generated from reading UI file 'inventory_managerAsgLYu.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -276,9 +276,41 @@ class Ui_MainWindow(object):
         self.stackedWidget.addWidget(self.stacked_add_to_db_page)
         self.stacked_analytic_page = QWidget()
         self.stacked_analytic_page.setObjectName(u"stacked_analytic_page")
-        self.label_2 = QLabel(self.stacked_analytic_page)
-        self.label_2.setObjectName(u"label_2")
-        self.label_2.setGeometry(QRect(150, 120, 161, 16))
+        self.analytics_graph_frame_top = QFrame(self.stacked_analytic_page)
+        self.analytics_graph_frame_top.setObjectName(u"analytics_graph_frame_top")
+        self.analytics_graph_frame_top.setGeometry(QRect(20, 30, 1131, 310))
+        self.analytics_graph_frame_top.setFrameShape(QFrame.StyledPanel)
+        self.analytics_graph_frame_top.setFrameShadow(QFrame.Raised)
+        self.analytics_field_combobox_top = QComboBox(self.analytics_graph_frame_top)
+        self.analytics_field_combobox_top.setObjectName(u"analytics_field_combobox_top")
+        self.analytics_field_combobox_top.setGeometry(QRect(20, 20, 161, 22))
+        self.analytics_graph_top = QFrame(self.analytics_graph_frame_top)
+        self.analytics_graph_top.setObjectName(u"analytics_graph_top")
+        self.analytics_graph_top.setGeometry(QRect(190, 15, 921, 291))
+        self.analytics_graph_top.setFrameShape(QFrame.StyledPanel)
+        self.analytics_graph_top.setFrameShadow(QFrame.Raised)
+        self.analytics_field_combobox_top_2 = QComboBox(self.analytics_graph_frame_top)
+        self.analytics_field_combobox_top_2.setObjectName(u"analytics_field_combobox_top_2")
+        self.analytics_field_combobox_top_2.setGeometry(QRect(20, 70, 161, 22))
+        self.analytics_graph_frame_top_2 = QFrame(self.stacked_analytic_page)
+        self.analytics_graph_frame_top_2.setObjectName(u"analytics_graph_frame_top_2")
+        self.analytics_graph_frame_top_2.setGeometry(QRect(620, 350, 531, 310))
+        self.analytics_graph_frame_top_2.setFrameShape(QFrame.StyledPanel)
+        self.analytics_graph_frame_top_2.setFrameShadow(QFrame.Raised)
+        self.analytics_field_combobox_top_3 = QComboBox(self.analytics_graph_frame_top_2)
+        self.analytics_field_combobox_top_3.setObjectName(u"analytics_field_combobox_top_3")
+        self.analytics_field_combobox_top_3.setGeometry(QRect(20, 20, 161, 22))
+        self.analytics_graph_top_2 = QFrame(self.analytics_graph_frame_top_2)
+        self.analytics_graph_top_2.setObjectName(u"analytics_graph_top_2")
+        self.analytics_graph_top_2.setGeometry(QRect(200, 15, 911, 291))
+        self.analytics_graph_top_2.setFrameShape(QFrame.StyledPanel)
+        self.analytics_graph_top_2.setFrameShadow(QFrame.Raised)
+        self.analytics_field_combobox_top_4 = QComboBox(self.analytics_graph_frame_top_2)
+        self.analytics_field_combobox_top_4.setObjectName(u"analytics_field_combobox_top_4")
+        self.analytics_field_combobox_top_4.setGeometry(QRect(20, 70, 161, 22))
+        self.calendarWidget = QCalendarWidget(self.stacked_analytic_page)
+        self.calendarWidget.setObjectName(u"calendarWidget")
+        self.calendarWidget.setGeometry(QRect(20, 350, 591, 311))
         self.stackedWidget.addWidget(self.stacked_analytic_page)
         self.stacked_reports_page = QWidget()
         self.stacked_reports_page.setObjectName(u"stacked_reports_page")
@@ -430,7 +462,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -490,7 +522,6 @@ class Ui_MainWindow(object):
         self.insert_uuid_label.setText(QCoreApplication.translate("MainWindow", u"UUID", None))
         self.insert_uuid_text.setText("")
         self.insert_clear_selections_button.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"This is the analyitics page :D", None))
         self.reports_total_asset_value_label.setText(QCoreApplication.translate("MainWindow", u"Total Asset Value", None))
         self.reports_dollarsign_label.setText(QCoreApplication.translate("MainWindow", u"$", None))
         self.reports_asset_integer_label.setText(QCoreApplication.translate("MainWindow", u"10,000", None))
