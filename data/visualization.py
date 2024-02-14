@@ -7,13 +7,13 @@ from db.fetch import fetch_all
 
 class DataCanvas(FigureCanvasQTAgg):
 
-     def __init__(self, parent=None, width=15, height=4, dpi=100):
+     def __init__(self, parent=None, width=15, height=4, dpi=100, height_2=290, width_2=790):
           self.figure = Figure(figsize=(width, height), dpi=dpi)
           self.axes = self.figure.add_subplot(111)
           super(DataCanvas, self).__init__(self.figure)
           self.setParent(parent)
-          self.setFixedWidth(920)
-          self.setFixedHeight(290)
+          self.setFixedWidth(width_2)
+          self.setFixedHeight(height_2)
 
      def set_bar_graph(self, bar_name: [str], bar_values: [int], data_choice: str):  # accurate params..
           self.axes.cla()  # clears the data stuff
@@ -23,10 +23,10 @@ class DataCanvas(FigureCanvasQTAgg):
           self.draw()
 
      def set_pie_chart(self, names: [str], values: [str], data_choice: str):
-          print(values)
           self.axes.cla()
           self.axes.set_title(data_choice)
-          self.axes.pie(values, labels=names)
+          wedges, _ = self.axes.pie(values)
+          self.axes.legend(wedges, names, loc=(1, .25))  # place the legend a bit above and to the right of pie
           self.draw()
 
      def set_line_graph(self, names: [str], values: [str], data_choice: str):
@@ -99,7 +99,8 @@ class DataCanvas(FigureCanvasQTAgg):
           elif name == "Purchase Date":  # all data should be like: 2024-09-24
                raw_data = sorted(raw_data, key=lambda x: x.purchasedate)
                for obj in raw_data:
-                    value = f"{obj.purchasedate[:4]} - {months[obj.purchasedate[5:7]]}"
+                    # use to have: - {months[obj.purchasedate[5:7]]}
+                    value = f"{obj.purchasedate[:4]}"
                     if value not in vals:
                          vals[value] = 1
                     else:
@@ -107,7 +108,7 @@ class DataCanvas(FigureCanvasQTAgg):
           elif name == "Install Date":  
                sorted(raw_data, key=lambda x: x.installdate)
                for obj in raw_data:
-                    value = f"{obj.installdate[:4]} - {months[obj.installdate[5:7]]}"
+                    value = f"{obj.installdate[:4]}"
                     if value not in vals:
                          vals[value] = 1
                     else:
@@ -115,7 +116,7 @@ class DataCanvas(FigureCanvasQTAgg):
           elif name == "Replacement Date":  
                raw_data = sorted(raw_data, key=lambda x: x.replacementdate)
                for obj in raw_data:
-                    value = f"{obj.replacementdate[:4]} - {months[obj.replacementdate[5:7]]}"
+                    value = f"{obj.replacementdate[:4]}"
                     if value not in vals:
                          vals[value] = 1
                     else:
