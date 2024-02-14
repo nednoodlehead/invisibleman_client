@@ -13,6 +13,7 @@ def update_replacement_date(self):
 
      with open("./volatile/assetcategory.json", "r") as f:
           raw_json = json.load(f)["Category"]
+     print(f'trying to update: {add_from.toString()}')
      self.insert_replacement_date_fmt.setDate(add_from.addYears(raw_json[item]))
 
 # might be quicker to also have a function to open the file once and return all the json, 1rw instead of 3.. 

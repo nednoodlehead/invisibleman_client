@@ -55,6 +55,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.reports_export_file_combobox.addItems(["Excel", "CSV"])
           self.reports_export_location_combobox.addItems(self.refresh_asset_location())
           self.reports_export_retired_assets_combobox.addItems(self.retired_asset_years)
+          self.insert_install_date_fmt.setDisplayFormat("yyyy-MM-dd")
+          self.insert_purchase_date_fmt.setDisplayFormat("yyyy-MM-dd")
+          self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
           self.insert_install_date_fmt.dateChanged.connect(lambda: update_replacement_date(self))
           # allow us to reach settings
           self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
