@@ -55,9 +55,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.reports_export_file_combobox.addItems(["Excel", "CSV"])
           self.reports_export_location_combobox.addItems(self.refresh_asset_location())
           self.reports_export_retired_assets_combobox.addItems(self.retired_asset_years)
-          self.insert_install_date_fmt.setDisplayFormat("yyyy-MM-dd")
-          self.insert_purchase_date_fmt.setDisplayFormat("yyyy-MM-dd")
-          self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
+          self.insert_install_date_fmt.setDisplayFormat("yyyy-MM-dd") # thanks qt5 for randomly changing the default display format... commi #108
+          self.insert_purchase_date_fmt.setDisplayFormat("yyyy-MM-dd") 
+          self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd") 
           self.insert_install_date_fmt.dateChanged.connect(lambda: update_replacement_date(self))
           # allow us to reach settings
           self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
@@ -109,14 +109,25 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.main_table.customContextMenuRequested.connect(self.display_table_context_menu)
 
           # threaded analyitics spawning :)
-          self.graphs_and_charts = ["Line", "Pie", "Bar"]
-          self.analytics_field_combobox_top.addItems(self.default_columns)
-          self.analytics_field_combobox_top.removeItem(len(self.default_columns))  # remove the 'uuid' field.
-          self.graph_1 = DataCanvas(parent=self.analytics_graph_top, width=5,height=4, dpi=100)
-          self.graph_1.axes.plot([0,1,2,3,4,5], [10,11,11,10, 1, 10])
-          self.analytics_field_combobox_top_2.addItems(self.graphs_and_charts)
+          self.graphs_and_charts_top = ["Line", "Bar"]
+          self.acceptable_all_charts = ["Manufacturer", "Asset Category", "Asset Type", "Asset Location", "Purchase Date", "Install Date", "Replacement Date"]
+          self.acceptable_pie_charts = self.acceptable_all_charts.copy()
+          self.acceptable_pie_charts.append("Notes")
+          self.analytics_field_combobox_top.addItems(self.acceptable_all_charts)
+          self.analytics_field_combobox_bottom.addItems(self.acceptable_pie_charts)
+          self.graph_1 = DataCanvas(parent=self.analytics_graph_top, width=10,height=4, dpi=100, height_2=290, width_2=790)
+          self.graph_2 = DataCanvas(parent=self.analytics_graph_bottom, width=6, height=4, dpi=100, height_2=290, width_2=520)  
+          self.analytics_field_combobox_top_2.addItems(self.graphs_and_charts_top)
+          # self.graph_2.figure.subplots_adjust(left=-0.1)  # was used to move the pie chart. Fine where is
+          self.analytics_field_combobox_bottom_2.addItem("Pie")
           self.analytics_field_combobox_top_2.currentIndexChanged.connect(lambda: self.graph_1.change_graph(self.analytics_field_combobox_top.currentText(), self.analytics_field_combobox_top_2.currentText())) 
           self.analytics_field_combobox_top.currentIndexChanged.connect(lambda: self.graph_1.change_graph(self.analytics_field_combobox_top.currentText(), self.analytics_field_combobox_top_2.currentText())) 
+          self.analytics_field_combobox_bottom.currentIndexChanged.connect(lambda: self.graph_2.change_graph(self.analytics_field_combobox_bottom.currentText(), self.analytics_field_combobox_bottom_2.currentText())) 
+          self.analytics_field_combobox_bottom_2.currentIndexChanged.connect(lambda: self.graph_2.change_graph(self.analytics_field_combobox_bottom.currentText(), self.analytics_field_combobox_bottom_2.currentText())) 
+
+          # should be threaded?: edit: doesnt seem too bad on performance somehow...
+          self.graph_1.change_graph("Asset Location", "Bar")
+          self.graph_2.change_graph("Asset Type", "Pie")
           
      # overwritten methods
      
