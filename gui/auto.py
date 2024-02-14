@@ -1,7 +1,8 @@
+
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerAsgLYu.ui'
+## Form generated from reading UI file 'inventory_managerCwNIof.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -278,7 +279,7 @@ class Ui_MainWindow(object):
         self.stacked_analytic_page.setObjectName(u"stacked_analytic_page")
         self.analytics_graph_frame_top = QFrame(self.stacked_analytic_page)
         self.analytics_graph_frame_top.setObjectName(u"analytics_graph_frame_top")
-        self.analytics_graph_frame_top.setGeometry(QRect(20, 30, 1131, 310))
+        self.analytics_graph_frame_top.setGeometry(QRect(20, 30, 1161, 310))
         self.analytics_graph_frame_top.setFrameShape(QFrame.StyledPanel)
         self.analytics_graph_frame_top.setFrameShadow(QFrame.Raised)
         self.analytics_field_combobox_top = QComboBox(self.analytics_graph_frame_top)
@@ -294,20 +295,23 @@ class Ui_MainWindow(object):
         self.analytics_field_combobox_top_2.setGeometry(QRect(20, 70, 161, 22))
         self.analytics_graph_frame_top_2 = QFrame(self.stacked_analytic_page)
         self.analytics_graph_frame_top_2.setObjectName(u"analytics_graph_frame_top_2")
-        self.analytics_graph_frame_top_2.setGeometry(QRect(620, 350, 531, 310))
+        self.analytics_graph_frame_top_2.setGeometry(QRect(620, 350, 571, 310))
         self.analytics_graph_frame_top_2.setFrameShape(QFrame.StyledPanel)
         self.analytics_graph_frame_top_2.setFrameShadow(QFrame.Raised)
-        self.analytics_field_combobox_top_3 = QComboBox(self.analytics_graph_frame_top_2)
-        self.analytics_field_combobox_top_3.setObjectName(u"analytics_field_combobox_top_3")
-        self.analytics_field_combobox_top_3.setGeometry(QRect(20, 20, 161, 22))
-        self.analytics_graph_top_2 = QFrame(self.analytics_graph_frame_top_2)
-        self.analytics_graph_top_2.setObjectName(u"analytics_graph_top_2")
-        self.analytics_graph_top_2.setGeometry(QRect(200, 15, 911, 291))
-        self.analytics_graph_top_2.setFrameShape(QFrame.StyledPanel)
-        self.analytics_graph_top_2.setFrameShadow(QFrame.Raised)
-        self.analytics_field_combobox_top_4 = QComboBox(self.analytics_graph_frame_top_2)
-        self.analytics_field_combobox_top_4.setObjectName(u"analytics_field_combobox_top_4")
-        self.analytics_field_combobox_top_4.setGeometry(QRect(20, 70, 161, 22))
+        self.analytics_field_combobox_bottom = QComboBox(self.analytics_graph_frame_top_2)
+        self.analytics_field_combobox_bottom.setObjectName(u"analytics_field_combobox_bottom")
+        self.analytics_field_combobox_bottom.setGeometry(QRect(20, 20, 161, 22))
+        self.analytics_field_combobox_bottom_2 = QComboBox(self.analytics_graph_frame_top_2)
+        self.analytics_field_combobox_bottom_2.setObjectName(u"analytics_field_combobox_bottom_2")
+        self.analytics_field_combobox_bottom_2.setGeometry(QRect(20, 70, 161, 22))
+        self.analytics_graph_bottom = QFrame(self.analytics_graph_frame_top_2)
+        self.analytics_graph_bottom.setObjectName(u"analytics_graph_bottom")
+        self.analytics_graph_bottom.setGeometry(QRect(10, 5, 521, 301))
+        self.analytics_graph_bottom.setFrameShape(QFrame.StyledPanel)
+        self.analytics_graph_bottom.setFrameShadow(QFrame.Raised)
+        self.analytics_graph_bottom.raise_()
+        self.analytics_field_combobox_bottom_2.raise_()
+        self.analytics_field_combobox_bottom.raise_()
         self.calendarWidget = QCalendarWidget(self.stacked_analytic_page)
         self.calendarWidget.setObjectName(u"calendarWidget")
         self.calendarWidget.setGeometry(QRect(20, 350, 591, 311))
