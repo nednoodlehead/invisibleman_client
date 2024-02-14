@@ -7,7 +7,7 @@ from db.fetch import fetch_all
 
 class DataCanvas(FigureCanvasQTAgg):
 
-     def __init__(self, parent=None, width=5, height=4, dpi=100):
+     def __init__(self, parent=None, width=15, height=4, dpi=100):
           self.figure = Figure(figsize=(width, height), dpi=dpi)
           self.axes = self.figure.add_subplot(111)
           super(DataCanvas, self).__init__(self.figure)
@@ -18,10 +18,12 @@ class DataCanvas(FigureCanvasQTAgg):
      def set_bar_graph(self, bar_name: [str], bar_values: [int], data_choice: str):  # accurate params..
           self.axes.cla()  # clears the data stuff
           self.axes.set_title(data_choice)
-          self.axes.bar(bar_name, bar_values, color='maroon', width=0.4)  # changes to bar with the stuff
+          self.axes.bar(bar_name, bar_values, color='maroon', width=0.2, align='edge')  # changes to bar with the stuff
+          self.axes
           self.draw()
 
      def set_pie_chart(self, names: [str], values: [str], data_choice: str):
+          print(values)
           self.axes.cla()
           self.axes.set_title(data_choice)
           self.axes.pie(values, labels=names)
@@ -69,6 +71,20 @@ class DataCanvas(FigureCanvasQTAgg):
                "Notes": 11
                
           }
+          months = {
+                    "01": "January",
+                    "02": "February",
+                    "03": "March",
+                    "04": "April",
+                    "05": "May",
+                    "06": "June",
+                    "07": "July",
+                    "08": "August",
+                    "09": "September",
+                    "10": "October",
+                    "11": "November",
+                    "12": "December"
+               }
           vals = {}
           raw_data = fetch_all()
           if name == "Notes":  # for notes, we separate into has notes, or doesn't have notes
@@ -79,6 +95,32 @@ class DataCanvas(FigureCanvasQTAgg):
                          vals["No Notes"] += 1
                     else:
                          vals["Some Notes"] += 1
+          # should sort this list, so it makes sense when viewing...
+          elif name == "Purchase Date":  # all data should be like: 2024-09-24
+               raw_data = sorted(raw_data, key=lambda x: x.purchasedate)
+               for obj in raw_data:
+                    value = f"{obj.purchasedate[:4]} - {months[obj.purchasedate[5:7]]}"
+                    if value not in vals:
+                         vals[value] = 1
+                    else:
+                         vals[value] += 1
+          elif name == "Install Date":  
+               sorted(raw_data, key=lambda x: x.installdate)
+               for obj in raw_data:
+                    value = f"{obj.installdate[:4]} - {months[obj.installdate[5:7]]}"
+                    if value not in vals:
+                         vals[value] = 1
+                    else:
+                         vals[value] += 1
+          elif name == "Replacement Date":  
+               raw_data = sorted(raw_data, key=lambda x: x.replacementdate)
+               for obj in raw_data:
+                    value = f"{obj.replacementdate[:4]} - {months[obj.replacementdate[5:7]]}"
+                    if value not in vals:
+                         vals[value] = 1
+                    else:
+                         vals[value] += 1
+               
           else:
                for obj in raw_data:
                     for count, data in enumerate(obj):
