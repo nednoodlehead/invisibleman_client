@@ -25,8 +25,8 @@ class DataCanvas(FigureCanvasQTAgg):
      def set_pie_chart(self, names: [str], values: [str], data_choice: str):
           self.axes.cla()
           self.axes.set_title(data_choice)
-          wedges, _ = self.axes.pie(values)
-          self.axes.legend(wedges, names, loc=(1, .25))  # place the legend a bit above and to the right of pie
+          wedges = self.axes.pie(values, autopct='%1.1f%%')
+          self.axes.legend(wedges[0], names, loc=(.90, -0.1))  # place the legend a bit above and to the right of pie
           self.draw()
 
      def set_line_graph(self, names: [str], values: [str], data_choice: str):

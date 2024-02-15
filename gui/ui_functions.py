@@ -126,8 +126,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.analytics_field_combobox_bottom_2.currentIndexChanged.connect(lambda: self.graph_2.change_graph(self.analytics_field_combobox_bottom.currentText(), self.analytics_field_combobox_bottom_2.currentText())) 
 
           # should be threaded?: edit: doesnt seem too bad on performance somehow...
-          self.graph_1.change_graph("Asset Location", "Bar")
-          self.graph_2.change_graph("Asset Type", "Pie")
+          # could totally json this bit....
+          self.graph_1.change_graph(self.config["top_graph_data"], self.config["top_graph_type"])
+          self.graph_2.change_graph(self.config["bottom_graph_data"], self.config["bottom_graph_type"])
+          self.analytics_field_combobox_top.setCurrentText(self.config["top_graph_data"])
+          self.analytics_field_combobox_top_2.setCurrentText(self.config["top_graph_type"])
+          self.analytics_field_combobox_bottom.setCurrentText(self.config["bottom_graph_data"])
+          self.analytics_field_combobox_bottom_2.setCurrentText(self.config["bottom_graph_type"])
+          # also would need to set the index of the comboboxes...
           
      # overwritten methods
      
@@ -162,10 +168,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           else:
                self.view_toggle_frame.setFixedWidth(690)
 
-     def handle_checkboxes_and_columns(self, column: int, box: QCheckBox):
+     def handle_checkboxes_and_columns(self, column: int, box: QCheckBox):  # creates the buttons for the checkboxes for disabling columns
           # box.clicked.connect(lambda: self.main_table.setColumnHidden(column, not box.isChecked))
           
-          def button_target():
+          def button_target():  # silly nested method doesn't want to be a lambda... 
                self.main_table.setColumnHidden(column, not box.isChecked())
           # if you replace this function and col with lambda, it does not work. on god
           box.clicked.connect(button_target)
@@ -175,17 +181,17 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.main_table.setColumnHidden(column, True)
                pass  # set setchecked false by default on startup?
 
-     def tester(self):
+     def tester(self):  # ignore this!
           print("here")
 
-     def open_report_file_dialog(self):
+     def open_report_file_dialog(self):  # when selecting the directory to store backups, it calls this
           filedialog = QFileDialog(self)
           filedialog.setFileMode(QFileDialog.FileMode.DirectoryOnly)
           path = filedialog.getExistingDirectory(self)
           if path is not None:
                self.export_file_path_choice.setText(path)
           
-     def refresh_asset_value(self):
+     def refresh_asset_value(self):  # refresh the asset value, called on startup, and when new obj is made
           # i dont see a scenario where the db would have different data than self.main_table
           # with a whole lot of rows this might be slower than db query...
           total = 0
@@ -197,6 +203,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                               total += (float(item.text()))
           # add commas between numbers...
           self.reports_asset_integer_label.setText(f"{total:,.2f}")
+
+     def update_calendar_colors_from_db(self):
+          raw_data = fetch_all()
+          for obj in raw_data:
+               date = QDate.fromString(obj.replacementdate, "yyyy-MM-dd")
+          
                               
      def swap_reports_refresh(self):
           self.stackedWidget.setCurrentIndex(3)
@@ -225,13 +237,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           else:  # edge case where the user selects none of them
                self.display_error_message("Please select one of the radio buttons!")
                
-     def send_update_data_to_insert(self, index):
+     def send_update_data_to_insert(self, index):  # prepare everything for update_insert_page_from_obj
           uuid = self.main_table.item(index, self.main_table.columnCount() -1).text()
           obj = fetch_from_uuid_to_update(uuid)
           self.swap_to_window(1)
           self.update_insert_page_from_obj(obj)
 
-     def update_insert_page_from_obj(self, inventory_obj: InventoryObject):
+     def update_insert_page_from_obj(self, inventory_obj: InventoryObject):  # fill the insert page with the
+          # content given from choosen updated entry
           self.insert_name_text.setText(inventory_obj.name)
           self.insert_serial_text.setText(inventory_obj.serial)
           self.insert_manufacturer_text.setText(inventory_obj.manufacturer)
@@ -254,18 +267,18 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_uuid_text.setText(inventory_obj.uniqueid)
           
                               
-     def toggle_burger(self):
+     def toggle_burger(self):  # toggle burger menu. TODO give it the icon
           if self.ham_menu_frame.height() == 250:
                self.ham_menu_frame.setFixedHeight(50)
                
           else:
                self.ham_menu_frame.setFixedHeight(250)
 
-     def swap_to_window(self, index: int):
+     def swap_to_window(self, index: int):  # change stackedwiget index
           self.stackedWidget.setCurrentIndex(index)
           # grey out button that is selected by index?
 
-     def write_config(self):
+     def write_config(self):  # writes everything to config, called on window close (and i think alt-f4)
           # get checkbox value
           to_write = {
                "Name": self.checkbox_name.isChecked(),
@@ -283,10 +296,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           }
           checked = True if self.ham_menu_frame.height() == 250 else False
           write_to_config(checked, to_write, self.settings_darkmode_checkbox.isChecked(),
-                          self.settings_backup_dir_text.text(), self.settings_report_auto_open_checkbox.isChecked(), self.export_file_path_choice.text())
+                          self.settings_backup_dir_text.text(), self.settings_report_auto_open_checkbox.isChecked(), self.export_file_path_choice.text(),
+                          self.analytics_field_combobox_top_2.currentText(), self.analytics_field_combobox_top.currentText(), self.analytics_field_combobox_bottom_2.currentText(),
+                          self.analytics_field_combobox_bottom.currentText())
      
 
-     def populate_table_with(self, data: [TableObject]):
+     def populate_table_with(self, data: [TableObject]):  # put all of the content in the table from the db, called on startup, and
+          # when updated..
           self.main_table.setRowCount(len(data))
           self.main_table.setColumnCount(len(data[0]))  # set the column count to the size of the first data piece
           for row, rowdata in enumerate(data):
@@ -309,7 +325,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           return button
           
 
-     def display_notes(self, uuid: str):
+     def display_notes(self, uuid: str):  # open the note-editing window
           # will be a text box 
           self.active_notes_window = NotesWindow(uuid)
           self.active_notes_window.show()
@@ -319,7 +335,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.active_notes_window.move(position)      
 
      
-     def display_generic_json(self, target: str):
+     def display_generic_json(self, target: str):  # open the json editing window
           self.active_json_window = GenericAddJsonWindow(target, self)
           self.active_json_window.show()
           position = self.pos()
@@ -327,7 +343,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           position.setY(position.y() + 250)
           self.active_json_window.move(position)
 
-     def refresh_combobox(self, target: str):
+     def refresh_combobox(self, target: str):  # give the comboboxes their items
+          # also i dont think its possible to have a placeholder value (e.g. "") which disapears on click
           if target == "Category":
                self.insert_asset_category_combobox.clear()
                self.insert_asset_category_combobox.addItem("")
@@ -341,7 +358,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.insert_asset_location_combobox.addItem("")
                self.insert_asset_location_combobox.addItems(self.refresh_asset_location())
 
-     def check_data_and_insert(self):
+     def check_data_and_insert(self):  # either inserts or updtes based on uuid field presence
           required = {"Serial": self.insert_serial_text, "Manufacturer": self.insert_manufacturer_text, "Asset Category":self.insert_asset_category_combobox,
           "Asset Type": self.insert_asset_type_combobox, "Asset Location": self.insert_asset_location_combobox}
           missing = []
@@ -372,9 +389,11 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                                           self.insert_notes_text.toPlainText(), self.insert_status_bool.currentText(), self.insert_uuid_text.text())
                     update_full_obj(obj)
                self.set_insert_data_to_default()
+               # intentional choice here to not update the graphs, seems too expensive to call each time, and to see if data was even changed
+               # from the current view.
                self.populate_table_with(fetch_all_for_table())  # this will overwrite any filters / views
 
-     def set_insert_data_to_default(self):
+     def set_insert_data_to_default(self):  # reset the insert data. Called when clearing page (btn) or inserting / updating
           today = QDate.currentDate()
           self.insert_name_text.setText("")
           self.insert_serial_text.setText("")
@@ -391,9 +410,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_status_bool.setCurrentIndex(0)
           self.insert_uuid_text.setText("")
 
-     def set_table_size_and_headers(self, headers: [str]):
+     def set_table_size_and_headers(self, headers: [str]):  # only called on startup
           # kept sort of abigious since headers can be changed. if it was always all the headers it could be hardcoded
-          headers.append("UUID")
+          headers.append("UUID")  # appended since other parts rely on the headers passed in, and they don't want that
           length = len(headers)
           self.main_table.setColumnCount(length)
           self.main_table.setHorizontalHeaderLabels(headers)
@@ -409,7 +428,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.main_table.setAlternatingRowColors(True)
           self.main_table.setColumnHidden(length -1, True)  # must be done here
                
-     def filter_all_columns(self, word: str):
+     def filter_all_columns(self, word: str):  # filters the columns. doesn't check notes.
           for row_num in range(self.main_table.rowCount()):
                match = False
                for col_num in range(self.main_table.columnCount()):
@@ -424,7 +443,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                if match is False:
                     self.main_table.setRowHidden(row_num, True)
                     
-     def filter_certain_column(self, word: str, column: int):
+     def filter_certain_column(self, word: str, column: int):  # also cannot check notes
           for row_num in range(self.main_table.rowCount()):
                match = False
                for col_num in range(self.main_table.columnCount()):
@@ -438,7 +457,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     self.main_table.setRowHidden(row_num, True)
                
 
-     def handle_filter_request(self):
+     def handle_filter_request(self):  # what the filter button calls
           word = self.filter_user_text.text()
           category = self.filter_options_combobox.currentText()
           if category != "Global":
@@ -447,7 +466,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           else:
                self.filter_all_columns(word)
                
-     def clear_filter(self):
+     def clear_filter(self):  # clear the text in the filter, and un-hide the columns, called by button
           for count in range(self.main_table.rowCount()):
                self.main_table.setRowHidden(count, False)
           self.filter_user_text.setText("")  
