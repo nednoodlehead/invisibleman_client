@@ -119,7 +119,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.graph_2 = DataCanvas(parent=self.analytics_graph_bottom, width=6, height=4, dpi=100, height_2=290, width_2=520)  
           self.analytics_field_combobox_top_2.addItems(self.graphs_and_charts_top)
           # self.graph_2.figure.subplots_adjust(left=-0.1)  # was used to move the pie chart. Fine where is
-          self.analytics_field_combobox_bottom_2.addItem("Pie")
+          self.analytics_field_combobox_bottom_2.addItems(["Pie", "Donut"])  # donut soon!
           self.analytics_field_combobox_top_2.currentIndexChanged.connect(lambda: self.graph_1.change_graph(self.analytics_field_combobox_top.currentText(), self.analytics_field_combobox_top_2.currentText())) 
           self.analytics_field_combobox_top.currentIndexChanged.connect(lambda: self.graph_1.change_graph(self.analytics_field_combobox_top.currentText(), self.analytics_field_combobox_top_2.currentText())) 
           self.analytics_field_combobox_bottom.currentIndexChanged.connect(lambda: self.graph_2.change_graph(self.analytics_field_combobox_bottom.currentText(), self.analytics_field_combobox_bottom_2.currentText())) 

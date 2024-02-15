@@ -29,6 +29,13 @@ class DataCanvas(FigureCanvasQTAgg):
           self.axes.legend(wedges[0], names, loc=(.90, -0.1))  # place the legend a bit above and to the right of pie
           self.draw()
 
+     def set_donut_chart(self, names: [str], values: [str], data_choice: str):
+          self.axes.cla()
+          self.axes.set_title(data_choice)
+          wedges = self.axes.pie(values, wedgeprops=dict(width=0.5), autopct='%1.1f%%')
+          self.axes.legend(wedges[0], names, loc=(.90, -0.1))
+          self.draw()
+          
      def set_line_graph(self, names: [str], values: [str], data_choice: str):
           self.axes.cla()
           self.axes.set_title(data_choice)
@@ -51,6 +58,11 @@ class DataCanvas(FigureCanvasQTAgg):
                self.set_pie_chart(data.keys(), data.values(), data_choice)
           elif graph_choice == "Line":
                self.set_line_graph(data.keys(), data.values(), data_choice)
+          elif graph_choice == "Donut":
+               self.set_donut_chart(data.keys(), data.values(), data_choice)
+          else:
+               # i dont think this can even be hit lmao
+               raise ValueError("how did you get this ?")
 
      def fetch_from_db_and_insert(self, name: str) -> dict:  #  
           # thread this !?
