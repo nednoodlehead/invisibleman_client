@@ -9,13 +9,17 @@
         "Asset Type": true,
         "Assigned To": true,
         "Asset Location": true,
-        "Purchase Date": false,
+        "Purchase Date": true,
         "Install Date": true,
         "Replacement Date": true,
         "Notes": true
     },
     "dark_mode": true,
-    "backup_path": "",
+    "backup_path": "D:\\backups",
     "default_report_path": "D:/goofin",
-    "auto_open_report_on_create": true
+    "auto_open_report_on_create": true,
+    "top_graph_type": "Bar",
+    "top_graph_data": "Replacement Date",
+    "bottom_graph_type": "Donut",
+    "bottom_graph_data": "Asset Type"
 }
