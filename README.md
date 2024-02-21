@@ -11,7 +11,8 @@ Includes:
 6. Asset depreciation tracking (Customizable)
 7. Customizable graphs for viewing data
 8. Exportable reports (CSV, Excel)
-9. Asset depreciation early warning calendar (WIP)
+9. A simple backup / restore system (Semi-WIP)
+10. Asset depreciation early warning calendar
 
 
 Invisible man: Inventory Manager -> Inv Man -> Invisible Man (hiliarous I know)
