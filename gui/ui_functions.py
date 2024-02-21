@@ -213,27 +213,40 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
      def update_calendar_colors_from_db(self):
           # should probably thread this...
+          # ok maybe there is some way to create a new cell type, then add that to the stylesheets,
+          # but i think this might require a hack and saw...
           raw_data = fetch_all()
-          increment = -35 
           mapping = {}
+          dark = self.settings_darkmode_checkbox.isChecked()
+          increment = 35 if dark else -35
+          # different colors for dark vs light mode..
+          default_color = (70, 0, 0) if dark else (255, 200, 200)
           for obj in raw_data:
+               # i think that if a max color falls on a weekend, it will be hard to read...
                date = QDate.fromString(obj.replacementdate, "yyyy-MM-dd")
                if date not in mapping.keys():
-                    mapping[date] = QColor(255, 220, 220)
+                    mapping[date] = QColor(*default_color)
                else:
-                    mapping[date].setGreen(mapping[date].green() + increment)
-                    mapping[date].setBlue(mapping[date].blue() + increment)
+                    if dark:
+                         if mapping[date].red() > 220:
+                              continue
+                         mapping[date].setRed(mapping[date].red() + increment)  # no check for max?
+                    else:
+                         if mapping[date].green() < 45:
+                              continue
+                         mapping[date].setGreen(mapping[date].green() + increment)  # no check for max?
+                         mapping[date].setBlue(mapping[date].blue() + increment)
           for date, color in mapping.items():
                cell = QTextCharFormat()
                cell.setBackground(color)
                self.calendarWidget.setDateTextFormat(date, cell)
 
      def on_calendar_click(self, date: QDate):
-          print(f'we clicked on: {date.toString()}', date.toString("yyyy-MM-dd"))
           # hide table by the date string, and swap to main view
           self.clear_filter()
           self.filter_certain_column(date.toString("yyyy-MM-dd"), self.default_columns.index("Replacement Date"))  # 7 should be replacment..
-          self.swap_to_window(0)
+          self.swap_to_window(0)  # should only swap if it is valid...
+          # can you tell if it is valid without iteration? color!
           
           
                               
@@ -471,7 +484,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     self.main_table.setRowHidden(row_num, True)
                     
      def filter_certain_column(self, word: str, column: int):  # also cannot check notes
-          print('wording:', word)
           for row_num in range(self.main_table.rowCount()):
                match = False
                for col_num in range(self.main_table.columnCount()):
