@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerlLQMwh.ui'
+## Form generated from reading UI file 'inventory_manageriwCYyQ.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -292,6 +292,9 @@ class Ui_MainWindow(object):
         self.analytics_field_combobox_top_2 = QComboBox(self.analytics_graph_frame_top)
         self.analytics_field_combobox_top_2.setObjectName(u"analytics_field_combobox_top_2")
         self.analytics_field_combobox_top_2.setGeometry(QRect(20, 70, 161, 22))
+        self.analytics_export_top_button = QPushButton(self.analytics_graph_frame_top)
+        self.analytics_export_top_button.setObjectName(u"analytics_export_top_button")
+        self.analytics_export_top_button.setGeometry(QRect(20, 110, 75, 23))
         self.analytics_graph_frame_top_2 = QFrame(self.stacked_analytic_page)
         self.analytics_graph_frame_top_2.setObjectName(u"analytics_graph_frame_top_2")
         self.analytics_graph_frame_top_2.setGeometry(QRect(620, 350, 541, 310))
@@ -308,6 +311,9 @@ class Ui_MainWindow(object):
         self.analytics_graph_bottom.setGeometry(QRect(10, 5, 521, 301))
         self.analytics_graph_bottom.setFrameShape(QFrame.StyledPanel)
         self.analytics_graph_bottom.setFrameShadow(QFrame.Raised)
+        self.analytics_export_bottom_button = QPushButton(self.analytics_graph_bottom)
+        self.analytics_export_bottom_button.setObjectName(u"analytics_export_bottom_button")
+        self.analytics_export_bottom_button.setGeometry(QRect(10, 110, 75, 23))
         self.analytics_graph_bottom.raise_()
         self.analytics_field_combobox_bottom_2.raise_()
         self.analytics_field_combobox_bottom.raise_()
@@ -525,6 +531,8 @@ class Ui_MainWindow(object):
         self.insert_uuid_label.setText(QCoreApplication.translate("MainWindow", u"UUID", None))
         self.insert_uuid_text.setText("")
         self.insert_clear_selections_button.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
+        self.analytics_export_top_button.setText(QCoreApplication.translate("MainWindow", u"Export", None))
+        self.analytics_export_bottom_button.setText(QCoreApplication.translate("MainWindow", u"Export", None))
         self.reports_total_asset_value_label.setText(QCoreApplication.translate("MainWindow", u"Total Asset Value", None))
         self.reports_dollarsign_label.setText(QCoreApplication.translate("MainWindow", u"$", None))
         self.reports_asset_integer_label.setText(QCoreApplication.translate("MainWindow", u"10,000", None))
