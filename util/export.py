@@ -81,7 +81,6 @@ def open_explorer_at_file(self, file: str):
           os.startfile(file)
 
 def create_backup(self):
-     print(type(datetime.datetime.now()))
      time_and_date = str(datetime.datetime.now()).replace(":", "-")[:19]
      filename = f"INVMAN_BACKUP__{time_and_date}"
      backup_dir = self.config["backup_path"]
@@ -89,7 +88,6 @@ def create_backup(self):
           backup_dir += "/"
      filename += ".db"
      end_file = f"{backup_dir}{filename}"
-     print(end_file)
      shutil.copyfile("main.db", end_file)     
      self.display_error_message(f"Backup created successfully: {filename}")
      open_explorer_at_file(self, end_file)
