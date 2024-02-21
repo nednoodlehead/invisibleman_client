@@ -1,7 +1,7 @@
 from gui.auto import Ui_MainWindow
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QPushButton, QMessageBox, QMenu, QTableWidget, QCheckBox, QAction, QStyleFactory, QFileDialog
-from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream
-from PyQt5.QtGui import QCursor
+from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect
+from PyQt5.QtGui import QCursor, QPainter, QColor, QTextCharFormat
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from util.export import export_all, export_eol, export_loc, export_ret
 from db.fetch import fetch_all, fetch_all_for_table, fetch_from_uuid_to_update
@@ -103,6 +103,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.export_file_dialog.clicked.connect(self.open_report_file_dialog)
           self.export_file_path_choice.setText(self.config["default_report_path"])
           self.reports_export_main_export_button.clicked.connect(self.interface_handle_export)
+          self.analytics_export_top_button.clicked.connect(lambda: self.export_choosen_graph(True))
+          self.analytics_export_bottom_button.clicked.connect(lambda: self.export_choosen_graph(False))
           # edit buttons
           self.set_table_size_and_headers(self.default_columns)
           self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -124,6 +126,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.analytics_field_combobox_top.currentIndexChanged.connect(lambda: self.graph_1.change_graph(self.analytics_field_combobox_top.currentText(), self.analytics_field_combobox_top_2.currentText())) 
           self.analytics_field_combobox_bottom.currentIndexChanged.connect(lambda: self.graph_2.change_graph(self.analytics_field_combobox_bottom.currentText(), self.analytics_field_combobox_bottom_2.currentText())) 
           self.analytics_field_combobox_bottom_2.currentIndexChanged.connect(lambda: self.graph_2.change_graph(self.analytics_field_combobox_bottom.currentText(), self.analytics_field_combobox_bottom_2.currentText())) 
+          self.calendarWidget.clicked[QDate].connect(self.on_calendar_click)
 
           # should be threaded?: edit: doesnt seem too bad on performance somehow...
           # could totally json this bit....
@@ -133,7 +136,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.analytics_field_combobox_top_2.setCurrentText(self.config["top_graph_type"])
           self.analytics_field_combobox_bottom.setCurrentText(self.config["bottom_graph_data"])
           self.analytics_field_combobox_bottom_2.setCurrentText(self.config["bottom_graph_type"])
-          # also would need to set the index of the comboboxes...
+          self.update_calendar_colors_from_db()
           
      # overwritten methods
      
@@ -184,6 +187,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
      def tester(self):  # ignore this!
           print("here")
 
+
+     def export_choosen_graph(self, is_top_graph: bool):
+          pass
+
      def open_report_file_dialog(self):  # when selecting the directory to store backups, it calls this
           filedialog = QFileDialog(self)
           filedialog.setFileMode(QFileDialog.FileMode.DirectoryOnly)
@@ -205,9 +212,29 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.reports_asset_integer_label.setText(f"{total:,.2f}")
 
      def update_calendar_colors_from_db(self):
+          # should probably thread this...
           raw_data = fetch_all()
+          increment = -35 
+          mapping = {}
           for obj in raw_data:
                date = QDate.fromString(obj.replacementdate, "yyyy-MM-dd")
+               if date not in mapping.keys():
+                    mapping[date] = QColor(255, 220, 220)
+               else:
+                    mapping[date].setGreen(mapping[date].green() + increment)
+                    mapping[date].setBlue(mapping[date].blue() + increment)
+          for date, color in mapping.items():
+               cell = QTextCharFormat()
+               cell.setBackground(color)
+               self.calendarWidget.setDateTextFormat(date, cell)
+
+     def on_calendar_click(self, date: QDate):
+          print(f'we clicked on: {date.toString()}', date.toString("yyyy-MM-dd"))
+          # hide table by the date string, and swap to main view
+          self.clear_filter()
+          self.filter_certain_column(date.toString("yyyy-MM-dd"), self.default_columns.index("Replacement Date"))  # 7 should be replacment..
+          self.swap_to_window(0)
+          
           
                               
      def swap_reports_refresh(self):
@@ -444,6 +471,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     self.main_table.setRowHidden(row_num, True)
                     
      def filter_certain_column(self, word: str, column: int):  # also cannot check notes
+          print('wording:', word)
           for row_num in range(self.main_table.rowCount()):
                match = False
                for col_num in range(self.main_table.columnCount()):
