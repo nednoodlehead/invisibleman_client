@@ -243,9 +243,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
      def on_calendar_click(self, date: QDate):
           # hide table by the date string, and swap to main view
-          self.clear_filter()
-          self.filter_certain_column(date.toString("yyyy-MM-dd"), self.default_columns.index("Replacement Date"))  # 7 should be replacment..
-          self.swap_to_window(0)  # should only swap if it is valid...
+          color = self.calendarWidget.dateTextFormat(date).background().color().getHsv() 
+          if not color == (-1, 0, 0, 255):
+                
+               self.clear_filter()
+               self.filter_certain_column(date.toString("yyyy-MM-dd"), self.default_columns.index("Replacement Date"))  # 7 should be replacment..
+               self.swap_to_window(0)  # should only swap if it is valid...
           # can you tell if it is valid without iteration? color!
           
           
