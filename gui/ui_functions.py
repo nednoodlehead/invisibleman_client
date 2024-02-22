@@ -251,36 +251,49 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           # can you tell if it is valid without iteration? color!
           
      def update_analytics_top_graph(self):
-          self.graph_1.axes.cla()  # clear the graph
+          # self.graph_1.axes.cla()  # clear the graph
+          # self.graph_1.axes.autoscale()
+          # holy hell this is torture. these stupid graphs are sooo finicky and hard to control
+          # like can u not just read my mind !?
           try:
+               print('1')
                x_axis = list(map(int, self.analytics_x_axis_text.text().split(",")))
                self.graph_1.axes.set_xticks(x_axis)
                self.graph_1.axes.set_xticklabels(x_axis)
           except ValueError:
+               print('2')
                x_axis = self.analytics_x_axis_text.text()
                if x_axis != "":
                     self.graph_1.axes.set_xticks([])
                     self.graph_1.axes.set_xlabel(x_axis)
           try:
+               print('3')
                y_axis = list(map(int, self.analytics_y_axis_text.text().split(",")))
                self.graph_1.axes.set_yticks(y_axis)
-               self.graph_1.axes.set_yticks(y_axis)
+               self.graph_1.axes.set_yticklabels(y_axis)
           except ValueError:
-               x_axis = self.analytics_y_axis_text.text()
-               if x_axis != "":
-                    self.graph_1.axes.set_xticks([])
-                    self.graph_1.axes.set_xlabel(x_axis)
+               y_axis = self.analytics_y_axis_text.text()
+               print('hh?')
+               if y_axis != "":
+                    self.graph_1.axes.set_yticks([])
+                    self.graph_1.axes.set_yticklabels(y_axis)
+                    
           data = self.graph_1.fetch_from_db_and_insert(self.analytics_field_combobox_top.currentText())
-          self.graph_1.axes.set_title(self.analytics_field_combobox_top.currentText())
+          # self.graph_1.axes.set_title(self.analytics_field_combobox_top.currentText())
           if self.analytics_field_combobox_top_2.currentText() == "Line":
-               self.graph_1.axes.plot(data.values())
+               self.graph_1.axes.plot(data.values())  # plot the 
                names = list(data.keys())
                for count, val in enumerate(data.values()):
                     self.graph_1.axes.text(count, val, names[count])
                self.graph_1.draw()
+               
           else:  # bar graph
-               print('coming soon!')
-          
+               # data.values = frequency
+               # data.keys = name
+               self.graph_1.axes.bar(data.keys(), data.values(), color='maroon', width=0.2, align='edge')
+               names = list(data.keys())
+               self.graph_1.draw()
+                         
 
 
      def swap_reports_refresh(self):
