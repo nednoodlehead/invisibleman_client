@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_manageriwCYyQ.ui'
+## Form generated from reading UI file 'inventory_managerVrKfQx.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -311,12 +311,13 @@ class Ui_MainWindow(object):
         self.analytics_graph_bottom.setGeometry(QRect(10, 5, 521, 301))
         self.analytics_graph_bottom.setFrameShape(QFrame.StyledPanel)
         self.analytics_graph_bottom.setFrameShadow(QFrame.Raised)
-        self.analytics_export_bottom_button = QPushButton(self.analytics_graph_bottom)
+        self.analytics_export_bottom_button = QPushButton(self.analytics_graph_frame_top_2)
         self.analytics_export_bottom_button.setObjectName(u"analytics_export_bottom_button")
-        self.analytics_export_bottom_button.setGeometry(QRect(10, 110, 75, 23))
+        self.analytics_export_bottom_button.setGeometry(QRect(20, 110, 75, 23))
         self.analytics_graph_bottom.raise_()
         self.analytics_field_combobox_bottom_2.raise_()
         self.analytics_field_combobox_bottom.raise_()
+        self.analytics_export_bottom_button.raise_()
         self.calendarWidget = QCalendarWidget(self.stacked_analytic_page)
         self.calendarWidget.setObjectName(u"calendarWidget")
         self.calendarWidget.setGeometry(QRect(20, 340, 590, 311))
