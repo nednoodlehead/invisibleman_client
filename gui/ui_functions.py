@@ -63,6 +63,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_install_date_fmt.dateChanged.connect(lambda: update_replacement_date(self))
           self.analytics_export_top_button.clicked.connect(lambda: self.export_graph(True))
           self.analytics_export_bottom_button.clicked.connect(lambda: self.export_graph(False))
+          self.analytics_update_top_view_button.clicked.connect(self.update_analytics_top_graph)
           # allow us to reach settings
           self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
           self.actionCreate_Backup.triggered.connect(lambda: create_backup(self))
@@ -249,7 +250,39 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.swap_to_window(0)  # should only swap if it is valid...
           # can you tell if it is valid without iteration? color!
           
-                              
+     def update_analytics_top_graph(self):
+          self.graph_1.axes.cla()  # clear the graph
+          try:
+               x_axis = list(map(int, self.analytics_x_axis_text.text().split(",")))
+               self.graph_1.axes.set_xticks(x_axis)
+               self.graph_1.axes.set_xticklabels(x_axis)
+          except ValueError:
+               x_axis = self.analytics_x_axis_text.text()
+               if x_axis != "":
+                    self.graph_1.axes.set_xticks([])
+                    self.graph_1.axes.set_xlabel(x_axis)
+          try:
+               y_axis = list(map(int, self.analytics_y_axis_text.text().split(",")))
+               self.graph_1.axes.set_yticks(y_axis)
+               self.graph_1.axes.set_yticks(y_axis)
+          except ValueError:
+               x_axis = self.analytics_y_axis_text.text()
+               if x_axis != "":
+                    self.graph_1.axes.set_xticks([])
+                    self.graph_1.axes.set_xlabel(x_axis)
+          data = self.graph_1.fetch_from_db_and_insert(self.analytics_field_combobox_top.currentText())
+          self.graph_1.axes.set_title(self.analytics_field_combobox_top.currentText())
+          if self.analytics_field_combobox_top_2.currentText() == "Line":
+               self.graph_1.axes.plot(data.values())
+               names = list(data.keys())
+               for count, val in enumerate(data.values()):
+                    self.graph_1.axes.text(count, val, names[count])
+               self.graph_1.draw()
+          else:  # bar graph
+               print('coming soon!')
+          
+
+
      def swap_reports_refresh(self):
           self.stackedWidget.setCurrentIndex(3)
           self.refresh_asset_value()
@@ -392,7 +425,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                data = self.analytics_field_combobox_bottom.currentText()
                chart_type = self.analytics_field_combobox_bottom_2.currentText()
                
-          self.active_export_graph_window = ExportGraph(chart_type, data)
+          self.active_export_graph_window = ExportGraph(self, top)
           self.active_export_graph_window.show()
           position = self.pos()
           position.setX(position.x() + 250)
