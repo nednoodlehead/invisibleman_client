@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerVrKfQx.ui'
+## Form generated from reading UI file 'inventory_managerYiTczY.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -295,6 +295,23 @@ class Ui_MainWindow(object):
         self.analytics_export_top_button = QPushButton(self.analytics_graph_frame_top)
         self.analytics_export_top_button.setObjectName(u"analytics_export_top_button")
         self.analytics_export_top_button.setGeometry(QRect(20, 110, 75, 23))
+        self.analytics_x_axis_label = QLabel(self.analytics_graph_frame_top)
+        self.analytics_x_axis_label.setObjectName(u"analytics_x_axis_label")
+        self.analytics_x_axis_label.setGeometry(QRect(20, 150, 71, 16))
+        self.analytics_x_axis_label.setToolTipDuration(-1)
+        self.analytics_x_axis_text = QLineEdit(self.analytics_graph_frame_top)
+        self.analytics_x_axis_text.setObjectName(u"analytics_x_axis_text")
+        self.analytics_x_axis_text.setGeometry(QRect(20, 170, 161, 20))
+        self.analytics_x_axis_text.setToolTipDuration(10)
+        self.analytics_y_axis_text = QLineEdit(self.analytics_graph_frame_top)
+        self.analytics_y_axis_text.setObjectName(u"analytics_y_axis_text")
+        self.analytics_y_axis_text.setGeometry(QRect(20, 220, 161, 20))
+        self.analytics_y_axis_label = QLabel(self.analytics_graph_frame_top)
+        self.analytics_y_axis_label.setObjectName(u"analytics_y_axis_label")
+        self.analytics_y_axis_label.setGeometry(QRect(20, 200, 71, 16))
+        self.analytics_update_top_view_button = QPushButton(self.analytics_graph_frame_top)
+        self.analytics_update_top_view_button.setObjectName(u"analytics_update_top_view_button")
+        self.analytics_update_top_view_button.setGeometry(QRect(20, 260, 91, 21))
         self.analytics_graph_frame_top_2 = QFrame(self.stacked_analytic_page)
         self.analytics_graph_frame_top_2.setObjectName(u"analytics_graph_frame_top_2")
         self.analytics_graph_frame_top_2.setGeometry(QRect(620, 350, 541, 310))
@@ -533,6 +550,16 @@ class Ui_MainWindow(object):
         self.insert_uuid_text.setText("")
         self.insert_clear_selections_button.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
         self.analytics_export_top_button.setText(QCoreApplication.translate("MainWindow", u"Export", None))
+#if QT_CONFIG(tooltip)
+        self.analytics_x_axis_label.setToolTip("")
+#endif // QT_CONFIG(tooltip)
+        self.analytics_x_axis_label.setText(QCoreApplication.translate("MainWindow", u"X Axis Values", None))
+#if QT_CONFIG(tooltip)
+        self.analytics_x_axis_text.setToolTip("")
+#endif // QT_CONFIG(tooltip)
+        self.analytics_y_axis_text.setText("")
+        self.analytics_y_axis_label.setText(QCoreApplication.translate("MainWindow", u"Y Axis Values", None))
+        self.analytics_update_top_view_button.setText(QCoreApplication.translate("MainWindow", u"Update View", None))
         self.analytics_export_bottom_button.setText(QCoreApplication.translate("MainWindow", u"Export", None))
         self.reports_total_asset_value_label.setText(QCoreApplication.translate("MainWindow", u"Total Asset Value", None))
         self.reports_dollarsign_label.setText(QCoreApplication.translate("MainWindow", u"$", None))
