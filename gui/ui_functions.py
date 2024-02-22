@@ -256,24 +256,20 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           # holy hell this is torture. these stupid graphs are sooo finicky and hard to control
           # like can u not just read my mind !?
           try:
-               print('1')
                x_axis = list(map(int, self.analytics_x_axis_text.text().split(",")))
                self.graph_1.axes.set_xticks(x_axis)
                self.graph_1.axes.set_xticklabels(x_axis)
           except ValueError:
-               print('2')
                x_axis = self.analytics_x_axis_text.text()
                if x_axis != "":
                     self.graph_1.axes.set_xticks([])
                     self.graph_1.axes.set_xlabel(x_axis)
           try:
-               print('3')
                y_axis = list(map(int, self.analytics_y_axis_text.text().split(",")))
                self.graph_1.axes.set_yticks(y_axis)
                self.graph_1.axes.set_yticklabels(y_axis)
           except ValueError:
                y_axis = self.analytics_y_axis_text.text()
-               print('hh?')
                if y_axis != "":
                     self.graph_1.axes.set_yticks([])
                     self.graph_1.axes.set_yticklabels(y_axis)

@@ -4,6 +4,8 @@ from PyQt5.QtGui import QFont
 from data.visualization import DataCanvas
 from volatile.write_to_volatile import read_from_config
 from gui.settings import set_dark
+from util.export import open_explorer_at_file
+import datetime
 
 class ExportGraph(QWidget):
      """
@@ -12,6 +14,7 @@ class ExportGraph(QWidget):
      def __init__(self, window, top: bool):
           super().__init__()
           self.window = window
+          self.top = top
           self.config = read_from_config()
           self.setWindowTitle(f"Export {"Line/Bar" if top else "Pie/Donut"} Graph")
           if self.config["dark_mode"]:
@@ -44,6 +47,7 @@ class ExportGraph(QWidget):
           # setupUi
           self.export_button.clicked.connect(self.export_graph)
           self.file_explorer_button.clicked.connect(self.open_file_dialog)
+          self.path_text.setText(self.config["default_report_path"])
 
      def retranslateUi(self, Form):
           self.path_label.setText(QCoreApplication.translate("Form", u"Path", None))
@@ -60,4 +64,19 @@ class ExportGraph(QWidget):
                self.path_text.setText(path)
        
      def export_graph(self):
-          pass     
+          path = self.config["default_report_path"]  # TODO maybe make this its own config item!
+          if not path.endswith("/") or path.endswith("\\"):
+               path = path + "/"
+          time_date = str(datetime.datetime.now()).replace(":", "-")[:19]
+          if self.top:
+               fig = self.window.graph_1
+               fig_data = self.window.analytics_field_combobox_top.currentText()
+               fig_type = self.window.analytics_field_combobox_top_2.currentText()
+          else:
+               fig = self.window.graph_2
+               fig_data = self.window.analytics_field_combobox_bottom.currentText()
+               fig_type = self.window.analytics_field_combobox_bottom_2.currentText()
+          file = f'{path}{fig_type}_{fig_data}_{time_date}.png'
+          fig.figure.savefig(file)
+          open_explorer_at_file(self.window, file)
+          self.close()
