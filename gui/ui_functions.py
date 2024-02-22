@@ -8,6 +8,7 @@ from db.fetch import fetch_all, fetch_all_for_table, fetch_from_uuid_to_update
 from db.insert import new_entry
 from db.update import update_full_obj
 from gui.notes_window import NotesWindow
+from gui.export_graph_window import ExportGraph
 from gui.settings import dark_light_mode_switch, set_dark
 from util.export import create_backup
 from volatile.write_to_volatile import write_to_config, read_from_config
@@ -24,6 +25,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.imported_methods()  # call the imported methods into scope of the class
           self.active_notes_window = None
           self.active_json_window = None
+          self.active_export_graph_window = None
           self.default_columns = ["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
                                  "Purchase Date", "Install Date", "Replacement Date", "Notes"]
           self.retired_asset_years = ["All", "1999", "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
@@ -59,6 +61,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_purchase_date_fmt.setDisplayFormat("yyyy-MM-dd") 
           self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd") 
           self.insert_install_date_fmt.dateChanged.connect(lambda: update_replacement_date(self))
+          self.analytics_export_top_button.clicked.connect(lambda: self.export_graph(True))
+          self.analytics_export_bottom_button.clicked.connect(lambda: self.export_graph(False))
           # allow us to reach settings
           self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
           self.actionCreate_Backup.triggered.connect(lambda: create_backup(self))
@@ -103,8 +107,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.export_file_dialog.clicked.connect(self.open_report_file_dialog)
           self.export_file_path_choice.setText(self.config["default_report_path"])
           self.reports_export_main_export_button.clicked.connect(self.interface_handle_export)
-          self.analytics_export_top_button.clicked.connect(lambda: self.export_choosen_graph(True))
-          self.analytics_export_bottom_button.clicked.connect(lambda: self.export_choosen_graph(False))
           # edit buttons
           self.set_table_size_and_headers(self.default_columns)
           self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -187,10 +189,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
      def tester(self):  # ignore this!
           print("here")
 
-
-     def export_choosen_graph(self, is_top_graph: bool):
-          pass
-
      def open_report_file_dialog(self):  # when selecting the directory to store backups, it calls this
           filedialog = QFileDialog(self)
           filedialog.setFileMode(QFileDialog.FileMode.DirectoryOnly)
@@ -250,7 +248,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.filter_certain_column(date.toString("yyyy-MM-dd"), self.default_columns.index("Replacement Date"))  # 7 should be replacment..
                self.swap_to_window(0)  # should only swap if it is valid...
           # can you tell if it is valid without iteration? color!
-          
           
                               
      def swap_reports_refresh(self):
@@ -386,6 +383,23 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           position.setY(position.y() + 250)
           self.active_json_window.move(position)
 
+     
+     def export_graph(self, top: bool):
+          if top:
+               data = self.analytics_field_combobox_top.currentText()
+               chart_type = self.analytics_field_combobox_top_2.currentText()
+          else:
+               data = self.analytics_field_combobox_bottom.currentText()
+               chart_type = self.analytics_field_combobox_bottom_2.currentText()
+               
+          self.active_export_graph_window = ExportGraph(chart_type, data)
+          self.active_export_graph_window.show()
+          position = self.pos()
+          position.setX(position.x() + 250)
+          position.setY(position.y() + 250)
+          self.active_export_graph_window.move(position)
+
+     
      def refresh_combobox(self, target: str):  # give the comboboxes their items
           # also i dont think its possible to have a placeholder value (e.g. "") which disapears on click
           if target == "Category":
