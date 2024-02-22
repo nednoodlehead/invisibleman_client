@@ -91,3 +91,4 @@ def create_backup(self):
      shutil.copyfile("main.db", end_file)     
      self.display_error_message(f"Backup created successfully: {filename}")
      open_explorer_at_file(self, end_file)
+
