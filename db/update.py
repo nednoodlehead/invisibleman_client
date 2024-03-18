@@ -40,6 +40,6 @@ def update_full_obj(obj: InventoryObject):
 
 def delete_from_uuid(uuid: str):
      with sqlite3.connect("main.db") as conn:
-          conn.execute("DELETE FROM main WHERE uniqueid = ?", [uuid,])
+          conn.execute("DELETE FROM main WHERE uniqueid = ?", (uuid,))
           conn.commit()
-          
+

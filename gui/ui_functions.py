@@ -68,7 +68,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
           self.actionCreate_Backup.triggered.connect(lambda: create_backup(self))
           self.settings_darkmode_checkbox.clicked.connect(lambda: dark_light_mode_switch(self, self.settings_darkmode_checkbox.isChecked()))
-          # print(f"2: {self.main_table.item(0, 13)}")
           # make all the checboxes checked by default and make the checkboxes do something when clicked
           # probably worth adding json support at some point, so when app is closed, it is written to json, and loaded on start
           self.config = read_from_config()
@@ -106,8 +105,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_type_add_option.clicked.connect(lambda: self.display_generic_json("Type"))
           self.insert_asset_location_add_option.clicked.connect(lambda: self.display_generic_json("Location"))
           self.filter_clear_button.clicked.connect(self.clear_filter)
-          # print(f"3: {self.main_table.item(0, 13).text()}")
-          self.export_file_dialog.clicked.connect(self.open_report_file_dialog)
           self.export_file_path_choice.setText(self.config["default_report_path"])
           self.reports_export_main_export_button.clicked.connect(self.interface_handle_export)
           # edit buttons
@@ -132,7 +129,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.analytics_field_combobox_bottom.currentIndexChanged.connect(lambda: self.graph_2.change_graph(self.analytics_field_combobox_bottom.currentText(), self.analytics_field_combobox_bottom_2.currentText())) 
           self.analytics_field_combobox_bottom_2.currentIndexChanged.connect(lambda: self.graph_2.change_graph(self.analytics_field_combobox_bottom.currentText(), self.analytics_field_combobox_bottom_2.currentText())) 
           self.calendarWidget.clicked[QDate].connect(self.on_calendar_click)
-          # print(f"4: {self.main_table.item(0, 13).text()}")
 
           # should be threaded?: edit: doesnt seem too bad on performance somehow...
           # could totally json this bit....
@@ -169,17 +165,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
      def display_table_context_menu(self, position=None):
           menu = QMenu()
           menu.addAction("Update", lambda: self.send_update_data_to_insert(self.main_table.itemAt(position).row()))
-          menu.addAction("Delete", lambda: delete_from_uuid(self.row_to_uuid(self.main_table.itemAt(position).row())))
+          menu.addAction("Delete", lambda: self.delete_and_remove_row(self.main_table.itemAt(position).row())))
           menu.exec_(QCursor.pos())
 
-     def row_to_uuid(self, row):
-          for x in range(0, 20):
-               try:
-                    print(self.main_table.item(0, x).text(), x)
-               except AttributeError:
-                    pass
-               
-          # return self.main_table.item(row, 14).text()     
+     def delete_and_remove_row(self, row):
+          id = self.main_table.item(row, 13).text()
+          delete_from_uuid(id)
+          self.main_table.removeRow(row)
      def view_button_reveal_checkboxes(self):
           if self.view_toggle_frame.width() == 720:
                self.view_toggle_frame.setFixedWidth(80)
@@ -333,10 +325,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                
      def send_update_data_to_insert(self, index):  # prepare everything for update_insert_page_from_obj
           for x in range(19):
-               print(x, "!")
-               if self.main_table.item(0, x) is None:
                     continue
-               print(f"0 - {x} // {self.main_table.item(0, x).text()}")
           uuid = self.main_table.item(index, 13).text()
           obj = fetch_from_uuid_to_update(uuid)
           self.swap_to_window(1)
