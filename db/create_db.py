@@ -7,6 +7,7 @@ def create_db():
                          name text,
                          serial text,
                          manufacturer text,
+                         model text,
                          price decimal (6, 2),
                          assetcategory text,  
                          assettype text,

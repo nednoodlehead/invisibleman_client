@@ -22,6 +22,7 @@ def update_full_obj(obj: InventoryObject):
                        SET name = ?,
                        serial = ?,
                        manufacturer = ?,
+                       model = ?
                        price = ?,
                        assetcategory = ?,
                        assettype = ?,
@@ -36,3 +37,9 @@ def update_full_obj(obj: InventoryObject):
                         """,
                        (*obj, ))
           conn.commit()          
+
+def delete_from_uuid(uuid: str):
+     with sqlite3.connect("main.db") as conn:
+          conn.execute("DELETE FROM main WHERE uniqueid = ?", [uuid,])
+          conn.commit()
+          

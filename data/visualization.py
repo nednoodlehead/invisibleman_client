@@ -72,15 +72,16 @@ class DataCanvas(FigureCanvasQTAgg):
                "Name": 0,
                "Serial Number": 1,
                "Manufacturer": 2,
-               "Price": 3,
-               "Asset Category": 4,
-               "Asset Type": 5,
-               "Assigned To": 6,
-               "Asset Location": 7,
-               "Purchase Date": 8,
-               "Install Date": 9,
-               "Replacement Date": 10,
-               "Notes": 11
+               "Model": 3,
+               "Price": 4,
+               "Asset Category": 5,
+               "Asset Type": 6,
+               "Assigned To": 7,
+               "Asset Location": 8,
+               "Purchase Date": 9,
+               "Install Date": 10,
+               "Replacement Date": 11,
+               "Notes": 12
                
           }
           months = {

@@ -6,7 +6,7 @@ from util.data_types import InventoryObject, TableObject, create_inventory_objec
 from util.export import export_all, export_eol, export_loc, export_ret
 from db.fetch import fetch_all, fetch_all_for_table, fetch_from_uuid_to_update
 from db.insert import new_entry
-from db.update import update_full_obj
+from db.update import update_full_obj, delete_from_uuid
 from gui.notes_window import NotesWindow
 from gui.export_graph_window import ExportGraph
 from gui.settings import dark_light_mode_switch, set_dark
@@ -26,7 +26,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.active_notes_window = None
           self.active_json_window = None
           self.active_export_graph_window = None
-          self.default_columns = ["Name", "Serial Number", "Manufacturer", "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
+          self.default_columns = ["Name", "Serial Number", "Manufacturer", "Model",  "Price", "Asset Category", "Asset Type", "Assigned To", "Asset Location",
                                  "Purchase Date", "Install Date", "Replacement Date", "Notes"]
           self.retired_asset_years = ["All", "1999", "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
                                                                "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018",
@@ -68,6 +68,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
           self.actionCreate_Backup.triggered.connect(lambda: create_backup(self))
           self.settings_darkmode_checkbox.clicked.connect(lambda: dark_light_mode_switch(self, self.settings_darkmode_checkbox.isChecked()))
+          # print(f"2: {self.main_table.item(0, 13)}")
           # make all the checboxes checked by default and make the checkboxes do something when clicked
           # probably worth adding json support at some point, so when app is closed, it is written to json, and loaded on start
           self.config = read_from_config()
@@ -82,7 +83,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.settings_report_auto_open_checkbox.setChecked(True)
           self.settings_backup_dir_text.setText(self.config["backup_path"])
           # opens with height == 250, so no need to `else` set that..
-          self.insert_widgets = [self.checkbox_name, self.checkbox_serial, self.checkbox_manufacturer, self.checkbox_price,
+          self.insert_widgets = [self.checkbox_name, self.checkbox_serial, self.checkbox_manufacturer, self.checkbox_model, self.checkbox_price,
           self.checkbox_assetcategory, self.checkbox_assettype, self.checkbox_assignedto, self.checkbox_assetlocation, self.checkbox_purchasedate,
           self.checkbox_installdate, self.checkbox_replacementdate, self.checkbox_notes]
           for count, checkbox in enumerate(self.insert_widgets):
@@ -105,6 +106,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_asset_type_add_option.clicked.connect(lambda: self.display_generic_json("Type"))
           self.insert_asset_location_add_option.clicked.connect(lambda: self.display_generic_json("Location"))
           self.filter_clear_button.clicked.connect(self.clear_filter)
+          # print(f"3: {self.main_table.item(0, 13).text()}")
           self.export_file_dialog.clicked.connect(self.open_report_file_dialog)
           self.export_file_path_choice.setText(self.config["default_report_path"])
           self.reports_export_main_export_button.clicked.connect(self.interface_handle_export)
@@ -130,6 +132,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.analytics_field_combobox_bottom.currentIndexChanged.connect(lambda: self.graph_2.change_graph(self.analytics_field_combobox_bottom.currentText(), self.analytics_field_combobox_bottom_2.currentText())) 
           self.analytics_field_combobox_bottom_2.currentIndexChanged.connect(lambda: self.graph_2.change_graph(self.analytics_field_combobox_bottom.currentText(), self.analytics_field_combobox_bottom_2.currentText())) 
           self.calendarWidget.clicked[QDate].connect(self.on_calendar_click)
+          # print(f"4: {self.main_table.item(0, 13).text()}")
 
           # should be threaded?: edit: doesnt seem too bad on performance somehow...
           # could totally json this bit....
@@ -166,13 +169,22 @@ class MainProgram(QMainWindow, Ui_MainWindow):
      def display_table_context_menu(self, position=None):
           menu = QMenu()
           menu.addAction("Update", lambda: self.send_update_data_to_insert(self.main_table.itemAt(position).row()))
+          menu.addAction("Delete", lambda: delete_from_uuid(self.row_to_uuid(self.main_table.itemAt(position).row())))
           menu.exec_(QCursor.pos())
 
+     def row_to_uuid(self, row):
+          for x in range(0, 20):
+               try:
+                    print(self.main_table.item(0, x).text(), x)
+               except AttributeError:
+                    pass
+               
+          # return self.main_table.item(row, 14).text()     
      def view_button_reveal_checkboxes(self):
-          if self.view_toggle_frame.width() == 690:
+          if self.view_toggle_frame.width() == 720:
                self.view_toggle_frame.setFixedWidth(80)
           else:
-               self.view_toggle_frame.setFixedWidth(690)
+               self.view_toggle_frame.setFixedWidth(720)
 
      def handle_checkboxes_and_columns(self, column: int, box: QCheckBox):  # creates the buttons for the checkboxes for disabling columns
           # box.clicked.connect(lambda: self.main_table.setColumnHidden(column, not box.isChecked))
@@ -203,7 +215,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           total = 0
           for row_count in range(self.main_table.rowCount()):
                for column_count in range(self.main_table.columnCount()):
-                    if column_count == 3:
+                    if column_count == 4:
                          item = self.main_table.item(row_count, column_count)
                          if item is not None:  # no reason to check for non int/float, since input is sanitized
                               total += (float(item.text()))
@@ -320,7 +332,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.display_error_message("Please select one of the radio buttons!")
                
      def send_update_data_to_insert(self, index):  # prepare everything for update_insert_page_from_obj
-          uuid = self.main_table.item(index, self.main_table.columnCount() -1).text()
+          for x in range(19):
+               print(x, "!")
+               if self.main_table.item(0, x) is None:
+                    continue
+               print(f"0 - {x} // {self.main_table.item(0, x).text()}")
+          uuid = self.main_table.item(index, 13).text()
           obj = fetch_from_uuid_to_update(uuid)
           self.swap_to_window(1)
           self.update_insert_page_from_obj(obj)
@@ -330,6 +347,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_name_text.setText(inventory_obj.name)
           self.insert_serial_text.setText(inventory_obj.serial)
           self.insert_manufacturer_text.setText(inventory_obj.manufacturer)
+          self.insert_model_text.setText(inventory_obj.model)
           self.insert_price_spinbox.setValue(float(inventory_obj.price))
           cat_index = self.insert_asset_category_combobox.findText(inventory_obj.assetcategory)
           self.insert_asset_category_combobox.setCurrentIndex(cat_index)
@@ -366,6 +384,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                "Name": self.checkbox_name.isChecked(),
                "Serial Number": self.checkbox_serial.isChecked(),
                "Manufacturer": self.checkbox_manufacturer.isChecked(),
+               "Model": self.checkbox_model.isChecked(),
                "Price": self.checkbox_price.isChecked(),
                "Asset Category": self.checkbox_assetcategory.isChecked(),
                "Asset Type": self.checkbox_assettype.isChecked(),
@@ -385,12 +404,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
      def populate_table_with(self, data: [TableObject]):  # put all of the content in the table from the db, called on startup, and
           # when updated..
+          if len(data) == 0:
+               return  # is this sort of feral?
           self.main_table.setRowCount(len(data))
-          self.main_table.setColumnCount(len(data[0]))  # set the column count to the size of the first data piece
+          self.main_table.setColumnCount(14)  # set the column count to the size of the first data piece
           for row, rowdata in enumerate(data):
                for col, value in enumerate(rowdata):
                     item = QTableWidgetItem(str(value))
-                    if col == 11:
+                    if col == 12:
                          if value == '':
                               button = self.generate_notes_button(data[row].uniqueid, "Add Notes")                              
                               self.main_table.setCellWidget(row, col, button)
@@ -398,6 +419,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                               button = self.generate_notes_button(data[row].uniqueid, "View Notes")
                               self.main_table.setCellWidget(row, col, button)
                     else:
+                         print(f"Setting: {col} {value}")
                          self.main_table.setItem(row, col, item)
 
      def generate_notes_button(self, uuid: str, display: str):  # uuid so we can update to the right column
@@ -474,7 +496,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                # we are creating a new entry if this is an empty value 
                if self.insert_uuid_text.text() == '':
                     
-                    obj = create_inventory_object(self.insert_name_text.text(), self.insert_serial_text.text(), self.insert_manufacturer_text.text(),
+                    obj = create_inventory_object(self.insert_name_text.text(), self.insert_serial_text.text(), self.insert_manufacturer_text.text(), self.insert_model_text.text(),
                                             self.insert_price_spinbox.text(), self.insert_asset_category_combobox.currentText(), self.insert_asset_type_combobox.currentText(),
                                             self.insert_assigned_to_text.text(), self.insert_asset_location_combobox.currentText(), self.insert_purchase_date_fmt.text(), 
                                             self.insert_install_date_fmt.text(), self.insert_replacement_date_fmt.text(), self.insert_notes_text.toPlainText(),
