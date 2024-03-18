@@ -165,7 +165,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
      def display_table_context_menu(self, position=None):
           menu = QMenu()
           menu.addAction("Update", lambda: self.send_update_data_to_insert(self.main_table.itemAt(position).row()))
-          menu.addAction("Delete", lambda: self.delete_and_remove_row(self.main_table.itemAt(position).row())))
+          menu.addAction("Delete", lambda: self.delete_and_remove_row(self.main_table.itemAt(position).row()))
           menu.exec_(QCursor.pos())
 
      def delete_and_remove_row(self, row):
@@ -408,7 +408,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                               button = self.generate_notes_button(data[row].uniqueid, "View Notes")
                               self.main_table.setCellWidget(row, col, button)
                     else:
-                         print(f"Setting: {col} {value}")
                          self.main_table.setItem(row, col, item)
 
      def generate_notes_button(self, uuid: str, display: str):  # uuid so we can update to the right column
