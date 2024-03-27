@@ -324,8 +324,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                self.display_error_message("Please select one of the radio buttons!")
                
      def send_update_data_to_insert(self, index):  # prepare everything for update_insert_page_from_obj
-          for x in range(19):
-                    continue
           uuid = self.main_table.item(index, 13).text()
           obj = fetch_from_uuid_to_update(uuid)
           self.swap_to_window(1)
@@ -507,6 +505,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
           self.insert_name_text.setText("")
           self.insert_serial_text.setText("")
           self.insert_manufacturer_text.setText("")
+          self.insert_model_text.setText("")
           self.insert_price_spinbox.setValue(0.00)
           self.insert_asset_category_combobox.setCurrentIndex(0)  # to the empty string!
           self.insert_asset_type_combobox.setCurrentIndex(0)
