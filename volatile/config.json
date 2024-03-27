@@ -4,6 +4,7 @@
         "Name": true,
         "Serial Number": true,
         "Manufacturer": true,
+        "Model": true,
         "Price": true,
         "Asset Category": true,
         "Asset Type": true,
