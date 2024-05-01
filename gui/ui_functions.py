@@ -490,7 +490,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     new_entry(obj)               
                else:
                     # we are updating an existing entry! (since the uuid string was set)
-                    obj = InventoryObject(self.insert_name_text.text(), self.insert_serial_text.text(), self.insert_manufacturer_text.text(), self.insert_price_spinbox.text(),
+                    obj = InventoryObject(self.insert_name_text.text(), self.insert_serial_text.text(), self.insert_manufacturer_text.text(), self.insert_price_spinbox.text(), self.insert_model_text.text(),
                                           self.insert_asset_category_combobox.currentText(), self.insert_asset_type_combobox.currentText(), self.insert_assigned_to_text.text(), self.insert_asset_location_combobox.currentText(),
                                           self.insert_purchase_date_fmt.text(), self.insert_install_date_fmt.text(), self.insert_replacement_date_fmt.text(),
                                           self.insert_notes_text.toPlainText(), self.insert_status_bool.currentText(), self.insert_uuid_text.text())

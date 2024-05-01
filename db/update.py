@@ -22,7 +22,7 @@ def update_full_obj(obj: InventoryObject):
                        SET name = ?,
                        serial = ?,
                        manufacturer = ?,
-                       model = ?
+                       model = ?,
                        price = ?,
                        assetcategory = ?,
                        assettype = ?,
