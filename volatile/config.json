@@ -19,8 +19,8 @@
     "backup_path": "D:\\backups",
     "default_report_path": "D:/goofin",
     "auto_open_report_on_create": true,
-    "top_graph_type": "Bar",
-    "top_graph_data": "Replacement Date",
-    "bottom_graph_type": "Donut",
-    "bottom_graph_data": "Asset Type"
+    "top_graph_type": "Line",
+    "top_graph_data": "Asset Type",
+    "bottom_graph_type": "Pie",
+    "bottom_graph_data": "Notes"
 }

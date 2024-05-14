@@ -4,20 +4,25 @@
 from PyQt5.QtWidgets import QWidget, QStyleFactory
 from PyQt5.QtGui import QPalette, QColor, QGuiApplication
 from PyQt5.QtCore import Qt, QFile, QTextStream
+
 # flip for dark / light mode
 
 
+def dark_light_mode_switch(
+    self: QWidget, is_dark: bool
+):  # cant do MainProgram cause of circular import :(
+    if is_dark:
+        set_dark(self)
+    else:
+        self.setStyleSheet(
+            "QFrame#reports_export_frame{border: 1px solid black;\nborder-radius: 15px;}"
+        )  # lol bye bye style sheet
+        # resets it to default bte
+    self.update_calendar_colors_from_db()
 
-def dark_light_mode_switch(self: QWidget, is_dark: bool):  # cant do MainProgram cause of circular import :(
-     if is_dark:
-          set_dark(self)
-     else:
-          self.setStyleSheet("QFrame#reports_export_frame{border: 1px solid black;\nborder-radius: 15px;}")  # lol bye bye style sheet 
-          # resets it to default bte
-     self.update_calendar_colors_from_db()
-     
+
 def set_dark(self):
-     file = QFile("./gui/styles/dark.qss")
-     file.open(QFile.ReadOnly | QFile.Text)
-     stream = QTextStream(file)
-     self.setStyleSheet(stream.readAll())
+    file = QFile("./gui/styles/dark.qss")
+    file.open(QFile.ReadOnly | QFile.Text)
+    stream = QTextStream(file)
+    self.setStyleSheet(stream.readAll())

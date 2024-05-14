@@ -1,8 +1,10 @@
 import sqlite3
 
+
 def create_db():
-      with sqlite3.connect("main.db") as conn: # creates if not created already
-          conn.execute("""
+    with sqlite3.connect("main.db") as conn:  # creates if not created already
+        conn.execute(
+            """
                     CREATE TABLE IF NOT EXISTS main (
                          name text,
                          serial text,
@@ -20,5 +22,6 @@ def create_db():
                          status bool,                    
                          uniqueid text PRIMARY KEY
                        )
-                       """)
-          conn.commit()
+                       """
+        )
+        conn.commit()
