@@ -178,7 +178,7 @@ class GenericAddJsonWindow(QWidget):
             button = self.make_x_button()
             self.json_button_layout.addWidget(button)
         else:
-            self.parent_window.display_error_message("Error adding empty string!")
+            self.parent_window.display_message("Error!", "Error adding empty string!")
 
     def write_changes(self):
         length = range(

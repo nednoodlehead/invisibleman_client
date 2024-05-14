@@ -1,10 +1,8 @@
 import matplotlib
-
-matplotlib.use("Qt5Agg")  # i think this is important...
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-from matplotlib import pyplot
 from db.fetch import fetch_all
+matplotlib.use("Qt5Agg")  # i think this is important...
 
 
 class DataCanvas(FigureCanvasQTAgg):

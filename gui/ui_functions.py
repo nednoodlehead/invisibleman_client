@@ -62,7 +62,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Notes",
         ]
         self.retired_asset_years = [
-            "All",
             "1999",
             "2000",
             "2001",
@@ -89,7 +88,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "2022",
             "2023",
             "2024",
+            "All",
         ]
+        self.retired_asset_years.reverse()
         # self.setStyle(QStyleFactory.create("Fusion"))
         # there is some argument to use a QTableView instead of a QTableWidget, since the view better supports
         # M/V style programming, which would (in theory) significantly improve the performance of certain
@@ -296,6 +297,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.config["bottom_graph_type"]
         )
         self.update_calendar_colors_from_db()
+        self.settings_update_button.clicked.connect(self.write_config_tell_user)
 
     # overwritten methods
 
@@ -312,10 +314,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.refresh_asset_location = MethodType(refresh_asset_location, self)
         self.fetch_all_asset_types = MethodType(fetch_all_asset_types, self)
 
-    def display_error_message(self, error: str):
+    def display_message(self, title: str, information: str):
         msg = QMessageBox()
-        msg.setText(error)
-        msg.setWindowTitle("Error")
+        msg.setText(information)
+        msg.setWindowTitle(title)
         msg.exec_()
 
     def display_table_context_menu(self, position=None):
@@ -496,7 +498,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         elif self.reports_export_export_EOL_radio.isChecked():
             text = self.reports_export_EOL_text.text()
             if text is None:
-                self.display_error_message("End of Life Value not filled")
+                self.display_message("Error!", "End of Life Value not filled")
             else:
                 export_eol(self, csv_val, filename, text)
         elif self.reports_export_export_location_radio.isChecked():
@@ -516,7 +518,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.reports_export_retired_assets_combobox.currentText(),
             )  # retired assets by year
         else:  # edge case where the user selects none of them
-            self.display_error_message("Please select one of the radio buttons!")
+            self.display_message("Error!", "Please select one of the radio buttons!")
 
     def send_update_data_to_insert(
         self, index
@@ -572,6 +574,11 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     def swap_to_window(self, index: int):  # change stackedwiget index
         self.stackedWidget.setCurrentIndex(index)
         # grey out button that is selected by index?
+
+    def write_config_tell_user(self):
+        self.write_config()  # what if error?
+        self.display_message("Success!", "Config saved!")
+        self.swap_to_window(0)  # back to main window :)
 
     def write_config(
         self,
@@ -707,7 +714,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 if item.currentText() == "":
                     missing.append(name)
         if len(missing) != 0:
-            self.display_error_message(f"Missing fields: {missing}")
+            self.display_message("Error!", f"Missing fields: {missing}")
         else:
             # we are creating a new entry if this is an empty value
             if self.insert_uuid_text.text() == "":

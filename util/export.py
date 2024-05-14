@@ -105,5 +105,5 @@ def create_backup(self):
     filename += ".db"
     end_file = f"{backup_dir}{filename}"
     shutil.copyfile("main.db", end_file)
-    self.display_error_message(f"Backup created successfully: {filename}")
+    self.display_message("Success!", f"Backup created successfully: {filename}")
     open_explorer_at_file(self, end_file)

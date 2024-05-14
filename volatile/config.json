@@ -16,7 +16,7 @@
         "Notes": true
     },
     "dark_mode": true,
-    "backup_path": "D:\\backups",
+    "backup_path": "C:\\\\",
     "default_report_path": "D:/goofin",
     "auto_open_report_on_create": true,
     "top_graph_type": "Line",
