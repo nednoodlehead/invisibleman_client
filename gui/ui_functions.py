@@ -33,6 +33,7 @@ from gui.insert_functions import (
     refresh_asset_categories,
     fetch_all_asset_types,
     refresh_asset_location,
+    refresh_manufacturer
 )
 from gui.add_item_window import GenericAddJsonWindow
 from datetime import datetime
@@ -46,6 +47,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.active_notes_window = None
         self.active_json_window = None
         self.active_export_graph_window = None
+        self.insert_active_uuid = ""  # this is our variable for knowing if we are
+        # editing an entry, or adding a new one. depends if it is empty string, or uuid4
         self.default_columns = [
             "Asset Type",
             "Manufacturer",
@@ -127,6 +130,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         )  # thanks qt5 for randomly changing the default display format... commi #108
         self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
         self.insert_conditional_retirement_date_fmt.setDisplayFormat("yyyy-MM-dd")
+        # when date is changed, update the replacement date accordingly
+        self.insert_deployment_date_fmt.dateChanged.connect(self.update_replacement_date)
         self.insert_replacement_date_fmt.dateChanged.connect(
             lambda: update_replacement_date(self)
         )
@@ -178,13 +183,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         for count, checkbox in enumerate(self.insert_widgets):
             self.handle_checkboxes_and_columns(count, checkbox)
         # populating combo boxes. "" is an empty default value
-        cat, typ, loc = self.fetch_all_asset_types()
+        cat, typ, loc, manu = self.fetch_all_asset_types()
         self.insert_asset_category_combobox.addItem("")
         self.insert_asset_type_combobox.addItem("")
         self.insert_asset_location_combobox.addItem("")
+        self.insert_manufacturer_combobox.addItem("")
         self.insert_asset_category_combobox.addItems(cat)
         self.insert_asset_type_combobox.addItems(typ)
         self.insert_asset_location_combobox.addItems(loc)
+        self.insert_manufacturer_combobox.addItems(manu)
         self.insert_status_bool.addItems(["Active", "Retired"])
         # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
         self.insert_deployment_date_fmt.setDate(QDate.currentDate())
@@ -199,6 +206,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         )
         self.insert_asset_location_add_option.clicked.connect(
             lambda: self.display_generic_json("Location")
+        )
+        self.insert_manufacturer_add_option.clicked.connect(
+            lambda: self.display_generic_json("Manufacturer")
         )
         self.filter_clear_button.clicked.connect(self.clear_filter)
         self.export_file_path_choice.setText(self.config["default_report_path"])
@@ -306,6 +316,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.refresh_asset_types = MethodType(refresh_asset_types, self)
         self.refresh_asset_category = MethodType(refresh_asset_categories, self)
         self.refresh_asset_location = MethodType(refresh_asset_location, self)
+        self.refresh_manufacturer = MethodType(refresh_manufacturer, self)
         self.fetch_all_asset_types = MethodType(fetch_all_asset_types, self)
 
     def display_message(self, title: str, information: str):
@@ -485,7 +496,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         else:
             self.insert_conditional_status_frame.setFixedWidth(210)
         
-
     def interface_handle_export(self):
         csv_val = (
             True if self.reports_export_file_combobox.currentText() == "CSV" else False
@@ -547,6 +557,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         loc_index = self.insert_asset_location_combobox.findText(
             inventory_obj.assetlocation
         )
+        manu_index = self.insert_manufacturer_combobox.findText(inventory_obj.manufacturer)
         self.insert_asset_location_combobox.setCurrentIndex(loc_index)
         self.insert_assigned_to_text.setText(inventory_obj.assignedto)
         self.insert_purchase_date_fmt.setDate(
@@ -563,7 +574,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.insert_status_bool.setCurrentIndex(0)
         else:
             self.insert_status_bool.setCurrentIndex(1)
-        self.insert_uuid_text.setText(inventory_obj.uniqueid)
+        self.insert_active_uuid.setText(inventory_obj.uniqueid)
 
     def toggle_burger(self):  # toggle burger menu. TODO give it the icon
         if self.ham_menu_frame.height() == 250:
@@ -671,7 +682,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         else:
             data = self.analytics_field_combobox_bottom.currentText()
             chart_type = self.analytics_field_combobox_bottom_2.currentText()
-
+        # TODO what is the logic here ? ^^^^
         self.active_export_graph_window = ExportGraph(self, top)
         self.active_export_graph_window.show()
         position = self.pos()
@@ -689,6 +700,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.insert_asset_type_combobox.clear()
             self.insert_asset_type_combobox.addItem("")
             self.insert_asset_type_combobox.addItems(self.refresh_asset_types())
+        elif target == "Manufacturer":
+            self.insert_manufacturer_combobox.clear()
+            self.insert_manufacturer_combobox.addItem("")
+            self.insert_manufacturer_combobox.addItems(self.refresh_manufacturer())
         else:
             self.insert_asset_location_combobox.clear()
             self.insert_asset_location_combobox.addItem("")
@@ -716,21 +731,21 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.display_message("Error!", f"Missing fields: {missing}")
         else:
             # we are creating a new entry if this is an empty value
-            if self.insert_uuid_text.text() == "":
+            
+            if self.insert_active_uuid == "":
 
                 obj = create_inventory_object(
-                    self.insert_name_text.text(),
-                    self.insert_serial_text.text(),
-                    self.insert_manufacturer_combobox.currentText(),
-                    self.insert_model_text.text(),
-                    self.insert_price_spinbox.text(),
-                    self.insert_asset_category_combobox.currentText(),
                     self.insert_asset_type_combobox.currentText(),
+                    self.insert_manufacturer_combobox.currentText(),
+                    self.insert_serial_text.text(),
+                    self.insert_model_text.text(),
+                    self.insert_cost_spinbox.text(),
                     self.insert_assigned_to_text.text(),
                     self.insert_asset_location_combobox.currentText(),
-                    self.insert_purchase_date_fmt.text(),
-                    self.insert_install_date_fmt.text(),
+                    self.insert_asset_category_combobox.currentText(),
+                    self.insert_deployment_date_fmt.text(),
                     self.insert_replacement_date_fmt.text(),
+                    None if self.insert_status_bool.currentText() == "Active" else self.insert_conditional_retirement_date_fmt.text(),
                     self.insert_notes_text.toPlainText(),
                     self.insert_status_bool.currentText(),
                 )
@@ -738,21 +753,20 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             else:
                 # we are updating an existing entry! (since the uuid string was set)
                 obj = InventoryObject(
-                    self.insert_name_text.text(),
-                    self.insert_serial_text.text(),
-                    self.insert_manufacturer_text.text(),
-                    self.insert_price_spinbox.text(),
-                    self.insert_model_text.text(),
-                    self.insert_asset_category_combobox.currentText(),
                     self.insert_asset_type_combobox.currentText(),
+                    self.insert_manufacturer_text.text(),
+                    self.insert_serial_text.text(),
+                    self.insert_model_text.text(),
+                    self.insert_cost_spinbox.text(),
                     self.insert_assigned_to_text.text(),
                     self.insert_asset_location_combobox.currentText(),
-                    self.insert_purchase_date_fmt.text(),
-                    self.insert_install_date_fmt.text(),
+                    self.insert_asset_category_combobox.currentText(),
+                    self.insert_deployment_date_fmt.text(),
                     self.insert_replacement_date_fmt.text(),
+                    None if self.insert_status_bool.currentText() == "Active" else self.insert_conditional_retirement_date_fmt.text(),
                     self.insert_notes_text.toPlainText(),
                     self.insert_status_bool.currentText(),
-                    self.insert_uuid_text.text(),
+                    self.insert_active_uuid,
                 )
                 update_full_obj(obj)
             self.set_insert_data_to_default()
@@ -766,21 +780,23 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self,
     ):  # reset the insert data. Called when clearing page (btn) or inserting / updating
         today = QDate.currentDate()
-        self.insert_name_text.setText("")
+        # order still persists from pre-revamp. doesnt matter!
         self.insert_serial_text.setText("")
-        self.insert_manufacturer_text.setText("")
+        self.insert_manufacturer_combobox.setCurrentIndex(0)
         self.insert_model_text.setText("")
-        self.insert_price_spinbox.setValue(0.00)
+        self.insert_cost_spinbox.setValue(0.00)
         self.insert_asset_category_combobox.setCurrentIndex(0)  # to the empty string!
         self.insert_asset_type_combobox.setCurrentIndex(0)
         self.insert_asset_location_combobox.setCurrentIndex(0)
         self.insert_assigned_to_text.setText("")
-        self.insert_purchase_date_fmt.setDate(today)
-        self.insert_install_date_fmt.setDate(today)
+        self.insert_deployment_date_fmt.setDate(today)
         self.insert_replacement_date_fmt.setDate(today)
+        self.insert_conditional_retirement_date_fmt.setDate(today)
         self.insert_notes_text.setText("")
         self.insert_status_bool.setCurrentIndex(0)
-        self.insert_uuid_text.setText("")
+        self.insert_active_uuid = ""  # reset the uuid, so it doesn't persist
+        self.hide_or_show_insert_conditional()  # ig the program won't know when to redraw it?
+        # so in theory, if you insert with it visible, 
 
     def set_table_size_and_headers(self, headers: [str]):  # only called on startup
         # kept sort of abigious since headers can be changed. if it was always all the headers it could be hardcoded

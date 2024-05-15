@@ -15,6 +15,7 @@ from gui.insert_functions import (
     refresh_asset_categories,
     refresh_asset_location,
     refresh_asset_types,
+    refresh_manufacturer,
     fetch_categories_and_years,
     replace_json_target,
 )
@@ -29,7 +30,7 @@ class GenericAddJsonWindow(QWidget):
         self.parent_window = (
             parent_window  # used to tell parent to update the comboboxes when done
         )
-        # value should be either: "Category", "Type", "Location"
+        # value should be either: "Category", "Type", "Location" or "Manufacturer"
         # should each of these have their own file? or one file?
 
         font = QFont()
@@ -138,6 +139,8 @@ class GenericAddJsonWindow(QWidget):
         else:
             if self.target == "Type":
                 data = refresh_asset_types(self)
+            elif self.target == "Manufacturer":
+                data = refresh_manufacturer(self)
             else:
                 data = refresh_asset_location(self)
             for item in data:

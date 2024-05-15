@@ -58,10 +58,22 @@ def refresh_asset_location(self) -> [str]:
     return asset_location
 
 
-def fetch_all_asset_types(self) -> ([str], [str], [str]):  # category, type, location
+def refresh_manufacturer(self) -> [str]:
+    asset_location = []
+    with open(
+        "./volatile/assetcategory.json"
+    ) as f:  # maybe change the name of the json? assets.json? asset_info.json
+        raw_json = json.load(f)["Manufacturer"]
+        for val in raw_json:
+            asset_location.append(val)
+    return asset_location
+
+
+def fetch_all_asset_types(self) -> ([str], [str], [str], [str]):  # category, type, location
     asset_types = []
     asset_categories = []
     asset_location = []
+    manufacturer = []
     with open("./volatile/assetcategory.json") as f:
         raw_json = json.load(f)
         post_first = False  # used to mark that we have parsed past the first dict
@@ -72,10 +84,13 @@ def fetch_all_asset_types(self) -> ([str], [str], [str]):  # category, type, loc
             elif key == "Type":
                 for asset in data:
                     asset_types.append(asset)
+            elif key == "Manufacturer":
+                for asset in data:
+                    manufacturer.append(asset)
             else:
                 for location in data:
                     asset_location.append(location)
-    return (asset_categories, asset_types, asset_location)
+    return (asset_categories, asset_types, asset_location, manufacturer)
 
 
 def fetch_categories_and_years(self):

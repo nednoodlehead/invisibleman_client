@@ -72,7 +72,7 @@ def create_inventory_object(
     assetcategory: str,
     deploymentdate: datetime.date,
     replacementdate: datetime.date,
-    retirementdate: datetime.date,
+    retirementdate: datetime.date | None,
     notes: str,
     status: str,  # active | retired
 ) -> InventoryObject:
