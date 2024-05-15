@@ -47,18 +47,17 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.active_json_window = None
         self.active_export_graph_window = None
         self.default_columns = [
-            "Name",
-            "Serial Number",
-            "Manufacturer",
-            "Model",
-            "Price",
-            "Asset Category",
             "Asset Type",
+            "Manufacturer",
+            "Serial Number",
+            "Model",
+            "Cost",
             "Assigned To",
             "Asset Location",
-            "Purchase Date",
-            "Install Date",
+            "Asset Category",
+            "Deployment Date",
             "Replacement Date",
+            # retirement date would go here...
             "Notes",
         ]
         self.retired_asset_years = [
@@ -123,12 +122,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.reports_export_file_combobox.addItems(["Excel", "CSV"])
         self.reports_export_location_combobox.addItems(self.refresh_asset_location())
         self.reports_export_retired_assets_combobox.addItems(self.retired_asset_years)
-        self.insert_install_date_fmt.setDisplayFormat(
+        self.insert_deployment_date_fmt.setDisplayFormat(
             "yyyy-MM-dd"
         )  # thanks qt5 for randomly changing the default display format... commi #108
-        self.insert_purchase_date_fmt.setDisplayFormat("yyyy-MM-dd")
         self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
-        self.insert_install_date_fmt.dateChanged.connect(
+        self.insert_conditional_retirement_date_fmt.setDisplayFormat("yyyy-MM-dd")
+        self.insert_replacement_date_fmt.dateChanged.connect(
             lambda: update_replacement_date(self)
         )
         self.analytics_export_top_button.clicked.connect(
@@ -167,20 +166,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.settings_backup_dir_text.setText(self.config["backup_path"])
         # opens with height == 250, so no need to `else` set that..
         self.insert_widgets = [
-            self.checkbox_name,
-            self.checkbox_serial,
-            self.checkbox_manufacturer,
-            self.checkbox_model,
-            self.checkbox_price,
-            self.checkbox_assetcategory,
             self.checkbox_assettype,
-            self.checkbox_assignedto,
-            self.checkbox_assetlocation,
-            self.checkbox_purchasedate,
-            self.checkbox_installdate,
-            self.checkbox_replacementdate,
-            self.checkbox_notes,
+            self.checkbox_manufacturer,
+            self.checkbox_serial,
+            self.checkbox_model,
+            self.checkbox_cost,
         ]
+        # enabled by default, we will set the width to 0 :)
+        self.insert_conditional_status_frame.setFixedWidth(0)
+        self.insert_status_bool.activated.connect(self.hide_or_show_insert_conditional)
         for count, checkbox in enumerate(self.insert_widgets):
             self.handle_checkboxes_and_columns(count, checkbox)
         # populating combo boxes. "" is an empty default value
@@ -191,11 +185,11 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_asset_category_combobox.addItems(cat)
         self.insert_asset_type_combobox.addItems(typ)
         self.insert_asset_location_combobox.addItems(loc)
-        self.insert_status_bool.addItems(["Enabled", "Disabled"])
+        self.insert_status_bool.addItems(["Active", "Retired"])
         # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
-        self.insert_install_date_fmt.setDate(QDate.currentDate())
-        self.insert_purchase_date_fmt.setDate(QDate.currentDate())
-        self.insert_price_spinbox.setMaximum(99999.99)
+        self.insert_deployment_date_fmt.setDate(QDate.currentDate())
+        self.insert_replacement_date_fmt.setDate(QDate.currentDate())
+        self.insert_cost_spinbox.setMaximum(99999.99)
         # leave the insert_replacement_date_fmt for when the user selects the hardware type
         self.insert_asset_category_add_option.clicked.connect(
             lambda: self.display_generic_json("Category")
@@ -225,9 +219,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Asset Category",
             "Asset Type",
             "Asset Location",
-            "Purchase Date",
-            "Install Date",
+            "Deployment Date"
             "Replacement Date",
+            "Retirement Date"
         ]
         self.acceptable_pie_charts = self.acceptable_all_charts.copy()
         self.acceptable_pie_charts.append("Notes")
@@ -485,6 +479,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.stackedWidget.setCurrentIndex(3)
         self.refresh_asset_value()
 
+    def hide_or_show_insert_conditional(self):
+        if self.insert_status_bool.currentIndex() == 0:  # its active...
+            self.insert_conditional_status_frame.setFixedWidth(0)
+        else:
+            self.insert_conditional_status_frame.setFixedWidth(210)
+        
+
     def interface_handle_export(self):
         csv_val = (
             True if self.reports_export_file_combobox.currentText() == "CSV" else False
@@ -559,9 +560,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         )
         self.insert_notes_text.setText(inventory_obj.notes)
         if self.insert_status_bool == 0:
-            self.insert_status_bool.setCurrentIndex(1)
-        else:
             self.insert_status_bool.setCurrentIndex(0)
+        else:
+            self.insert_status_bool.setCurrentIndex(1)
         self.insert_uuid_text.setText(inventory_obj.uniqueid)
 
     def toggle_burger(self):  # toggle burger menu. TODO give it the icon
@@ -585,17 +586,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     ):  # writes everything to config, called on window close (and i think alt-f4)
         # get checkbox value
         to_write = {
-            "Name": self.checkbox_name.isChecked(),
-            "Serial Number": self.checkbox_serial.isChecked(),
-            "Manufacturer": self.checkbox_manufacturer.isChecked(),
-            "Model": self.checkbox_model.isChecked(),
-            "Price": self.checkbox_price.isChecked(),
-            "Asset Category": self.checkbox_assetcategory.isChecked(),
             "Asset Type": self.checkbox_assettype.isChecked(),
+            "Manufacturer": self.checkbox_manufacturer.isChecked(),
+            "Serial Number": self.checkbox_serial.isChecked(),
+            "Model": self.checkbox_model.isChecked(),
+            "Cost": self.checkbox_cost.isChecked(),
             "Assigned To": self.checkbox_assignedto.isChecked(),
             "Asset Location": self.checkbox_assetlocation.isChecked(),
-            "Purchase Date": self.checkbox_purchasedate.isChecked(),
-            "Install Date": self.checkbox_installdate.isChecked(),
+            "Asset Category": self.checkbox_assetcategory.isChecked(),
+            "Deployment Date": self.checkbox_deploymentdate.isChecked(),
             "Replacement Date": self.checkbox_replacementdate.isChecked(),
             "Notes": self.checkbox_notes.isChecked(),
         }
@@ -700,7 +699,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     ):  # either inserts or updtes based on uuid field presence
         required = {
             "Serial": self.insert_serial_text,
-            "Manufacturer": self.insert_manufacturer_text,
+            "Manufacturer": self.insert_manufacturer_combobox,
             "Asset Category": self.insert_asset_category_combobox,
             "Asset Type": self.insert_asset_type_combobox,
             "Asset Location": self.insert_asset_location_combobox,
@@ -722,7 +721,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 obj = create_inventory_object(
                     self.insert_name_text.text(),
                     self.insert_serial_text.text(),
-                    self.insert_manufacturer_text.text(),
+                    self.insert_manufacturer_combobox.currentText(),
                     self.insert_model_text.text(),
                     self.insert_price_spinbox.text(),
                     self.insert_asset_category_combobox.currentText(),

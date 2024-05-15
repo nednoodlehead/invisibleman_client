@@ -19,18 +19,18 @@ def update_full_obj(obj: InventoryObject):
         conn.execute(
             """
                        UPDATE main 
-                       SET name = ?,
-                       serial = ?,
+                       SET assettype = ?,
                        manufacturer = ?,
+                       serial = ?,
                        model = ?,
-                       price = ?,
-                       assetcategory = ?,
-                       assettype = ?,
+                       cost = ?,
                        assignedto = ?,
                        assetlocation = ?,
-                       purchasedate = ?,
-                       installdate = ?,
+                       assetcategory = ?,
+                       assettype = ?,
+                       deplomentdate = ?,
                        replacementdate = ?,
+                       retirementdate = ?,
                        notes = ?,
                        status = ?
                        WHERE uniqueid = ?

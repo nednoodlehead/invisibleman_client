@@ -8,7 +8,7 @@ def update_replacement_date(self):
     updates the date of the replacement date based on the type of gear selected
     """
     item = self.insert_asset_category_combobox.currentText()
-    add_from = QDate.fromString(self.insert_install_date_fmt.text(), "yyyy-MM-dd")
+    add_from = QDate.fromString(self.insert_deployment_date_fmt.text(), "yyyy-MM-dd")
     if item == "":  # if default value
         self.insert_replacement_date_fmt.setDate(QDate.currentDate())
         return None  # teminate..

@@ -15,9 +15,10 @@ def fetch_all_enabled():  # [InventoryObject] without the enabled field
     return_list = []
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
-            "SELECT name, serial, manufacturer, model, price, assetcategory, assettype, assignedto,\
-                               assetlocation, purchasedate, installdate, replacementdate, notes, uniqueid FROM main\
-                               WHERE status = 1"
+            """
+            SELECT assettype, manufacturer, serial, model, cost, assignedto, assetlocation, assetcategory,
+            deploymentdate, replacementdate, retirementdate, notes, uniqueid FROM main WHERE status = 1;
+            """
         )
         for item in data:
             return_list.append(item)
@@ -28,7 +29,10 @@ def fetch_all_for_table() -> [TableObject]:
     return_list = []
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
-            "SELECT name, serial, manufacturer, model, price, assetcategory, assettype, assignedto, assetlocation, purchasedate, installdate, replacementdate, notes, uniqueid FROM main WHERE status = 1"
+            """
+            SELECT assettype, manufacturer, serial, model, cost, assignedto, assetlocation, assetcategory,
+            deploymentdate, replacementdate, notes, uniqueid FROM main WHERE status = 1
+            """
         )
         for item in data:
             return_list.append(TableObject(*item))
@@ -54,9 +58,12 @@ def fetch_obj_from_eol(eol_year):
     ret_list = []
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
-            "SELECT name, serial, manufacturer, model, price, assetcategory, assettype, assignedto,\
-                               assetlocation, purchasedate, installdate, replacementdate, notes, uniqueid FROM main\
-                               WHERE status = true AND strftime('%Y', replacementdate) = ? ",
+            """
+            SELECT assettype, manufacturer, serial, model, cost, assignedto,
+            assetlocation, assetcategory,deploymentdate, replacementdate, 
+            notes, uniqueid
+            WHERE status = true AND strftime('%Y', replacementdate) = ? 
+            """,
             (eol_year,),
         )
     for item in data:
@@ -68,9 +75,12 @@ def fetch_obj_from_loc(location):
     ret_list = []
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
-            "SELECT name, serial, manufacturer, model, price, assetcategory, assettype, assignedto,\
-                               assetlocation, purchasedate, installdate, replacementdate, notes, uniqueid FROM main\
-                               WHERE status = 1 AND assetlocation = ?",
+            """
+            SELECT assettype, maufacturer, serial, model, cost, assignedto,
+            assetlocation, assetcategory, deploymentdate,
+            retirementdate, notes
+            WHERE status = 1 AND assetlocation = ?
+            """,
             (location,),
         )
     for item in data:
@@ -83,16 +93,22 @@ def fetch_retired_assets(year: str):
     if year == "All":  # user wants all retired assets
         with sqlite3.connect("main.db") as conn:
             data = conn.execute(
-                "SELECT name, serial, manufacturer, model, price, assetcategory, assettype, assignedto,\
-                               assetlocation, purchasedate, installdate, replacementdate, notes, uniqueid FROM main\
-                               WHERE status = false"
+                """
+                SELECT assettype, maufacturer, serial, model, cost, assignedto,
+                assetlocation, assetcategory, deploymentdate,
+                retirementdate, notes
+                WHERE status = false
+                """
             )
     else:
         with sqlite3.connect("main.db") as conn:
             data = conn.execute(
-                "SELECT name, serial, manufacturer, model, price, assetcategory, assettype, assignedto,\
-                               assetlocation, purchasedate, installdate, replacementdate, notes, uniqueid FROM main\
-                               WHERE status = 0 AND strftime('%Y', replacementdate) = ?",
+                """
+                SELECT assettype, maufacturer, serial, model, cost, assignedto,
+                assetlocation, assetcategory, deploymentdate,
+                retirementdate, notes
+                WHERE status = 0 AND strftime('%Y', replacementdate) = ?
+                """,
                 (year,),
             )
     for item in data:

@@ -1,19 +1,17 @@
 {
     "ham_menu_status": true,
     "checkboxes": {
-        "Name": true,
-        "Serial Number": true,
-        "Manufacturer": true,
-        "Model": true,
-        "Price": true,
-        "Asset Category": true,
         "Asset Type": true,
-        "Assigned To": true,
-        "Asset Location": true,
-        "Purchase Date": true,
-        "Install Date": true,
-        "Replacement Date": true,
-        "Notes": true
+        "Manufacturer": true,
+        "Serial Number": true,
+        "Model": true,
+        "Cost": true,
+        "Assigned To": false,
+        "Asset Location": false,
+        "Asset Category": false,
+        "Deployment Date": false,
+        "Replacement Date": false,
+        "Notes": false
     },
     "dark_mode": true,
     "backup_path": "C:\\\\",
@@ -22,5 +20,5 @@
     "top_graph_type": "Line",
     "top_graph_data": "Asset Type",
     "bottom_graph_type": "Pie",
-    "bottom_graph_data": "Notes"
+    "bottom_graph_data": "Asset Location"
 }
