@@ -115,7 +115,9 @@ class TableObject:
         assetcategory: str,
         deploymentdate: datetime.date,
         replacementdate: datetime.date,
+        retirementdate: datetime.date,
         notes: str,
+        status: bool,
         uniqueid: str,  # not displayed, kept as hidden column
     ):
         self.assettype = assettype
@@ -128,7 +130,9 @@ class TableObject:
         self.assetcategory = assetcategory
         self.deploymentdate = deploymentdate
         self.replacementdate = replacementdate
+        self.retirementdate = retirementdate
         self.notes = notes
+        self.status = status
         self.uniqueid = uniqueid
 
     def __iter__(self):
@@ -143,13 +147,15 @@ class TableObject:
         yield self.deploymentdate
         yield self.replacementdate
         yield self.notes
+        # yield self.status
         yield self.uniqueid
+        yield self.retirementdate
 
     def __len__(self):
-        return 13
+        return 14
 
     def __str__(self):
-        return f"Inventory_Object: {self.serial}"
+        return f"table_Object: retire: {self.retirementdate} uuid: {self.uniqueid}"
 
     def __repr__(self):
-        return f"Inventory_Object: {self.serial}"
+        return f"table_Object: {self.__iter__}"

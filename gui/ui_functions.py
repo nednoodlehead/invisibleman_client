@@ -16,9 +16,9 @@ from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect
 from PyQt5.QtGui import QCursor, QPainter, QColor, QTextCharFormat
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from util.export import export_all, export_eol, export_loc, export_ret
-from db.fetch import fetch_all, fetch_all_for_table, fetch_from_uuid_to_update
+from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table
 from db.insert import new_entry
-from db.update import update_full_obj, delete_from_uuid
+from db.update import update_full_obj, delete_from_uuid, retire_from_uuid
 from gui.notes_window import NotesWindow
 from gui.export_graph_window import ExportGraph
 from gui.settings import dark_light_mode_switch, set_dark
@@ -100,8 +100,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # https://stackoverflow.com/questions/6785481/how-to-implement-a-filter-option-in-qtablewidget
         # the concept is that QTableWidget has a built-in model, and a QTableView does not, so you can edit it
         # ui functions
-        self.ham_menu_button.clicked.connect(self.toggle_burger)
-        self.populate_table_with(fetch_all_for_table())
+        self.populate_table_with(fetch_all_enabled_for_table(), False)
         self.ham_button_insert.clicked.connect(lambda: self.swap_to_window(1))
         self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
         self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
@@ -109,15 +108,17 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_asset_category_combobox.currentIndexChanged.connect(
             self.update_replacement_date
         )
+        self.insert_conditional_retirement_date_fmt.setDate(QDate.currentDate())
         self.insert_insert_button.clicked.connect(self.check_data_and_insert)
         self.insert_clear_selections_button.clicked.connect(
             self.set_insert_data_to_default
         )
         self.refresh_table_button.clicked.connect(
-            lambda: self.populate_table_with(fetch_all_for_table())
+            lambda: self.populate_table_with(fetch_all_enabled_for_table(), False)
         )
         self.main_table.setSortingEnabled(True)
         self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
+        self.checkbox_view_retired_assets.clicked.connect(self.toggle_retired_assets)
         self.settings_update_button.clicked.connect(self.write_config)
         self.filter_column_button.clicked.connect(self.handle_filter_request)
         self.filter_options_combobox.addItem("Global")
@@ -155,10 +156,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # make all the checboxes checked by default and make the checkboxes do something when clicked
         # probably worth adding json support at some point, so when app is closed, it is written to json, and loaded on start
         self.config = read_from_config()
-        if (
-            self.config["ham_menu_status"] is False
-        ):  # configure ham menu based on loaded config
-            self.ham_menu_frame.setFixedHeight(50)
         if self.config["dark_mode"] is True:
             self.settings_darkmode_checkbox.setChecked(True)
             set_dark(self)
@@ -176,6 +173,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.checkbox_serial,
             self.checkbox_model,
             self.checkbox_cost,
+            self.checkbox_assignedto,
+            self.checkbox_assetlocation,
+            self.checkbox_assetcategory,
+            self.checkbox_deploymentdate,
+            self.checkbox_replacementdate,
+            self.checkbox_notes,
         ]
         # enabled by default, we will set the width to 0 :)
         self.insert_conditional_status_frame.setFixedWidth(0)
@@ -334,8 +337,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             ),
         )
         menu.addAction(
-            "Delete",
-            lambda: self.delete_and_remove_row(self.main_table.itemAt(position).row()),
+            "Retire",
+            lambda: self.retire_asset(self.main_table.itemAt(position).row()),
         )
         menu.exec_(QCursor.pos())
 
@@ -534,7 +537,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     def send_update_data_to_insert(
         self, index
     ):  # prepare everything for update_insert_page_from_obj
-        uuid = self.main_table.item(index, 13).text()
+        uuid = self.main_table.item(index, 11).text()
         obj = fetch_from_uuid_to_update(uuid)
         self.swap_to_window(1)
         self.update_insert_page_from_obj(obj)
@@ -543,11 +546,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self, inventory_obj: InventoryObject
     ):  # fill the insert page with the
         # content given from choosen updated entry
-        self.insert_name_text.setText(inventory_obj.name)
         self.insert_serial_text.setText(inventory_obj.serial)
-        self.insert_manufacturer_text.setText(inventory_obj.manufacturer)
         self.insert_model_text.setText(inventory_obj.model)
-        self.insert_price_spinbox.setValue(float(inventory_obj.price))
+        self.insert_cost_spinbox.setValue(float(inventory_obj.cost))
         cat_index = self.insert_asset_category_combobox.findText(
             inventory_obj.assetcategory
         )
@@ -557,24 +558,35 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         loc_index = self.insert_asset_location_combobox.findText(
             inventory_obj.assetlocation
         )
-        manu_index = self.insert_manufacturer_combobox.findText(inventory_obj.manufacturer)
         self.insert_asset_location_combobox.setCurrentIndex(loc_index)
+        manu_index = self.insert_manufacturer_combobox.findText(inventory_obj.manufacturer)
+        self.insert_manufacturer_combobox.setCurrentIndex(manu_index)
         self.insert_assigned_to_text.setText(inventory_obj.assignedto)
-        self.insert_purchase_date_fmt.setDate(
-            datetime.fromisoformat(inventory_obj.purchasedate)
-        )
-        self.insert_install_date_fmt.setDate(
-            datetime.fromisoformat(inventory_obj.installdate)
-        )
+        self.insert_deployment_date_fmt.setDate(datetime.fromisoformat(inventory_obj.replacementdate))
         self.insert_replacement_date_fmt.setDate(
             datetime.fromisoformat(inventory_obj.replacementdate)
         )
         self.insert_notes_text.setText(inventory_obj.notes)
-        if self.insert_status_bool == 0:
-            self.insert_status_bool.setCurrentIndex(0)
-        else:
+        if inventory_obj.status == 1:
+            # retired
             self.insert_status_bool.setCurrentIndex(1)
-        self.insert_active_uuid.setText(inventory_obj.uniqueid)
+            # same as self.hide_or_show_insert_conditional()
+            # but we skip an if statement!
+            self.insert_conditional_status_frame.setFixedWidth(210)
+        else:
+            # not retired
+            self.insert_status_bool.setCurrentIndex(0)
+        self.insert_active_uuid = inventory_obj.uniqueid
+        # disable the fields that 'we dont want to edit'
+        self.insert_asset_type_combobox.setDisabled(True)
+        self.insert_asset_category_combobox.setDisabled(True)
+        self.insert_manufacturer_combobox.setDisabled(True)
+        self.insert_serial_text.setDisabled(True)
+        self.insert_model_text.setDisabled(True)
+        self.insert_cost_spinbox.setDisabled(True)
+        self.insert_asset_category_combobox.setDisabled(True)
+        self.insert_deployment_date_fmt.setDisabled(True)
+        
 
     def toggle_burger(self):  # toggle burger menu. TODO give it the icon
         if self.ham_menu_frame.height() == 250:
@@ -609,9 +621,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Replacement Date": self.checkbox_replacementdate.isChecked(),
             "Notes": self.checkbox_notes.isChecked(),
         }
-        checked = True if self.ham_menu_frame.height() == 250 else False
         write_to_config(
-            checked,
             to_write,
             self.settings_darkmode_checkbox.isChecked(),
             self.settings_backup_dir_text.text(),
@@ -624,19 +634,28 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         )
 
     def populate_table_with(
-        self, data: [TableObject]
+        self, data: [TableObject], retirement_bool: bool=False
     ):  # put all of the content in the table from the db, called on startup, and
         # when updated..
         if len(data) == 0:
             return  # is this sort of feral?
         self.main_table.setRowCount(len(data))
-        self.main_table.setColumnCount(
-            14
-        )  # set the column count to the size of the first data piece
+        if retirement_bool:
+            # this is sort of sloppy. idk
+            self.main_table.setColumnCount(
+                13
+            )  # set the column count to the size of the first data piece
+            new_headers = self.default_columns.copy()
+            new_headers.append("Retirement Date")
+            self.main_table.setHorizontalHeaderLabels(new_headers)
+        else:
+            self.main_table.setColumnCount(
+                12
+            )  # set the column count to the size of the first data piece
         for row, rowdata in enumerate(data):
             for col, value in enumerate(rowdata):
                 item = QTableWidgetItem(str(value))
-                if col == 12:
+                if col == 10:
                     if value == "":
                         button = self.generate_notes_button(
                             data[row].uniqueid, "Add Notes"
@@ -649,6 +668,11 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                         self.main_table.setCellWidget(row, col, button)
                 else:
                     self.main_table.setItem(row, col, item)
+            # if our row is retired, we'll make that known by changing the background color of the cell!            
+            if rowdata.status == 1:
+                for column, _ in enumerate(rowdata):
+                    if self.main_table.item(row, column) is not None:
+                        self.main_table.item(row, column).setBackground(QColor(73, 122, 182))
 
     def generate_notes_button(
         self, uuid: str, display: str
@@ -754,7 +778,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 # we are updating an existing entry! (since the uuid string was set)
                 obj = InventoryObject(
                     self.insert_asset_type_combobox.currentText(),
-                    self.insert_manufacturer_text.text(),
+                    self.insert_manufacturer_combobox.currentText(),
                     self.insert_serial_text.text(),
                     self.insert_model_text.text(),
                     self.insert_cost_spinbox.text(),
@@ -773,7 +797,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             # intentional choice here to not update the graphs, seems too expensive to call each time, and to see if data was even changed
             # from the current view.
             self.populate_table_with(
-                fetch_all_for_table()
+                fetch_all_enabled_for_table(), False
             )  # this will overwrite any filters / views
 
     def set_insert_data_to_default(
@@ -797,6 +821,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_active_uuid = ""  # reset the uuid, so it doesn't persist
         self.hide_or_show_insert_conditional()  # ig the program won't know when to redraw it?
         # so in theory, if you insert with it visible, 
+        # also re-enable all the potentially disabled boxes:
+        self.insert_asset_type_combobox.setDisabled(False)
+        self.insert_asset_category_combobox.setDisabled(False)
+        self.insert_manufacturer_combobox.setDisabled(False)
+        self.insert_serial_text.setDisabled(False)
+        self.insert_model_text.setDisabled(False)
+        self.insert_cost_spinbox.setDisabled(False)
+        self.insert_asset_category_combobox.setDisabled(False)
+        self.insert_deployment_date_fmt.setDisabled(False)
 
     def set_table_size_and_headers(self, headers: [str]):  # only called on startup
         # kept sort of abigious since headers can be changed. if it was always all the headers it could be hardcoded
@@ -809,7 +842,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # set the sizes of certain columns as needed
         for count, column_title in enumerate(headers):
             if column_title == "Asset Category":
-                header = self.main_table.columnWidth(count)
                 # maybe value should be calculated based off the longest string from the relevant json
                 self.main_table.setColumnWidth(count, 150)
             elif column_title == "Replacement Date":
@@ -863,3 +895,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         for count in range(self.main_table.rowCount()):
             self.main_table.setRowHidden(count, False)
         self.filter_user_text.setText("")
+
+    def toggle_retired_assets(self):
+        if self.checkbox_view_retired_assets.isChecked():
+            self.populate_table_with(fetch_all_for_table(), True)  # lets view all content
+        else:
+            self.populate_table_with(fetch_all_enabled_for_table(), False)  # only enabled content!
+            
+    def retire_asset(self, row):
+        id = self.main_table.item(row, 11).text()  # 11 is the id!
+        retire_from_uuid(id)
+        # do we update it...? refresh table i guess? 
+        self.toggle_retired_assets()

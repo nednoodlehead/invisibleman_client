@@ -1,6 +1,6 @@
 import sqlite3
 from util.data_types import InventoryObject
-
+from PyQt5.QtCore import QDate
 
 def update_notes(notes: str, uuid: str):
     with sqlite3.connect("main.db") as conn:
@@ -13,13 +13,14 @@ def update_notes(notes: str, uuid: str):
 
 
 def update_full_obj(obj: InventoryObject):
-    rel = {"Enabled": 1, "Disabled": 2}
+    rel = {"Active": False, "Retired": True}
     obj.status = rel[obj.status]
     with sqlite3.connect("main.db") as conn:
         conn.execute(
             """
                        UPDATE main 
-                       SET assettype = ?,
+                       SET
+                       assettype = ?,
                        manufacturer = ?,
                        serial = ?,
                        model = ?,
@@ -27,8 +28,7 @@ def update_full_obj(obj: InventoryObject):
                        assignedto = ?,
                        assetlocation = ?,
                        assetcategory = ?,
-                       assettype = ?,
-                       deplomentdate = ?,
+                       deploymentdate = ?,
                        replacementdate = ?,
                        retirementdate = ?,
                        notes = ?,
@@ -43,4 +43,17 @@ def update_full_obj(obj: InventoryObject):
 def delete_from_uuid(uuid: str):
     with sqlite3.connect("main.db") as conn:
         conn.execute("DELETE FROM main WHERE uniqueid = ?", (uuid,))
+        conn.commit()
+        
+
+def retire_from_uuid(uuid: str):
+    """
+        Used when we are done with an asset. it gets retired, we set retireddate to today.
+    and status to false
+    """
+    today = QDate.currentDate().toString("yyyy-MM-dd")
+    with sqlite3.connect("main.db") as conn:
+        conn.execute("""
+                    UPDATE main SET status = 1, retirementdate = ? WHERE uniqueid = ?
+                     """, (today, uuid))
         conn.commit()

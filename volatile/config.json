@@ -1,24 +1,23 @@
 {
-    "ham_menu_status": true,
     "checkboxes": {
         "Asset Type": true,
         "Manufacturer": true,
         "Serial Number": true,
         "Model": true,
         "Cost": true,
-        "Assigned To": false,
-        "Asset Location": false,
-        "Asset Category": false,
-        "Deployment Date": false,
-        "Replacement Date": false,
-        "Notes": false
+        "Assigned To": true,
+        "Asset Location": true,
+        "Asset Category": true,
+        "Deployment Date": true,
+        "Replacement Date": true,
+        "Notes": true
     },
     "dark_mode": true,
     "backup_path": "C:\\\\",
     "default_report_path": "D:/goofin",
     "auto_open_report_on_create": true,
-    "top_graph_type": "Line",
-    "top_graph_data": "Asset Type",
+    "top_graph_type": "Bar",
+    "top_graph_data": "Manufacturer",
     "bottom_graph_type": "Pie",
     "bottom_graph_data": "Asset Location"
 }

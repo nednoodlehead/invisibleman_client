@@ -28,6 +28,10 @@
 	border: 1px solid #5A5A5A;
 }
 
+QWidget:disabled {
+	background: #29293d;
+}
+
 QFrame {
 	border: 0px;
 }

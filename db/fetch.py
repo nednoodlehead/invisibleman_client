@@ -25,13 +25,29 @@ def fetch_all_enabled():  # [InventoryObject] without the enabled field
     return return_list
 
 
+def fetch_all_enabled_for_table() -> [TableObject]:
+    return_list = []
+    # RETIRED = 1
+    # NOT RETIRED = 0
+    with sqlite3.connect("main.db") as conn:
+        data = conn.execute(
+            """
+            SELECT assettype, manufacturer, serial, model, cost, assignedto, assetlocation, assetcategory,
+            deploymentdate, replacementdate, retirementdate, notes, status, uniqueid FROM main WHERE status = 0
+            """
+        )
+        for item in data:
+            return_list.append(TableObject(*item))
+    return return_list
+
+
 def fetch_all_for_table() -> [TableObject]:
     return_list = []
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
             """
             SELECT assettype, manufacturer, serial, model, cost, assignedto, assetlocation, assetcategory,
-            deploymentdate, replacementdate, notes, uniqueid FROM main WHERE status = 1
+            deploymentdate, replacementdate, retirementdate, notes, status, uniqueid FROM main
             """
         )
         for item in data:
@@ -62,7 +78,7 @@ def fetch_obj_from_eol(eol_year):
             SELECT assettype, manufacturer, serial, model, cost, assignedto,
             assetlocation, assetcategory,deploymentdate, replacementdate, 
             notes, uniqueid
-            WHERE status = true AND strftime('%Y', replacementdate) = ? 
+            WHERE status = 0 AND strftime('%Y', replacementdate) = ? 
             """,
             (eol_year,),
         )
@@ -79,7 +95,7 @@ def fetch_obj_from_loc(location):
             SELECT assettype, maufacturer, serial, model, cost, assignedto,
             assetlocation, assetcategory, deploymentdate,
             retirementdate, notes
-            WHERE status = 1 AND assetlocation = ?
+            WHERE status = 0 AND assetlocation = ?
             """,
             (location,),
         )

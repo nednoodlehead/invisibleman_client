@@ -34,7 +34,6 @@ def read_from_config() -> dict:
 
 
 def write_to_config(
-    ham_menu: bool,
     checkboxes: dict,
     dark_mode_on: bool,
     backup_path: str,
@@ -47,7 +46,6 @@ def write_to_config(
 ):
     # completely overwrite the current config
     pre_json = {
-        "ham_menu_status": ham_menu,
         "checkboxes": checkboxes,
         "dark_mode": dark_mode_on,
         "backup_path": backup_path,
