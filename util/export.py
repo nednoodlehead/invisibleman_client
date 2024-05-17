@@ -10,12 +10,12 @@ import datetime
 from util.data_types import InventoryObject
 from db.fetch import (
     fetch_all_enabled,
-    fetch_obj_from_eol,
+    fetch_obj_from_retired,
     fetch_obj_from_loc,
-    fetch_obj_from_eol,
     fetch_retired_assets,
 )
-
+import datetime
+import dateutil.relativedelta
 # self is passed in so we can update the self.reports_export_status_content label
 # in rust i would just pass the result<> up the stream, but that design pattern doesnt really fit
 # too well in python. also passed in to see self.main_table
@@ -36,10 +36,10 @@ def export_all(self, csv: bool, file: str):
     open_explorer_at_file(self, file)
 
 
-def export_eol(self, csv: bool, file: str, year: str):
+def export_eol(self, csv: bool, file: str):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
     file = f"{file}_EOL{csv_or_xlsx_str}"
-    data = fetch_obj_from_eol(year)
+    data = fetch_obj_from_retired()
     if csv:
         write_iter_into_csv(self.default_columns, data, file)
     else:  # excel export :D
@@ -58,10 +58,13 @@ def export_loc(self, csv: bool, file: str, place: str):
     open_explorer_at_file(self, file)
 
 
-def export_ret(self, csv: bool, file: str, year: str):  # can be year or 'All'
+def export_ret(self, csv: bool, file: str, time_period: str):
+    # time period is our 3, 6, 9, 12, 24 month period
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
     file = f"{file}_retired{csv_or_xlsx_str}"
-    data = fetch_retired_assets(year)
+    num = int(time_period.split(" ")[0])  # the number part of the '3 Months' or '12 Months'
+    time_period = datetime.date.today() + dateutil.relativedelta.relativedelta(months=num)
+    data = fetch_retired_assets(time_period)
     if csv:
         write_iter_into_csv(self.default_columns, data, file)
     else:  # excel export :D

@@ -70,17 +70,17 @@ def fetch_from_uuid_to_update(uuid: str) -> InventoryObject:
     return obj
 
 
-def fetch_obj_from_eol(eol_year):
+def fetch_obj_from_retired():
     ret_list = []
     with sqlite3.connect("main.db") as conn:
+        # remember. 1 = retired
         data = conn.execute(
             """
             SELECT assettype, manufacturer, serial, model, cost, assignedto,
-            assetlocation, assetcategory,deploymentdate, replacementdate, 
-            notes, uniqueid
-            WHERE status = 0 AND strftime('%Y', replacementdate) = ? 
+            assetlocation, assetcategory, deploymentdate, replacementdate, 
+            notes, uniqueid FROM main
+            WHERE status = 1 
             """,
-            (eol_year,),
         )
     for item in data:
         ret_list.append(item)
@@ -92,9 +92,9 @@ def fetch_obj_from_loc(location):
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
             """
-            SELECT assettype, maufacturer, serial, model, cost, assignedto,
+            SELECT assettype, manufacturer, serial, model, cost, assignedto,
             assetlocation, assetcategory, deploymentdate,
-            retirementdate, notes
+            retirementdate, notes FROM main
             WHERE status = 0 AND assetlocation = ?
             """,
             (location,),
@@ -106,27 +106,17 @@ def fetch_obj_from_loc(location):
 
 def fetch_retired_assets(year: str):
     ret_list = []
-    if year == "All":  # user wants all retired assets
-        with sqlite3.connect("main.db") as conn:
-            data = conn.execute(
-                """
-                SELECT assettype, maufacturer, serial, model, cost, assignedto,
-                assetlocation, assetcategory, deploymentdate,
-                retirementdate, notes
-                WHERE status = false
-                """
-            )
-    else:
-        with sqlite3.connect("main.db") as conn:
-            data = conn.execute(
-                """
-                SELECT assettype, maufacturer, serial, model, cost, assignedto,
-                assetlocation, assetcategory, deploymentdate,
-                retirementdate, notes
-                WHERE status = 0 AND strftime('%Y', replacementdate) = ?
-                """,
-                (year,),
-            )
+    with sqlite3.connect("main.db") as conn:
+        print(year, type(year))
+        data = conn.execute(
+            """
+            SELECT assettype, manufacturer, serial, model, cost, assignedto,
+            assetlocation, assetcategory, deploymentdate,
+            retirementdate, notes FROM main
+            WHERE replacementdate <= ? AND status = 0
+            """, (year,)
+        )
     for item in data:
+        print("FOUNDER")
         ret_list.append(item)
     return ret_list

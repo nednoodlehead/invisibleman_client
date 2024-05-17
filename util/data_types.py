@@ -96,7 +96,7 @@ def create_inventory_object(
         replacementdate,
         retirementdate,
         notes,
-        True if status.lower() == "active" else False,
+        False if status.lower() == "active" else True,
         id
     )
 
@@ -147,7 +147,7 @@ class TableObject:
         yield self.deploymentdate
         yield self.replacementdate
         yield self.notes
-        # yield self.status
+        # yield self.status <- this messed with right click -> 'update' pulling 'None'
         yield self.uniqueid
         yield self.retirementdate
 

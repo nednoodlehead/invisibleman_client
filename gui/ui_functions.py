@@ -63,36 +63,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             # retirement date would go here...
             "Notes",
         ]
-        self.retired_asset_years = [
-            "1999",
-            "2000",
-            "2001",
-            "2002",
-            "2003",
-            "2004",
-            "2005",
-            "2006",
-            "2007",
-            "2008",
-            "2009",
-            "2010",
-            "2011",
-            "2012",
-            "2013",
-            "2014",
-            "2015",
-            "2016",
-            "2017",
-            "2018",
-            "2019",
-            "2020",
-            "2021",
-            "2022",
-            "2023",
-            "2024",
-            "All",
+        self.when_can_assets_retire = [
+            "3 Months",
+            "6 Months",
+            "9 Months",
+            "12 Months",
+            "24 Months"
         ]
-        self.retired_asset_years.reverse()
         # self.setStyle(QStyleFactory.create("Fusion"))
         # there is some argument to use a QTableView instead of a QTableWidget, since the view better supports
         # M/V style programming, which would (in theory) significantly improve the performance of certain
@@ -114,7 +91,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.set_insert_data_to_default
         )
         self.refresh_table_button.clicked.connect(
-            lambda: self.populate_table_with(fetch_all_enabled_for_table(), False)
+            # this just refreshes the assets, taking into account the checkbox for retired
+            self.toggle_retired_assets
         )
         self.main_table.setSortingEnabled(True)
         self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
@@ -125,7 +103,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.filter_options_combobox.addItems(self.default_columns)
         self.reports_export_file_combobox.addItems(["Excel", "CSV"])
         self.reports_export_location_combobox.addItems(self.refresh_asset_location())
-        self.reports_export_retired_assets_combobox.addItems(self.retired_asset_years)
+        self.reports_export_export_due_replacement_combo.addItems(self.when_can_assets_retire)
         self.insert_deployment_date_fmt.setDisplayFormat(
             "yyyy-MM-dd"
         )  # thanks qt5 for randomly changing the default display format... commi #108
@@ -133,9 +111,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_conditional_retirement_date_fmt.setDisplayFormat("yyyy-MM-dd")
         # when date is changed, update the replacement date accordingly
         self.insert_deployment_date_fmt.dateChanged.connect(self.update_replacement_date)
-        self.insert_replacement_date_fmt.dateChanged.connect(
-            lambda: update_replacement_date(self)
-        )
         self.analytics_export_top_button.clicked.connect(
             lambda: self.export_graph(True)
         )
@@ -195,6 +170,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_asset_type_combobox.addItems(typ)
         self.insert_asset_location_combobox.addItems(loc)
         self.insert_manufacturer_combobox.addItems(manu)
+        # 0 =  ACTIVE, 1 = RETIRED
         self.insert_status_bool.addItems(["Active", "Retired"])
         # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
         self.insert_deployment_date_fmt.setDate(QDate.currentDate())
@@ -507,14 +483,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         user_file = self.export_file_path_choice.text()
         user_file = user_file if user_file.endswith("/") is False else f"{user_file}/"
         filename = f'{user_file}/{str(datetime.now()).replace(":", "-")[:19]}'  # should always end in a /, need to validate elsewhere
-        if self.reports_export_export_all_radio.isChecked():
+        if self.reports_export_export_active_radio.isChecked():
             export_all(self, csv_val, filename)
-        elif self.reports_export_export_EOL_radio.isChecked():
-            text = self.reports_export_EOL_text.text()
-            if text is None:
-                self.display_message("Error!", "End of Life Value not filled")
-            else:
-                export_eol(self, csv_val, filename, text)
+        elif self.reports_export_export_retired_radio.isChecked():
+            export_eol(self, csv_val, filename)
         elif self.reports_export_export_location_radio.isChecked():
             # cant be none...
             export_loc(
@@ -523,13 +495,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 filename,
                 self.reports_export_location_combobox.currentText(),
             )
-        elif self.reports_export_export_retired_radio.isChecked():
+        elif self.reports_export_export_due_replacement_radio.isChecked():
             # also cant be none, no null check required.. :)
             export_ret(
                 self,
                 csv_val,
                 filename,
-                self.reports_export_retired_assets_combobox.currentText(),
+                self.reports_export_export_due_replacement_combo.currentText()
             )  # retired assets by year
         else:  # edge case where the user selects none of them
             self.display_message("Error!", "Please select one of the radio buttons!")
@@ -673,6 +645,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 for column, _ in enumerate(rowdata):
                     if self.main_table.item(row, column) is not None:
                         self.main_table.item(row, column).setBackground(QColor(73, 122, 182))
+                    else:
+                        print(f"none foun at {row, column}")
 
     def generate_notes_button(
         self, uuid: str, display: str
@@ -897,6 +871,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.filter_user_text.setText("")
 
     def toggle_retired_assets(self):
+        self.main_table.clearContents()
         if self.checkbox_view_retired_assets.isChecked():
             self.populate_table_with(fetch_all_for_table(), True)  # lets view all content
         else:
