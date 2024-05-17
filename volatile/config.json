@@ -4,13 +4,13 @@
         "Manufacturer": true,
         "Serial Number": true,
         "Model": true,
-        "Cost": true,
-        "Assigned To": true,
+        "Cost": false,
+        "Assigned To": false,
         "Asset Location": true,
         "Asset Category": true,
         "Deployment Date": true,
         "Replacement Date": true,
-        "Notes": true
+        "Notes": false
     },
     "dark_mode": true,
     "backup_path": "C:\\\\",

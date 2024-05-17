@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerfJiseo.ui'
+## Form generated from reading UI file 'inventory_managerAbIaLS.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -435,7 +435,7 @@ class Ui_MainWindow(object):
         self.reports_export_status_label.setGeometry(QRect(10, 550, 51, 16))
         self.reports_export_status_content = QLabel(self.reports_export_frame)
         self.reports_export_status_content.setObjectName(u"reports_export_status_content")
-        self.reports_export_status_content.setGeometry(QRect(10, 560, 241, 41))
+        self.reports_export_status_content.setGeometry(QRect(10, 570, 241, 31))
         self.export_file_path_choice = QLineEdit(self.reports_export_frame)
         self.export_file_path_choice.setObjectName(u"export_file_path_choice")
         self.export_file_path_choice.setGeometry(QRect(110, 460, 181, 20))
@@ -571,7 +571,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(3)
+        self.stackedWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)

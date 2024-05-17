@@ -308,13 +308,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         menu = QMenu()
         menu.addAction(
             "Update",
-            lambda: self.send_update_data_to_insert(
-                self.main_table.itemAt(position).row()
+            lambda: self.try_update_row(
+                position
             ),
         )
         menu.addAction(
             "Retire",
-            lambda: self.retire_asset(self.main_table.itemAt(position).row()),
+            lambda: self.try_retire_row(position),
         )
         menu.exec_(QCursor.pos())
 
@@ -883,4 +883,19 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         retire_from_uuid(id)
         # do we update it...? refresh table i guess? 
         self.toggle_retired_assets()
+
+    def try_retire_row(self, position):
+        try:
+            self.retire_asset(self.main_table.itemAt(position).row())
+        except AttributeError:
+            # this is the case where the user.. misses? a row
+            pass
+
+    def try_update_row(self, position):
+        
+        try:
+            self.send_update_data_to_insert(self.main_table.itemAt(position).row())
+        except AttributeError:
+            # this is the case where the user.. misses? a row
+            pass
 
