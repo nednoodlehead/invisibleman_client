@@ -641,13 +641,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 else:
                     self.main_table.setItem(row, col, item)
             # if our row is retired, we'll make that known by changing the background color of the cell!            
-            if rowdata.status == 1:
-                for column, _ in enumerate(rowdata):
-                    if self.main_table.item(row, column) is not None:
-                        self.main_table.item(row, column).setBackground(QColor(73, 122, 182))
-                    else:
-                        print(f"none foun at {row, column}")
-
+        # ok the concept now is that if there is a retirement date, it is retired.
+        # this stupid color *stuff* is horrible. impossible to set it correctly. keeps bugging
+        # for row, rowdata in enumerate(data):
+        #     item = QTableWidgetItem(str(row))
+        #     print(f'statu: {rowdata.status}')
+        #     if rowdata.status == 1:
+        #         item.setForeground(QColor(200, 0, 0))
+        #     self.main_table.setVerticalHeaderItem(row, item)
+        # print("\n")
     def generate_notes_button(
         self, uuid: str, display: str
     ):  # uuid so we can update to the right column
@@ -871,7 +873,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.filter_user_text.setText("")
 
     def toggle_retired_assets(self):
-        self.main_table.clearContents()
         if self.checkbox_view_retired_assets.isChecked():
             self.populate_table_with(fetch_all_for_table(), True)  # lets view all content
         else:
@@ -882,3 +883,4 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         retire_from_uuid(id)
         # do we update it...? refresh table i guess? 
         self.toggle_retired_assets()
+
