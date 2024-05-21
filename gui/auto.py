@@ -1,7 +1,8 @@
+
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerAbIaLS.ui'
+## Form generated from reading UI file 'inventory_managerJzMPEg.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -84,7 +85,7 @@ class Ui_MainWindow(object):
         self.checkbox_notes.setGeometry(QRect(570, 0, 71, 21))
         self.checkbox_model = QCheckBox(self.view_toggle_frame)
         self.checkbox_model.setObjectName(u"checkbox_model")
-        self.checkbox_model.setGeometry(QRect(190, 20, 71, 21))
+        self.checkbox_model.setGeometry(QRect(190, 20, 61, 21))
         self.checkbox_view_retired_assets = QCheckBox(self.view_toggle_frame)
         self.checkbox_view_retired_assets.setObjectName(u"checkbox_view_retired_assets")
         self.checkbox_view_retired_assets.setGeometry(QRect(570, 20, 121, 21))
@@ -477,6 +478,9 @@ class Ui_MainWindow(object):
         self.settings_report_auto_open_checkbox = QCheckBox(self.stacked_settings_page)
         self.settings_report_auto_open_checkbox.setObjectName(u"settings_report_auto_open_checkbox")
         self.settings_report_auto_open_checkbox.setGeometry(QRect(200, 130, 16, 17))
+        self.settings_file_dialog_button = QPushButton(self.stacked_settings_page)
+        self.settings_file_dialog_button.setObjectName(u"settings_file_dialog_button")
+        self.settings_file_dialog_button.setGeometry(QRect(510, 70, 21, 21))
         self.stackedWidget.addWidget(self.stacked_settings_page)
         self.ham_button_view = QPushButton(self.centralwidget)
         self.ham_button_view.setObjectName(u"ham_button_view")
@@ -656,6 +660,7 @@ class Ui_MainWindow(object):
         self.settings_update_button.setText(QCoreApplication.translate("MainWindow", u"Update", None))
         self.settings_report_auto_open_label.setText(QCoreApplication.translate("MainWindow", u"Auto-open report in explorer", None))
         self.settings_report_auto_open_checkbox.setText(QCoreApplication.translate("MainWindow", u"CheckBox", None))
+        self.settings_file_dialog_button.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.ham_button_view.setText(QCoreApplication.translate("MainWindow", u"Assets", None))
         self.ham_button_insert.setText(QCoreApplication.translate("MainWindow", u"Add", None))
         self.ham_button_analytics.setText(QCoreApplication.translate("MainWindow", u"Analytics", None))

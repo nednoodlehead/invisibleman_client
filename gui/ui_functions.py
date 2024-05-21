@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect
 from PyQt5.QtGui import QCursor, QPainter, QColor, QTextCharFormat
 from util.data_types import InventoryObject, TableObject, create_inventory_object
-from util.export import export_all, export_eol, export_loc, export_ret
+from util.export import export_active, export_retired, export_loc, export_replacementdate
 from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table
 from db.insert import new_entry
 from db.update import update_full_obj, delete_from_uuid, retire_from_uuid
@@ -107,6 +107,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_deployment_date_fmt.setDisplayFormat(
             "yyyy-MM-dd"
         )  # thanks qt5 for randomly changing the default display format... commi #108
+        self.export_file_dialog.clicked.connect(self.open_report_file_dialog)
+        self.settings_file_dialog_button.clicked.connect(self.open_settings_file_dialog)
         self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
         self.insert_conditional_retirement_date_fmt.setDisplayFormat("yyyy-MM-dd")
         # when date is changed, update the replacement date accordingly
@@ -196,7 +198,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         )
         # edit buttons
         self.set_table_size_and_headers(self.default_columns)
-        self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)  # error for no reason..?
         self.main_table.customContextMenuRequested.connect(
             self.display_table_context_menu
         )
@@ -208,9 +210,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Asset Category",
             "Asset Type",
             "Asset Location",
-            "Deployment Date"
+            "Deployment Date",
             "Replacement Date",
-            "Retirement Date"
         ]
         self.acceptable_pie_charts = self.acceptable_all_charts.copy()
         self.acceptable_pie_charts.append("Notes")
@@ -284,9 +285,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
     # overwritten methods
 
-    def closeEvent(self, event):
+    def closeEvent(self, a0):
         self.write_config()
-        event.accept()
+        a0.accept()  # another random complaint from pyright
 
     # regular methods
     def imported_methods(self):
@@ -357,6 +358,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if path is not None:
             self.export_file_path_choice.setText(path)
 
+    def open_settings_file_dialog(self):
+        filedialog = QFileDialog(self)
+        filedialog.setFileMode(QFileDialog.FileMode.DirectoryOnly)
+        path = filedialog.getExistingDirectory(self)
+        if path is not None:
+            self.settings_backup_dir_text.setText(path)
+
     def refresh_asset_value(
         self,
     ):  # refresh the asset value, called on startup, and when new obj is made
@@ -412,13 +420,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # hide table by the date string, and swap to main view
         color = self.calendarWidget.dateTextFormat(date).background().color().getHsv()
         if not color == (-1, 0, 0, 255):
-
             self.clear_filter()
             self.filter_certain_column(
                 date.toString("yyyy-MM-dd"),
                 self.default_columns.index("Replacement Date"),
             )  # 7 should be replacment..
             self.swap_to_window(0)  # should only swap if it is valid...
+            self.filter_options_combobox.setCurrentIndex(10)
         # can you tell if it is valid without iteration? color!
 
     def update_analytics_top_graph(self):
@@ -484,9 +492,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         user_file = user_file if user_file.endswith("/") is False else f"{user_file}/"
         filename = f'{user_file}/{str(datetime.now()).replace(":", "-")[:19]}'  # should always end in a /, need to validate elsewhere
         if self.reports_export_export_active_radio.isChecked():
-            export_all(self, csv_val, filename)
+            export_active(self, csv_val, filename)
         elif self.reports_export_export_retired_radio.isChecked():
-            export_eol(self, csv_val, filename)
+            export_retired(self, csv_val, filename)
         elif self.reports_export_export_location_radio.isChecked():
             # cant be none...
             export_loc(
@@ -497,7 +505,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             )
         elif self.reports_export_export_due_replacement_radio.isChecked():
             # also cant be none, no null check required.. :)
-            export_ret(
+            export_replacementdate(
                 self,
                 csv_val,
                 filename,
@@ -871,6 +879,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         for count in range(self.main_table.rowCount()):
             self.main_table.setRowHidden(count, False)
         self.filter_user_text.setText("")
+        self.filter_options_combobox.setCurrentIndex(0)
 
     def toggle_retired_assets(self):
         if self.checkbox_view_retired_assets.isChecked():

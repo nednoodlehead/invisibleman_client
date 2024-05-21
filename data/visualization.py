@@ -58,7 +58,7 @@ class DataCanvas(FigureCanvasQTAgg):
         # redraw and change the params when making the graph, maybe have on thread...
         pass
 
-    def change_graph(self, data_choice: int, graph_choice: str):
+    def change_graph(self, data_choice: str, graph_choice: str):
         data = self.fetch_from_db_and_insert(data_choice)
         if graph_choice == "Bar":
             self.set_bar_graph(data.keys(), data.values(), data_choice)
@@ -77,19 +77,18 @@ class DataCanvas(FigureCanvasQTAgg):
         # maybe this is sort of stupid to fetch all, then goof with the data,
         # would be better to select only relevant fields, then goof with it
         property_to_int = {
-            "Name": 0,
-            "Serial Number": 1,
-            "Manufacturer": 2,
+            "Asset Type": 0,
+            "Manufacturer": 1,
+            "Serial Number": 2,
             "Model": 3,
-            "Price": 4,
-            "Asset Category": 5,
-            "Asset Type": 6,
-            "Assigned To": 7,
-            "Asset Location": 8,
-            "Purchase Date": 9,
-            "Install Date": 10,
-            "Replacement Date": 11,
-            "Notes": 12,
+            "Cost": 4,
+            "Assigned To": 5,
+            "Asset Location": 6,
+            "Asset Category": 7,
+            "Deployment Date": 8,
+            "Replacement Date": 9,
+            # retirement date would go here...
+            "Notes": 10,
         }
         months = {
             "01": "January",
@@ -118,31 +117,31 @@ class DataCanvas(FigureCanvasQTAgg):
                 else:
                     vals["Some Notes"] += 1
         # should sort this list, so it makes sense when viewing...
-        elif name == "Purchase Date":  # all data should be like: 2024-09-24
-            raw_data = sorted(raw_data, key=lambda x: x.purchasedate)
+        elif name == "Deployment Date":  # all data should be like: 2024-09-24
+            raw_data = sorted(raw_data, key=lambda x: x.deploymentdate)
             for obj in raw_data:
                 # use to have: - {months[obj.purchasedate[5:7]]}
-                value = f"{obj.purchasedate[:4]}"
-                if value not in vals:
-                    vals[value] = 1
-                else:
-                    vals[value] += 1
-        elif name == "Install Date":
-            sorted(raw_data, key=lambda x: x.installdate)
-            for obj in raw_data:
-                value = f"{obj.installdate[:4]}"
+                value = f"{obj.deploymentdate[:4]}"
                 if value not in vals:
                     vals[value] = 1
                 else:
                     vals[value] += 1
         elif name == "Replacement Date":
-            raw_data = sorted(raw_data, key=lambda x: x.replacementdate)
+            sorted(raw_data, key=lambda x: x.replacementdate)
             for obj in raw_data:
                 value = f"{obj.replacementdate[:4]}"
                 if value not in vals:
                     vals[value] = 1
                 else:
                     vals[value] += 1
+        # elif name == "Replacement Date":  maybe something special for retirement? TODO
+        #     raw_data = sorted(raw_data, key=lambda x: x.replacementdate)
+        #     for obj in raw_data:
+        #         value = f"{obj.replacementdate[:4]}"
+        #         if value not in vals:
+        #             vals[value] = 1
+        #         else:
+        #             vals[value] += 1
 
         else:
             for obj in raw_data:

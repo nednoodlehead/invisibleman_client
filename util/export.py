@@ -25,9 +25,9 @@ import dateutil.relativedelta
 # TODO refactor this file so its less redundant.. dont need 4 if csv statements
 
 
-def export_all(self, csv: bool, file: str):
+def export_active(self, csv: bool, file: str):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
-    file = f"{file}_ALL{csv_or_xlsx_str}"
+    file = f"{file}_ACTIVE{csv_or_xlsx_str}"
     data = fetch_all_enabled()
     if csv:
         write_iter_into_csv(self.default_columns, data, file)
@@ -36,20 +36,22 @@ def export_all(self, csv: bool, file: str):
     open_explorer_at_file(self, file)
 
 
-def export_eol(self, csv: bool, file: str):
+def export_retired(self, csv: bool, file: str):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
-    file = f"{file}_EOL{csv_or_xlsx_str}"
+    file = f"{file}_RETIRED{csv_or_xlsx_str}"
     data = fetch_obj_from_retired()
+    all_col = self.default_columns.copy()
+    all_col.append("Retirement Date")
     if csv:
-        write_iter_into_csv(self.default_columns, data, file)
+        write_iter_into_csv(all_col, data, file)
     else:  # excel export :D
-        write_iter_into_excel(self.default_columns, data, file)
+        write_iter_into_excel(all_col, data, file)
     open_explorer_at_file(self, file)
 
 
 def export_loc(self, csv: bool, file: str, place: str):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
-    file = f"{file}_location{csv_or_xlsx_str}"
+    file = f"{file}_LOCATION{csv_or_xlsx_str}"
     data = fetch_obj_from_loc(place)
     if csv:
         write_iter_into_csv(self.default_columns, data, file)
@@ -58,10 +60,10 @@ def export_loc(self, csv: bool, file: str, place: str):
     open_explorer_at_file(self, file)
 
 
-def export_ret(self, csv: bool, file: str, time_period: str):
+def export_replacementdate(self, csv: bool, file: str, time_period: str):
     # time period is our 3, 6, 9, 12, 24 month period
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
-    file = f"{file}_retired{csv_or_xlsx_str}"
+    file = f"{file}_DUE-REPLACEMENT{csv_or_xlsx_str}"
     num = int(time_period.split(" ")[0])  # the number part of the '3 Months' or '12 Months'
     time_period = datetime.date.today() + dateutil.relativedelta.relativedelta(months=num)
     data = fetch_retired_assets(time_period)
@@ -86,6 +88,8 @@ def write_iter_into_excel(columns, iterable, filename: str):
     active_ws.append(columns)
     for row in iterable:
         active_ws.append(row)
+    for col in ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]:
+        active_ws.column_dimensions[col].width = 20
     wb.save(filename)
 
 

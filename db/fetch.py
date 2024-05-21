@@ -17,7 +17,7 @@ def fetch_all_enabled():  # [InventoryObject] without the enabled field
         data = conn.execute(
             """
             SELECT assettype, manufacturer, serial, model, cost, assignedto, assetlocation, assetcategory,
-            deploymentdate, replacementdate, retirementdate, notes, uniqueid FROM main WHERE status = 1;
+            deploymentdate, replacementdate, notes, uniqueid FROM main WHERE status = 0;
             """
         )
         for item in data:
@@ -77,8 +77,8 @@ def fetch_obj_from_retired():
         data = conn.execute(
             """
             SELECT assettype, manufacturer, serial, model, cost, assignedto,
-            assetlocation, assetcategory, deploymentdate, replacementdate, 
-            notes, uniqueid FROM main
+            assetlocation, assetcategory, deploymentdate, replacementdate,
+            notes, uniqueid, retirementdate FROM main
             WHERE status = 1 
             """,
         )
@@ -93,8 +93,8 @@ def fetch_obj_from_loc(location):
         data = conn.execute(
             """
             SELECT assettype, manufacturer, serial, model, cost, assignedto,
-            assetlocation, assetcategory, deploymentdate,
-            retirementdate, notes FROM main
+            assetlocation, assetcategory, deploymentdate, replacementdate,
+            notes, uniqueid FROM main
             WHERE status = 0 AND assetlocation = ?
             """,
             (location,),
@@ -111,12 +111,11 @@ def fetch_retired_assets(year: str):
         data = conn.execute(
             """
             SELECT assettype, manufacturer, serial, model, cost, assignedto,
-            assetlocation, assetcategory, deploymentdate,
-            retirementdate, notes FROM main
+            assetlocation, assetcategory, deploymentdate, replacementdate, notes, uniqueid
+            FROM main
             WHERE replacementdate <= ? AND status = 0
             """, (year,)
         )
     for item in data:
-        print("FOUNDER")
         ret_list.append(item)
     return ret_list
