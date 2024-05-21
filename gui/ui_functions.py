@@ -355,14 +355,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         filedialog = QFileDialog(self)
         filedialog.setFileMode(QFileDialog.FileMode.DirectoryOnly)
         path = filedialog.getExistingDirectory(self)
-        if path is not None:
+        if path is not None and path != "":
             self.export_file_path_choice.setText(path)
 
     def open_settings_file_dialog(self):
         filedialog = QFileDialog(self)
         filedialog.setFileMode(QFileDialog.FileMode.DirectoryOnly)
         path = filedialog.getExistingDirectory(self)
-        if path is not None:
+        if path is not None and path != "":
             self.settings_backup_dir_text.setText(path)
 
     def refresh_asset_value(
