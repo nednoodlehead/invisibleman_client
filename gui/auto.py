@@ -1,8 +1,7 @@
-
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'inventory_managerJzMPEg.ui'
+## Form generated from reading UI file 'inventory_managerKEHVkP.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -91,10 +90,10 @@ class Ui_MainWindow(object):
         self.checkbox_view_retired_assets.setGeometry(QRect(570, 20, 121, 21))
         self.filter_column_button = QPushButton(self.stacked_view_db_page)
         self.filter_column_button.setObjectName(u"filter_column_button")
-        self.filter_column_button.setGeometry(QRect(100, 30, 75, 23))
+        self.filter_column_button.setGeometry(QRect(200, 30, 75, 23))
         self.filter_options_combobox = QComboBox(self.stacked_view_db_page)
         self.filter_options_combobox.setObjectName(u"filter_options_combobox")
-        self.filter_options_combobox.setGeometry(QRect(180, 30, 101, 22))
+        self.filter_options_combobox.setGeometry(QRect(90, 30, 101, 22))
         self.filter_user_text = QLineEdit(self.stacked_view_db_page)
         self.filter_user_text.setObjectName(u"filter_user_text")
         self.filter_user_text.setGeometry(QRect(290, 30, 151, 20))
@@ -602,7 +601,7 @@ class Ui_MainWindow(object):
         self.checkbox_notes.setText(QCoreApplication.translate("MainWindow", u"Notes", None))
         self.checkbox_model.setText(QCoreApplication.translate("MainWindow", u"Model", None))
         self.checkbox_view_retired_assets.setText(QCoreApplication.translate("MainWindow", u"Retired Assets", None))
-        self.filter_column_button.setText(QCoreApplication.translate("MainWindow", u"Filter", None))
+        self.filter_column_button.setText(QCoreApplication.translate("MainWindow", u"Apply Filter", None))
         self.filter_clear_button.setText(QCoreApplication.translate("MainWindow", u"X", None))
         self.insert_bold_equals_required_info.setText(QCoreApplication.translate("MainWindow", u"Bold indicates a required field", None))
         self.insert_serial_label.setText(QCoreApplication.translate("MainWindow", u"Serial #", None))

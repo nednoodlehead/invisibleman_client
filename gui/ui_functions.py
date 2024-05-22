@@ -865,6 +865,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.main_table.setRowHidden(row_num, True)
 
     def handle_filter_request(self):  # what the filter button calls
+        # we don't want to filter already filtered content, so we reset the stuff to default
+        for count in range(self.main_table.rowCount()):
+            self.main_table.setRowHidden(count, False)
         word = self.filter_user_text.text()
         category = self.filter_options_combobox.currentText()
         if category != "Global":
