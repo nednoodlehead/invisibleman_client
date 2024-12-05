@@ -107,7 +107,6 @@ def fetch_obj_from_loc(location):
 def fetch_retired_assets(year: str):
     ret_list = []
     with sqlite3.connect("main.db") as conn:
-        print(year, type(year))
         data = conn.execute(
             """
             SELECT assettype, manufacturer, serial, model, cost, assignedto,
@@ -128,9 +127,9 @@ def fetch_all_serial() -> [str]:
         # x[0] because it returns data like: ('123',)
     return [x[0] for x in data]
 
+
 def fetch_by_serial(finding: str) -> InventoryObject:
     with sqlite3.connect("main.db") as conn:
-        print(finding)
         proc = conn.execute("SELECT * FROM main WHERE serial = ?", (finding,))
         # this is strongly assuming that there is only one S/N that matches this. It will grab the first one (order based on insertion)
         # so, don't be stupid and have a bunch of same-type serial numbers. They should be unique irl anyways
