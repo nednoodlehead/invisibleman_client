@@ -16,9 +16,9 @@ from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect
 from PyQt5.QtGui import QCursor, QPainter, QColor, QTextCharFormat
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from util.export import export_active, export_retired, export_loc, export_replacementdate
-from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table
+from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial
 from db.insert import new_entry
-from db.update import update_full_obj, delete_from_uuid, retire_from_uuid
+from db.update import update_full_obj, delete_from_uuid, retire_from_uuid, unretire_from_uuid
 from gui.notes_window import NotesWindow
 from gui.export_graph_window import ExportGraph
 from gui.settings import dark_light_mode_switch, set_dark
@@ -261,7 +261,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             )
         )
         self.calendarWidget.clicked[QDate].connect(self.on_calendar_click)
-
+        # configure the serial input to update the button next to it
+        self.insert_serial_text.textChanged.connect(self.serial_input_typed)
+        # set the button as disabled because it does not match a serial number
+        # see self.serial_input_typed for more
+        self.insert_serial_is_unique_button.setEnabled(False)
+        self.insert_serial_is_unique_button.clicked.connect(self.pull_unique_uuid_data)
         # should be threaded?: edit: doesnt seem too bad on performance somehow...
         # could totally json this bit....
         self.graph_1.change_graph(
@@ -307,15 +312,34 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
     def display_table_context_menu(self, position=None):
         menu = QMenu()
+        print("Position!!", position)
+        # we need to determine if the select row is retired or normal
+        # so we can add the correct button (retire / unretire) and the correct slot
+        index = self.main_table.indexAt(position)
+        row = index.row()
+        # item will be none if the retirment date row is not shown
+        retirement_option = self.main_table.item(row, 12)
+        our_uuid = self.main_table.item(row, 11).text()
+        if retirement_option:
+            if retirement_option.text() != "":
+                menu.addAction("Unretire", lambda: self.try_unretire_row(our_uuid))
+            else:
+                # option when retired assets are visible, but we click on a non-retired asset
+                menu.addAction(
+                    "Retire",
+                    lambda: self.try_retire_row(our_uuid),
+                )
+        else:
+            menu.addAction(
+                "Retire",
+                lambda: self.try_retire_row(our_uuid),
+            )
+        print("retirement_option of the row is:", retirement_option)
         menu.addAction(
             "Update",
             lambda: self.try_update_row(
                 position
             ),
-        )
-        menu.addAction(
-            "Retire",
-            lambda: self.try_retire_row(position),
         )
         menu.exec_(QCursor.pos())
 
@@ -558,15 +582,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.insert_status_bool.setCurrentIndex(0)
         self.insert_active_uuid = inventory_obj.uniqueid
         # disable the fields that 'we dont want to edit'
-        self.insert_asset_type_combobox.setDisabled(True)
-        self.insert_asset_category_combobox.setDisabled(True)
-        self.insert_manufacturer_combobox.setDisabled(True)
-        self.insert_serial_text.setDisabled(True)
-        self.insert_model_text.setDisabled(True)
-        self.insert_cost_spinbox.setDisabled(True)
-        self.insert_asset_category_combobox.setDisabled(True)
-        self.insert_deployment_date_fmt.setDisabled(True)
-        
 
     def toggle_burger(self):  # toggle burger menu. TODO give it the icon
         if self.ham_menu_frame.height() == 250:
@@ -720,69 +735,49 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     def check_data_and_insert(
         self,
     ):  # either inserts or updtes based on uuid field presence
-        required = {
-            "Serial": self.insert_serial_text,
-            "Manufacturer": self.insert_manufacturer_combobox,
-            "Asset Category": self.insert_asset_category_combobox,
-            "Asset Type": self.insert_asset_type_combobox,
-            "Asset Location": self.insert_asset_location_combobox,
-        }
-        missing = []
-        for name, item in required.items():
-            try:
-                if item.text() == "":
-                    missing.append(name)
-            except AttributeError:  # comboboxes !!
-                if item.currentText() == "":
-                    missing.append(name)
-        if len(missing) != 0:
-            self.display_message("Error!", f"Missing fields: {missing}")
-        else:
-            # we are creating a new entry if this is an empty value
-            
-            if self.insert_active_uuid == "":
+        if self.insert_active_uuid == "":
 
-                obj = create_inventory_object(
-                    self.insert_asset_type_combobox.currentText(),
-                    self.insert_manufacturer_combobox.currentText(),
-                    self.insert_serial_text.text(),
-                    self.insert_model_text.text(),
-                    self.insert_cost_spinbox.text(),
-                    self.insert_assigned_to_text.text(),
-                    self.insert_asset_location_combobox.currentText(),
-                    self.insert_asset_category_combobox.currentText(),
-                    self.insert_deployment_date_fmt.text(),
-                    self.insert_replacement_date_fmt.text(),
-                    None if self.insert_status_bool.currentText() == "Active" else self.insert_conditional_retirement_date_fmt.text(),
-                    self.insert_notes_text.toPlainText(),
-                    self.insert_status_bool.currentText(),
-                )
-                new_entry(obj)
-            else:
-                # we are updating an existing entry! (since the uuid string was set)
-                obj = InventoryObject(
-                    self.insert_asset_type_combobox.currentText(),
-                    self.insert_manufacturer_combobox.currentText(),
-                    self.insert_serial_text.text(),
-                    self.insert_model_text.text(),
-                    self.insert_cost_spinbox.text(),
-                    self.insert_assigned_to_text.text(),
-                    self.insert_asset_location_combobox.currentText(),
-                    self.insert_asset_category_combobox.currentText(),
-                    self.insert_deployment_date_fmt.text(),
-                    self.insert_replacement_date_fmt.text(),
-                    None if self.insert_status_bool.currentText() == "Active" else self.insert_conditional_retirement_date_fmt.text(),
-                    self.insert_notes_text.toPlainText(),
-                    self.insert_status_bool.currentText(),
-                    self.insert_active_uuid,
-                )
-                update_full_obj(obj)
-            self.set_insert_data_to_default()
-            # intentional choice here to not update the graphs, seems too expensive to call each time, and to see if data was even changed
-            # from the current view.
-            self.populate_table_with(
-                fetch_all_enabled_for_table(), False
-            )  # this will overwrite any filters / views
+            obj = create_inventory_object(
+                self.insert_asset_type_combobox.currentText(),
+                self.insert_manufacturer_combobox.currentText(),
+                self.insert_serial_text.text(),
+                self.insert_model_text.text(),
+                self.insert_cost_spinbox.text(),
+                self.insert_assigned_to_text.text(),
+                self.insert_asset_location_combobox.currentText(),
+                self.insert_asset_category_combobox.currentText(),
+                self.insert_deployment_date_fmt.text(),
+                self.insert_replacement_date_fmt.text(),
+                None if self.insert_status_bool.currentText() == "Active" else self.insert_conditional_retirement_date_fmt.text(),
+                self.insert_notes_text.toPlainText(),
+                self.insert_status_bool.currentText(),
+            )
+            new_entry(obj)
+        else:
+            # we are updating an existing entry! (since the uuid string was set)
+            obj = InventoryObject(
+                self.insert_asset_type_combobox.currentText(),
+                self.insert_manufacturer_combobox.currentText(),
+                self.insert_serial_text.text(),
+                self.insert_model_text.text(),
+                self.insert_cost_spinbox.text(),
+                self.insert_assigned_to_text.text(),
+                self.insert_asset_location_combobox.currentText(),
+                self.insert_asset_category_combobox.currentText(),
+                self.insert_deployment_date_fmt.text(),
+                self.insert_replacement_date_fmt.text(),
+                None if self.insert_status_bool.currentText() == "Active" else self.insert_conditional_retirement_date_fmt.text(),
+                self.insert_notes_text.toPlainText(),
+                self.insert_status_bool.currentText(),
+                self.insert_active_uuid,
+            )
+            update_full_obj(obj)
+        self.set_insert_data_to_default()
+        # intentional choice here to not update the graphs, seems too expensive to call each time, and to see if data was even changed
+        # from the current view.
+        self.populate_table_with(
+            fetch_all_enabled_for_table(), False
+        )  # this will overwrite any filters / views
 
     def set_insert_data_to_default(
         self,
@@ -890,24 +885,50 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         else:
             self.populate_table_with(fetch_all_enabled_for_table(), False)  # only enabled content!
             
-    def retire_asset(self, row):
-        id = self.main_table.item(row, 11).text()  # 11 is the id!
-        retire_from_uuid(id)
-        # do we update it...? refresh table i guess? 
-        self.toggle_retired_assets()
-
-    def try_retire_row(self, position):
+    def try_retire_row(self, uuid):
         try:
-            self.retire_asset(self.main_table.itemAt(position).row())
+            retire_from_uuid(uuid)
+            self.toggle_retired_assets()
         except AttributeError:
             # this is the case where the user.. misses? a row
             pass
 
+    def try_unretire_row(self, uuid):
+        try:
+            unretire_from_uuid(uuid)
+            self.toggle_retired_assets()
+            # refresh table...?
+        except AttributeError:
+            pass
+
     def try_update_row(self, position):
-        
         try:
             self.send_update_data_to_insert(self.main_table.itemAt(position).row())
         except AttributeError:
             # this is the case where the user.. misses? a row
             pass
 
+    def serial_input_typed(self):
+        # this is what we call when the serial number field is typed in
+        # we do a check to see if that serial number exists in our db.
+        # if it does exist, we enable the button & allow the user to import from that serial number
+        serial_str = self.insert_serial_text.text()
+        da_list = fetch_all_serial()
+        if serial_str == "":
+            self.insert_serial_is_unique_button.setEnabled(False)
+            self.insert_serial_is_unique_button.setText("cant import empty SN")
+        elif serial_str in da_list:
+            self.insert_serial_is_unique_button.setEnabled(True)
+            self.insert_serial_is_unique_button.setText("S/N Exists. Click to import")
+        else:
+            self.insert_serial_is_unique_button.setEnabled(False)
+            self.insert_serial_is_unique_button.setText("Unique")
+
+    def pull_unique_uuid_data(self):
+        # this happens when the user clicks the button next to "serial #" on the add page when
+        # the text inside the serial # lineedit already exists.
+        # it invites the user to edit that gives object, based on the serial number identifier
+        print(self.insert_serial_text.text())
+        obj = fetch_by_serial(self.insert_serial_text.text())
+        self.update_insert_page_from_obj(obj)
+        self.swap_to_window(1)
