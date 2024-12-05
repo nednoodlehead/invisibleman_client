@@ -57,3 +57,8 @@ def retire_from_uuid(uuid: str):
                     UPDATE main SET status = 1, retirementdate = ? WHERE uniqueid = ?
                      """, (today, uuid))
         conn.commit()
+
+def unretire_from_uuid(uuid: str):
+    with sqlite3.connect("main.db") as conn:
+        conn.execute("UPDATE main SET status = 0, retirementdate = NULL WHERE uniqueid = ?", (uuid,))
+        conn.commit()
