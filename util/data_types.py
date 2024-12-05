@@ -149,7 +149,9 @@ class TableObject:
         yield self.notes
         # yield self.status <- this messed with right click -> 'update' pulling 'None'
         yield self.uniqueid
-        yield self.retirementdate
+        # makes it so active assets have an empty cell under "retirement date"
+        # that is how we differenciate retired vs not retired
+        yield "" if not self.retirementdate else self.retirementdate
 
     def __len__(self):
         return 14
