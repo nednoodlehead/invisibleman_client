@@ -12,6 +12,7 @@ def create_db():
                          model text,
                          cost decimal (6, 2),
                          assignedto text,
+                         name text,
                          assetlocation text,
                          assetcategory text,
                          deploymentdate date,

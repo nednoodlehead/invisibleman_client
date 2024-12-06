@@ -6,7 +6,7 @@ def new_entry(insert: InventoryObject):
     conn = sqlite3.connect("main.db")
     temp = tuple(insert)
     conn.execute(
-        "INSERT INTO main VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", temp
+        "INSERT INTO main VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", temp
     )
     conn.commit()
     conn.close()

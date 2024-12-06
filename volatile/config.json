@@ -4,20 +4,21 @@
         "Manufacturer": true,
         "Serial Number": true,
         "Model": true,
-        "Cost": false,
-        "Assigned To": false,
+        "Cost": true,
+        "Assigned To": true,
+        "Name": true,
         "Asset Location": true,
         "Asset Category": true,
         "Deployment Date": true,
         "Replacement Date": true,
-        "Notes": false
+        "Notes": true
     },
     "dark_mode": true,
-    "backup_path": "C:\\\\",
-    "default_report_path": "D:/goofin",
+    "backup_path": "D:/goofin",
+    "default_report_path": "D:/backups",
     "auto_open_report_on_create": true,
     "top_graph_type": "Bar",
-    "top_graph_data": "Manufacturer",
+    "top_graph_data": "Asset Location",
     "bottom_graph_type": "Pie",
-    "bottom_graph_data": "Asset Location"
+    "bottom_graph_data": "Asset Type"
 }

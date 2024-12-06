@@ -14,6 +14,7 @@ class InventoryObject:
         model: str,
         cost: float,
         assignedto: str,
+        name: str,
         assetlocation: str,
         assetcategory: str,
         deploymentdate: datetime.date,
@@ -29,6 +30,7 @@ class InventoryObject:
         self.model = model
         self.cost = cost
         self.assignedto = assignedto
+        self.name = name
         self.assetlocation = assetlocation
         self.assetcategory = assetcategory
         self.deploymentdate = deploymentdate
@@ -45,6 +47,7 @@ class InventoryObject:
         yield self.model
         yield self.cost
         yield self.assignedto
+        yield self.name
         yield self.assetlocation
         yield self.assetcategory
         yield self.deploymentdate
@@ -68,6 +71,7 @@ def create_inventory_object(
     model: str,
     cost: float,
     assignedto: str,
+    name: str,
     assetlocation: str,
     assetcategory: str,
     deploymentdate: datetime.date,
@@ -90,6 +94,7 @@ def create_inventory_object(
         model,
         cost,
         assignedto,
+        name,
         assetlocation,
         assetcategory,
         deploymentdate,
@@ -111,6 +116,7 @@ class TableObject:
         model: str,
         cost: float,
         assignedto: str,
+        name: str,
         assetlocation: str,
         assetcategory: str,
         deploymentdate: datetime.date,
@@ -126,6 +132,7 @@ class TableObject:
         self.model = model
         self.cost = cost
         self.assignedto = assignedto
+        self.name = name
         self.assetlocation = assetlocation
         self.assetcategory = assetcategory
         self.deploymentdate = deploymentdate
@@ -142,6 +149,7 @@ class TableObject:
         yield self.model
         yield self.cost
         yield self.assignedto
+        yield self.name
         yield self.assetlocation
         yield self.assetcategory
         yield self.deploymentdate
@@ -154,10 +162,10 @@ class TableObject:
         yield "" if not self.retirementdate else self.retirementdate
 
     def __len__(self):
-        return 14
+        return 15
 
     def __str__(self):
         return f"table_Object: retire: {self.retirementdate} uuid: {self.uniqueid}"
 
     def __repr__(self):
-        return f"table_Object: {self.__iter__}"
+        return f"table_Object: {self.serial, self.uniqueid}"

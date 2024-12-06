@@ -26,6 +26,7 @@ def update_full_obj(obj: InventoryObject):
                        model = ?,
                        cost = ?,
                        assignedto = ?,
+                       name = ?,
                        assetlocation = ?,
                        assetcategory = ?,
                        deploymentdate = ?,

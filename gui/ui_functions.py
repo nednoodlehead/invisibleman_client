@@ -56,6 +56,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Model",
             "Cost",
             "Assigned To",
+            "Name",
             "Asset Location",
             "Asset Category",
             "Deployment Date",
@@ -151,6 +152,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.checkbox_model,
             self.checkbox_cost,
             self.checkbox_assignedto,
+            self.checkbox_name,
             self.checkbox_assetlocation,
             self.checkbox_assetcategory,
             self.checkbox_deploymentdate,
@@ -312,14 +314,19 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
     def display_table_context_menu(self, position=None):
         menu = QMenu()
-        print("Position!!", position)
         # we need to determine if the select row is retired or normal
         # so we can add the correct button (retire / unretire) and the correct slot
         index = self.main_table.indexAt(position)
         row = index.row()
         # item will be none if the retirment date row is not shown
-        retirement_option = self.main_table.item(row, 12)
-        our_uuid = self.main_table.item(row, 11).text()
+        retirement_option = self.main_table.item(row, 13)
+        menu.addAction(
+            "Update",
+            lambda: self.try_update_row(
+                position
+            ),
+        )
+        our_uuid = self.main_table.item(row, 12).text()
         if retirement_option:
             if retirement_option.text() != "":
                 menu.addAction("Unretire", lambda: self.try_unretire_row(our_uuid))
@@ -334,25 +341,18 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 "Retire",
                 lambda: self.try_retire_row(our_uuid),
             )
-        print("retirement_option of the row is:", retirement_option)
-        menu.addAction(
-            "Update",
-            lambda: self.try_update_row(
-                position
-            ),
-        )
         menu.exec_(QCursor.pos())
 
     def delete_and_remove_row(self, row):
-        id = self.main_table.item(row, 13).text()
+        id = self.main_table.item(row, 14).text()
         delete_from_uuid(id)
         self.main_table.removeRow(row)
 
     def view_button_reveal_checkboxes(self):
-        if self.view_toggle_frame.width() == 720:
+        if self.view_toggle_frame.width() == 800:
             self.view_toggle_frame.setFixedWidth(80)
         else:
-            self.view_toggle_frame.setFixedWidth(720)
+            self.view_toggle_frame.setFixedWidth(800)
 
     def handle_checkboxes_and_columns(
         self, column: int, box: QCheckBox
@@ -541,7 +541,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     def send_update_data_to_insert(
         self, index
     ):  # prepare everything for update_insert_page_from_obj
-        uuid = self.main_table.item(index, 11).text()
+        uuid = self.main_table.item(index, 12).text()
         obj = fetch_from_uuid_to_update(uuid)
         self.swap_to_window(1)
         self.update_insert_page_from_obj(obj)
@@ -610,6 +610,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Model": self.checkbox_model.isChecked(),
             "Cost": self.checkbox_cost.isChecked(),
             "Assigned To": self.checkbox_assignedto.isChecked(),
+            "Name": self.checkbox_name.isChecked(),
             "Asset Location": self.checkbox_assetlocation.isChecked(),
             "Asset Category": self.checkbox_assetcategory.isChecked(),
             "Deployment Date": self.checkbox_deploymentdate.isChecked(),
@@ -638,14 +639,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if retirement_bool:
             # this is sort of sloppy. idk
             self.main_table.setColumnCount(
-                13
+                14
             )  # set the column count to the size of the first data piece
             new_headers = self.default_columns.copy()
             new_headers.append("Retirement Date")
             self.main_table.setHorizontalHeaderLabels(new_headers)
         else:
             self.main_table.setColumnCount(
-                12
+                13
             )  # set the column count to the size of the first data piece
         for row, rowdata in enumerate(data):
             for col, value in enumerate(rowdata):
@@ -744,6 +745,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.insert_model_text.text(),
                 self.insert_cost_spinbox.text(),
                 self.insert_assigned_to_text.text(),
+                self.insert_name_text.text(),
                 self.insert_asset_location_combobox.currentText(),
                 self.insert_asset_category_combobox.currentText(),
                 self.insert_deployment_date_fmt.text(),
@@ -762,6 +764,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.insert_model_text.text(),
                 self.insert_cost_spinbox.text(),
                 self.insert_assigned_to_text.text(),
+                self.insert_name_text.text(),
                 self.insert_asset_location_combobox.currentText(),
                 self.insert_asset_category_combobox.currentText(),
                 self.insert_deployment_date_fmt.text(),
@@ -827,6 +830,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.main_table.setColumnWidth(count, 120)
         # alternating row colors :D
         self.main_table.setAlternatingRowColors(True)
+        # sets the UUID to be hidden
         self.main_table.setColumnHidden(length - 1, True)  # must be done here
 
     def filter_all_columns(
@@ -928,7 +932,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # this happens when the user clicks the button next to "serial #" on the add page when
         # the text inside the serial # lineedit already exists.
         # it invites the user to edit that gives object, based on the serial number identifier
-        print(self.insert_serial_text.text())
         obj = fetch_by_serial(self.insert_serial_text.text())
         self.update_insert_page_from_obj(obj)
         self.swap_to_window(1)

@@ -16,7 +16,7 @@ def fetch_all_enabled():  # [InventoryObject] without the enabled field
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
             """
-            SELECT assettype, manufacturer, serial, model, cost, assignedto, assetlocation, assetcategory,
+            SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
             deploymentdate, replacementdate, notes, uniqueid FROM main WHERE status = 0;
             """
         )
@@ -32,7 +32,7 @@ def fetch_all_enabled_for_table() -> [TableObject]:
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
             """
-            SELECT assettype, manufacturer, serial, model, cost, assignedto, assetlocation, assetcategory,
+            SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
             deploymentdate, replacementdate, retirementdate, notes, status, uniqueid FROM main WHERE status = 0
             """
         )
@@ -46,7 +46,7 @@ def fetch_all_for_table() -> [TableObject]:
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
             """
-            SELECT assettype, manufacturer, serial, model, cost, assignedto, assetlocation, assetcategory,
+            SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
             deploymentdate, replacementdate, retirementdate, notes, status, uniqueid FROM main
             """
         )
@@ -76,7 +76,7 @@ def fetch_obj_from_retired():
         # remember. 1 = retired
         data = conn.execute(
             """
-            SELECT assettype, manufacturer, serial, model, cost, assignedto,
+            SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
             assetlocation, assetcategory, deploymentdate, replacementdate,
             notes, uniqueid, retirementdate FROM main
             WHERE status = 1 
@@ -92,7 +92,7 @@ def fetch_obj_from_loc(location):
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
             """
-            SELECT assettype, manufacturer, serial, model, cost, assignedto,
+            SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
             assetlocation, assetcategory, deploymentdate, replacementdate,
             notes, uniqueid FROM main
             WHERE status = 0 AND assetlocation = ?
@@ -109,7 +109,7 @@ def fetch_retired_assets(year: str):
     with sqlite3.connect("main.db") as conn:
         data = conn.execute(
             """
-            SELECT assettype, manufacturer, serial, model, cost, assignedto,
+            SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
             assetlocation, assetcategory, deploymentdate, replacementdate, notes, uniqueid
             FROM main
             WHERE replacementdate <= ? AND status = 0
