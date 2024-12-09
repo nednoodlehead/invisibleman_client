@@ -651,7 +651,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         for row, rowdata in enumerate(data):
             for col, value in enumerate(rowdata):
                 item = QTableWidgetItem(str(value))
-                if col == 10:
+                if col == 11:
                     if value == "":
                         button = self.generate_notes_button(
                             data[row].uniqueid, "Add Notes"
