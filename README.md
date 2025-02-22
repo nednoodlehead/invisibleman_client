@@ -1,6 +1,6 @@
 # Invisible Man!
 
-A asset management tracker using a local database to track assets
+An asset management database client that interfaces with a centralized postgreSQL server to relay IT assets within a LAN. Built with PyQt5
 
 Includes:
 1. An intuitive interface
