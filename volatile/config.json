@@ -18,7 +18,5 @@
     "default_report_path": "D:/backups",
     "auto_open_report_on_create": true,
     "top_graph_type": "Bar",
-    "top_graph_data": "Asset Location",
-    "bottom_graph_type": "Pie",
-    "bottom_graph_data": "Asset Type"
+    "top_graph_data": "Notes"
 }

@@ -83,6 +83,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
         self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
         self.ham_button_reports.clicked.connect(self.swap_reports_refresh)
+        self.ham_button_settings.clicked.connect(lambda: self.swap_to_window(4))
         self.insert_asset_category_combobox.currentIndexChanged.connect(
             self.update_replacement_date
         )
@@ -96,7 +97,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.toggle_retired_assets
         )
         self.main_table.setSortingEnabled(True)
-        self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
+        # removed since i think it is a bit of over-engineering
+        # self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
         self.checkbox_view_retired_assets.clicked.connect(self.toggle_retired_assets)
         self.settings_update_button.clicked.connect(self.write_config)
         self.filter_column_button.clicked.connect(self.handle_filter_request)
@@ -108,7 +110,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_deployment_date_fmt.setDisplayFormat(
             "yyyy-MM-dd"
         )  # thanks qt5 for randomly changing the default display format... commi #108
-        self.export_file_dialog.clicked.connect(self.open_report_file_dialog)
+        self.export_file_dialog_button.clicked.connect(self.open_report_file_dialog)
         self.settings_file_dialog_button.clicked.connect(self.open_settings_file_dialog)
         self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
         self.insert_conditional_retirement_date_fmt.setDisplayFormat("yyyy-MM-dd")
@@ -117,15 +119,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.analytics_export_top_button.clicked.connect(
             lambda: self.export_graph(True)
         )
-        self.analytics_export_bottom_button.clicked.connect(
-            lambda: self.export_graph(False)
-        )
         self.analytics_update_top_view_button.clicked.connect(
             self.update_analytics_top_graph
         )
         # allow us to reach settings
-        self.actionSettings.triggered.connect(lambda: self.swap_to_window(4))
-        self.actionCreate_Backup.triggered.connect(lambda: create_backup(self))
         self.settings_darkmode_checkbox.clicked.connect(
             lambda: dark_light_mode_switch(
                 self, self.settings_darkmode_checkbox.isChecked()
@@ -217,7 +214,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         ]
         self.acceptable_pie_charts = self.acceptable_all_charts.copy()
         self.acceptable_pie_charts.append("Notes")
-        self.analytics_field_combobox_top.addItems(self.acceptable_all_charts)
+        self.analytics_field_combobox_top.addItems(self.graphs_and_charts_top)
         self.analytics_field_combobox_bottom.addItems(self.acceptable_pie_charts)
         self.graph_1 = DataCanvas(
             parent=self.analytics_graph_top,
@@ -227,39 +224,18 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             height_2=290,
             width_2=790,
         )
-        self.graph_2 = DataCanvas(
-            parent=self.analytics_graph_bottom,
-            width=6,
-            height=4,
-            dpi=100,
-            height_2=290,
-            width_2=520,
-        )
-        self.analytics_field_combobox_top_2.addItems(self.graphs_and_charts_top)
+        self.analytics_field_combobox_bottom.addItems(self.graphs_and_charts_top)
         # self.graph_2.figure.subplots_adjust(left=-0.1)  # was used to move the pie chart. Fine where is
-        self.analytics_field_combobox_bottom_2.addItems(["Pie", "Donut"])  # donut soon!
-        self.analytics_field_combobox_top_2.currentIndexChanged.connect(
-            lambda: self.graph_1.change_graph(
-                self.analytics_field_combobox_top.currentText(),
-                self.analytics_field_combobox_top_2.currentText(),
-            )
-        )
         self.analytics_field_combobox_top.currentIndexChanged.connect(
             lambda: self.graph_1.change_graph(
+                self.analytics_field_combobox_bottom.currentText(),
                 self.analytics_field_combobox_top.currentText(),
-                self.analytics_field_combobox_top_2.currentText(),
             )
         )
         self.analytics_field_combobox_bottom.currentIndexChanged.connect(
-            lambda: self.graph_2.change_graph(
+            lambda: self.graph_1.change_graph(
                 self.analytics_field_combobox_bottom.currentText(),
-                self.analytics_field_combobox_bottom_2.currentText(),
-            )
-        )
-        self.analytics_field_combobox_bottom_2.currentIndexChanged.connect(
-            lambda: self.graph_2.change_graph(
-                self.analytics_field_combobox_bottom.currentText(),
-                self.analytics_field_combobox_bottom_2.currentText(),
+                self.analytics_field_combobox_top.currentText(),
             )
         )
         self.calendarWidget.clicked[QDate].connect(self.on_calendar_click)
@@ -274,19 +250,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.graph_1.change_graph(
             self.config["top_graph_data"], self.config["top_graph_type"]
         )
-        self.graph_2.change_graph(
-            self.config["bottom_graph_data"], self.config["bottom_graph_type"]
-        )
         self.analytics_field_combobox_top.setCurrentText(self.config["top_graph_data"])
-        self.analytics_field_combobox_top_2.setCurrentText(
-            self.config["top_graph_type"]
-        )
-        self.analytics_field_combobox_bottom.setCurrentText(
-            self.config["bottom_graph_data"]
-        )
-        self.analytics_field_combobox_bottom_2.setCurrentText(
-            self.config["bottom_graph_type"]
-        )
         self.update_calendar_colors_from_db()
         self.settings_update_button.clicked.connect(self.write_config_tell_user)
 
@@ -404,7 +368,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     ):  # no reason to check for non int/float, since input is sanitized
                         total += float(item.text())
         # add commas between numbers...
-        self.reports_asset_integer_label.setText(f"{total:,.2f}")
+        # we removed this for now...
+        # self.reports_asset_integer_label.setText(f"{total:,.2f}")
 
     def update_calendar_colors_from_db(self):
         # should probably thread this...
@@ -623,9 +588,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.settings_backup_dir_text.text(),
             self.settings_report_auto_open_checkbox.isChecked(),
             self.export_file_path_choice.text(),
-            self.analytics_field_combobox_top_2.currentText(),
             self.analytics_field_combobox_top.currentText(),
-            self.analytics_field_combobox_bottom_2.currentText(),
             self.analytics_field_combobox_bottom.currentText(),
         )
 

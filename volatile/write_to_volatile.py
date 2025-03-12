@@ -41,8 +41,6 @@ def write_to_config(
     report_path: str,
     top_graph_type: str,
     top_graph_data: str,
-    bottom_graph_type: str,
-    bottom_graph_data,
 ):
     # completely overwrite the current config
     pre_json = {
@@ -53,8 +51,6 @@ def write_to_config(
         "auto_open_report_on_create": report,
         "top_graph_type": top_graph_type,
         "top_graph_data": top_graph_data,
-        "bottom_graph_type": bottom_graph_type,  # add donut type?
-        "bottom_graph_data": bottom_graph_data,
     }
     with open("./volatile/config.json", "w") as w:
         prep = json.dumps(pre_json, indent=4)

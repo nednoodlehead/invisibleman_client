@@ -70,6 +70,9 @@ class DataCanvas(FigureCanvasQTAgg):
             self.set_donut_chart(data.keys(), data.values(), data_choice)
         else:
             # i dont think this can even be hit lmao
+            # 3/12/2025 - i hit this valuerror. im so proud
+            
+            print(f'data: {data_choice} graph={graph_choice}')
             raise ValueError("how did you get this ?")
 
     def fetch_from_db_and_insert(self, name: str) -> dict:  #
