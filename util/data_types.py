@@ -165,7 +165,7 @@ class TableObject:
         return 15
 
     def __str__(self):
-        return f"table_Object: retire: {self.retirementdate} uuid: {self.uniqueid}"
+        return f"table_Object: {self.name, self.assignedto} uuid: {self.uniqueid}"
 
     def __repr__(self):
-        return f"table_Object: {self.serial, self.uniqueid}"
+        return f"table_Object: {self.name, self.serial, self.uniqueid}"

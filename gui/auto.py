@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'interfaceSbBAPJ.ui'
+## Form generated from reading UI file 'interfacekqjOPE.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -158,10 +158,10 @@ class Ui_MainWindow(object):
         self.insert_conditional_retirement_date_fmt.setGeometry(QRect(110, 20, 110, 22))
         self.insert_retirement_date_label = QLabel(self.insert_conditional_status_frame)
         self.insert_retirement_date_label.setObjectName(u"insert_retirement_date_label")
-        self.insert_retirement_date_label.setGeometry(QRect(10, 20, 101, 16))
-        self.textEdit = QTextEdit(self.stacked_add_to_db_page)
-        self.textEdit.setObjectName(u"textEdit")
-        self.textEdit.setGeometry(QRect(550, 90, 291, 231))
+        self.insert_retirement_date_label.setGeometry(QRect(10, 20, 91, 16))
+        self.insert_notes_text = QTextEdit(self.stacked_add_to_db_page)
+        self.insert_notes_text.setObjectName(u"insert_notes_text")
+        self.insert_notes_text.setGeometry(QRect(550, 90, 291, 231))
         self.label_3 = QLabel(self.stacked_add_to_db_page)
         self.label_3.setObjectName(u"label_3")
         self.label_3.setGeometry(QRect(480, 100, 47, 13))
@@ -441,6 +441,23 @@ class Ui_MainWindow(object):
         self.settings_ip_text = QLineEdit(self.stacked_settings)
         self.settings_ip_text.setObjectName(u"settings_ip_text")
         self.settings_ip_text.setGeometry(QRect(230, 170, 113, 20))
+        self.settings_invisman_username_label = QLabel(self.stacked_settings)
+        self.settings_invisman_username_label.setObjectName(u"settings_invisman_username_label")
+        self.settings_invisman_username_label.setGeometry(QRect(106, 210, 111, 20))
+        self.settings_invisman_username_label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.settings_invisman_username_text = QLineEdit(self.stacked_settings)
+        self.settings_invisman_username_text.setObjectName(u"settings_invisman_username_text")
+        self.settings_invisman_username_text.setGeometry(QRect(230, 210, 113, 20))
+        self.settings_ssh_file_label = QLabel(self.stacked_settings)
+        self.settings_ssh_file_label.setObjectName(u"settings_ssh_file_label")
+        self.settings_ssh_file_label.setGeometry(QRect(150, 250, 61, 20))
+        self.settings_ssh_file_label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.settings_ssh_file_text = QLineEdit(self.stacked_settings)
+        self.settings_ssh_file_text.setObjectName(u"settings_ssh_file_text")
+        self.settings_ssh_file_text.setGeometry(QRect(230, 250, 221, 20))
+        self.setting_ssh_file_dialog_button = QPushButton(self.stacked_settings)
+        self.setting_ssh_file_dialog_button.setObjectName(u"setting_ssh_file_dialog_button")
+        self.setting_ssh_file_dialog_button.setGeometry(QRect(450, 250, 21, 23))
         self.stackedWidget.addWidget(self.stacked_settings)
         self.ham_button_view = QPushButton(self.centralwidget)
         self.ham_button_view.setObjectName(u"ham_button_view")
@@ -548,6 +565,9 @@ class Ui_MainWindow(object):
         self.settings_update_button.setText(QCoreApplication.translate("MainWindow", u"UPDATE!!", None))
         self.settings_create_backup_button.setText(QCoreApplication.translate("MainWindow", u"Create backup", None))
         self.settings_ip_label.setText(QCoreApplication.translate("MainWindow", u"Invisman Server IP", None))
+        self.settings_invisman_username_label.setText(QCoreApplication.translate("MainWindow", u"Invisman Username", None))
+        self.settings_ssh_file_label.setText(QCoreApplication.translate("MainWindow", u"SSH key file", None))
+        self.setting_ssh_file_dialog_button.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.ham_button_view.setText(QCoreApplication.translate("MainWindow", u"Assets", None))
         self.ham_button_insert.setText(QCoreApplication.translate("MainWindow", u"Insert", None))
         self.ham_button_analytics.setText(QCoreApplication.translate("MainWindow", u"Analytics", None))

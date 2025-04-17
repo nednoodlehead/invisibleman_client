@@ -12,10 +12,11 @@ class NotesWindow(QWidget):
     accessed from the notes button on a column
     """
 
-    def __init__(self, uuid: str):
+    def __init__(self, conn, uuid: str):
         super().__init__()
         self.uuid = uuid
         notes = fetch_notes_from_uuid(
+            conn,
             self.uuid
         )  # notes are found here so when updating with new notes, the button returns the right data
         self.setObjectName("Notes")

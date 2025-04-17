@@ -2,11 +2,10 @@ import sqlite3
 from util.data_types import InventoryObject
 
 
-def new_entry(insert: InventoryObject):
-    conn = sqlite3.connect("main.db")
+def new_entry(conn, insert: InventoryObject):
     temp = tuple(insert)
-    conn.execute(
-        "INSERT INTO main VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", temp
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO main VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", temp
     )
     conn.commit()
-    conn.close()

@@ -8,8 +8,9 @@ matplotlib.use("Qt5Agg")  # i think this is important...
 class DataCanvas(FigureCanvasQTAgg):
 
     def __init__(
-        self, parent=None, width=15, height=4, dpi=100, height_2=290, width_2=790
+        self, conn=None, parent=None, width=15, height=4, dpi=100, height_2=290, width_2=790
     ):
+        self.connection = conn
         self.figure = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.figure.add_subplot(111)
         super(DataCanvas, self).__init__(self.figure)
@@ -108,7 +109,7 @@ class DataCanvas(FigureCanvasQTAgg):
             "12": "December",
         }
         vals = {}
-        raw_data = fetch_all()
+        raw_data = fetch_all(self.connection)
         if (
             name == "Notes"
         ):  # for notes, we separate into has notes, or doesn't have notes

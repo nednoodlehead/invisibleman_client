@@ -1,6 +1,7 @@
 import sqlite3
 
 
+# this is not used anymore, we will leave this here though, since it shows our table
 def create_db():
     with sqlite3.connect("main.db") as conn:  # creates if not created already
         conn.execute(

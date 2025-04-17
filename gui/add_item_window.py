@@ -17,11 +17,10 @@ from gui.insert_functions import (
     refresh_asset_types,
     refresh_manufacturer,
     fetch_categories_and_years,
-    replace_json_target,
 )
 from volatile.write_to_volatile import add_to_asset_list, add_to_type_or_location
 from gui.settings import set_dark
-
+from db.update import replace_server_config
 
 class GenericAddJsonWindow(QWidget):
     def __init__(self, target: str, parent_window):
@@ -120,17 +119,23 @@ class GenericAddJsonWindow(QWidget):
         data = self.json_value_text.text()
         if years.isdigit():
             new_int = int(years)
-            add_to_asset_list(data, new_int)
+            add_to_asset_list(self.parent_window.connection, data, new_int)
+            # force the sync so it works correctly
+            # it really only covers an edge case where someone adds a new 
+            print("FORCIGN!!!!!")
+            self.parent_window.force_json_sync()
         else:
-            add_to_type_or_location(data, self.target)
+            add_to_type_or_location(self.parent_window.connection, data, self.target)
         self.close()
         # also need to send signal to main program to tell it to refresh the relevant combobox
 
     def fill_layout_with_content(self):
         data = None
         if self.target == "Category":
-            data = fetch_categories_and_years(self)
-            for cate, years in data.items():
+            # we have to deconstruct the 'Network@4' string
+            data = fetch_categories_and_years(self, self.parent_window.connection)
+            for raw_str in data:
+                cate, years = raw_str.split("@")
                 self.json_value_layout.addWidget(QLineEdit(cate))
                 self.json_years_layout.addWidget(QLineEdit(str(years)))
                 button = self.make_x_button()
@@ -138,12 +143,14 @@ class GenericAddJsonWindow(QWidget):
 
         else:
             if self.target == "Type":
-                data = refresh_asset_types(self)
+                data = refresh_asset_types(self, self.parent_window.connection)
+                print("Messing with the 'Type'")
             elif self.target == "Manufacturer":
-                data = refresh_manufacturer(self)
+                data = refresh_manufacturer(self, self.parent_window.connection)
             else:
-                data = refresh_asset_location(self)
+                data = refresh_asset_location(self, self.parent_window.connection)
             for item in data:
+                print(f"adding..{item}")
                 self.json_value_layout.addWidget(QLineEdit(item))
                 button = self.make_x_button()
                 self.json_button_layout.addWidget(button)
@@ -180,6 +187,7 @@ class GenericAddJsonWindow(QWidget):
             self.json_value_layout.addWidget(QLineEdit(self.json_new_value_text.text()))
             button = self.make_x_button()
             self.json_button_layout.addWidget(button)
+            self.json_new_value_text.setText("")
         else:
             self.parent_window.display_message("Error!", "Error adding empty string!")
 
@@ -200,7 +208,11 @@ class GenericAddJsonWindow(QWidget):
                     self.json_value_layout.itemAt(index).widget().text()
                 )  # get the data from the combobox
                 data.append(val)
-        replace_json_target(self.target, data)  # replace the json with the new data
+        # now, we overwrite the data in the database, what we are passing it *should* be authorative
+        # conn = self.parent_window.connection
+        replace_server_config(self.parent_window.connection, data, self.target)
+        # TODO okay one day we can go in and just sync the json manually. that would work I think
+        self.parent_window.force_json_sync(self.parent_window.connection)
         self.parent_window.refresh_combobox(
             self.target
         )  # send signal to main window to refresh comboboxes

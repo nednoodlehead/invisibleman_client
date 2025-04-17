@@ -1,25 +1,37 @@
 {
     "Category": {
         "Network": 4,
-        "Security": 4,
-        "Hardware and Accessories": 4,
-        "Telecommunications": 4,
         "Printing": 5,
-        "Software": 1,
-        "new valuer": 3
+        "Telecoms": 4,
+        "User Hardware": 4,
+        "Security": 2
     },
     "Type": [
         "Desktop",
         "Laptop",
-        "Phone",
         "Router",
-        "NEW"
+        "Switch",
+        "Firewall"
     ],
     "Location": [
-        "GOVH",
-        "HLTH",
-        "ATOW",
-        "EDUPSD",
-        "FIELDH"
+        "GovHouse",
+        "Health",
+        "Culture BLD",
+        "CDRC (old)",
+        "CDRC (new)",
+        "Education",
+        "Ahsm Tah Ow",
+        "Church",
+        "Firehall",
+        "Fieldhouse",
+        "TMS",
+        "Gym",
+        "Lund"
+    ],
+    "Manufacturer": [
+        "Dell",
+        "Asus",
+        "Ubiquiti",
+        "Cisco"
     ]
 }

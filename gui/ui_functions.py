@@ -1,3 +1,4 @@
+import psycopg2
 from gui.auto import Ui_MainWindow
 from PyQt5.QtWidgets import (
     QApplication,
@@ -12,9 +13,10 @@ from PyQt5.QtWidgets import (
     QStyleFactory,
     QFileDialog,
 )
-from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect
+from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect, pyqtSignal
 from PyQt5.QtGui import QCursor, QPainter, QColor, QTextCharFormat
 from util.data_types import InventoryObject, TableObject, create_inventory_object
+from util.db_util import patch_dates
 from util.export import export_active, export_retired, export_loc, export_replacementdate
 from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial
 from db.insert import new_entry
@@ -27,6 +29,8 @@ from volatile.write_to_volatile import write_to_config, read_from_config
 from data.visualization import DataCanvas
 from types import MethodType
 from gui.insert_functions import (
+    fetch_categories_and_years,
+    force_json_sync,
     update_replacement_date,
     refresh_asset_types,
     add_asset_type,
@@ -37,13 +41,27 @@ from gui.insert_functions import (
 )
 from gui.add_item_window import GenericAddJsonWindow
 from datetime import datetime
-
+from psycopg2 import connect
+from sshtunnel import SSHTunnelForwarder, BaseSSHTunnelForwarderError
+from gui.thread import PostgresListen
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from keyring import get_password
+from gui.overrides import InvisManItem
+# DEFAULT_DATE = datetime.strptime("2000-01-01", "%Y-%m-%d")
 
 class MainProgram(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        self.config = read_from_config()
         self.imported_methods()  # call the imported methods into scope of the class
+        # we must check config to see if there are (at all!!) settings for the invisman server and stuff
+        # because someone booting for the first time wont have the configurations configured..
+        # we also have to do checks for where self.connection is used, so it doesn't goof everything if the person doesn't
+        # have anything configured yet
+        self.connection = self.create_db_connection(self.config["invisman_username"], self.config["ssh_path"], self.config["invisman_ip"])
+        self.worker_signal = pyqtSignal(str)
+        # patch_dates(self.connection, self.fetch_categories_and_years()) # was a o
         self.active_notes_window = None
         self.active_json_window = None
         self.active_export_graph_window = None
@@ -78,7 +96,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # https://stackoverflow.com/questions/6785481/how-to-implement-a-filter-option-in-qtablewidget
         # the concept is that QTableWidget has a built-in model, and a QTableView does not, so you can edit it
         # ui functions
-        self.populate_table_with(fetch_all_enabled_for_table(), False)
+        if self.connection is not False: # this is when the connection is made successfully!
+            self.force_json_sync(self.connection)
+            self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)
         self.ham_button_insert.clicked.connect(lambda: self.swap_to_window(1))
         self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
         self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
@@ -96,7 +117,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             # this just refreshes the assets, taking into account the checkbox for retired
             self.toggle_retired_assets
         )
-        self.main_table.setSortingEnabled(True)
+        # self.main_table.setSortingEnabled(True) # YOU!! this causes the weird inconsistencies..
         # removed since i think it is a bit of over-engineering
         # self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
         self.checkbox_view_retired_assets.clicked.connect(self.toggle_retired_assets)
@@ -105,13 +126,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.filter_options_combobox.addItem("Global")
         self.filter_options_combobox.addItems(self.default_columns)
         self.reports_export_file_combobox.addItems(["Excel", "CSV"])
-        self.reports_export_location_combobox.addItems(self.refresh_asset_location())
+        self.reports_export_location_combobox.addItems(self.refresh_asset_location(self.connection))
         self.reports_export_export_due_replacement_combo.addItems(self.when_can_assets_retire)
         self.insert_deployment_date_fmt.setDisplayFormat(
             "yyyy-MM-dd"
         )  # thanks qt5 for randomly changing the default display format... commi #108
         self.export_file_dialog_button.clicked.connect(self.open_report_file_dialog)
         self.settings_file_dialog_button.clicked.connect(self.open_settings_file_dialog)
+        self.setting_ssh_file_dialog_button.clicked.connect(self.open_settings_ssh_file_dialog)
         self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
         self.insert_conditional_retirement_date_fmt.setDisplayFormat("yyyy-MM-dd")
         # when date is changed, update the replacement date accordingly
@@ -128,9 +150,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self, self.settings_darkmode_checkbox.isChecked()
             )
         )
-        # make all the checboxes checked by default and make the checkboxes do something when clicked
-        # probably worth adding json support at some point, so when app is closed, it is written to json, and loaded on start
-        self.config = read_from_config()
         if self.config["dark_mode"] is True:
             self.settings_darkmode_checkbox.setChecked(True)
             set_dark(self)
@@ -141,6 +160,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if self.config["auto_open_report_on_create"] is True:
             self.settings_report_auto_open_checkbox.setChecked(True)
         self.settings_backup_dir_text.setText(self.config["backup_path"])
+        self.settings_invisman_username_text.setText(self.config["invisman_username"])
+        self.settings_ssh_file_text.setText(self.config["ssh_path"])
+        self.settings_ip_text.setText(self.config["invisman_ip"])
         # opens with height == 250, so no need to `else` set that..
         self.insert_widgets = [
             self.checkbox_assettype,
@@ -171,7 +193,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_asset_type_combobox.addItems(typ)
         self.insert_asset_location_combobox.addItems(loc)
         self.insert_manufacturer_combobox.addItems(manu)
-        # 0 =  ACTIVE, 1 = RETIRED
+        # true = retired, false = in use
         self.insert_status_bool.addItems(["Active", "Retired"])
         # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
         self.insert_deployment_date_fmt.setDate(QDate.currentDate())
@@ -217,6 +239,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.analytics_field_combobox_top.addItems(self.graphs_and_charts_top)
         self.analytics_field_combobox_bottom.addItems(self.acceptable_pie_charts)
         self.graph_1 = DataCanvas(
+            conn=self.connection,
             parent=self.analytics_graph_top,
             width=10,
             height=4,
@@ -246,18 +269,29 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_serial_is_unique_button.setEnabled(False)
         self.insert_serial_is_unique_button.clicked.connect(self.pull_unique_uuid_data)
         # should be threaded?: edit: doesnt seem too bad on performance somehow...
-        # could totally json this bit....
-        self.graph_1.change_graph(
-            self.config["top_graph_data"], self.config["top_graph_type"]
-        )
-        self.analytics_field_combobox_top.setCurrentText(self.config["top_graph_data"])
-        self.update_calendar_colors_from_db()
-        self.settings_update_button.clicked.connect(self.write_config_tell_user)
+        # okay, so if the connection isn't initialized, we can ignore this part
+        # since the data doesn't matter, and the thread wont matter either
+        # the user can use the "Test Connection"
+        if self.connection is not False:
+            self.graph_1.change_graph(
+                self.config["top_graph_data"], self.config["top_graph_type"]
+            )
+            self.analytics_field_combobox_top.setCurrentText(self.config["top_graph_data"])
+            self.update_calendar_colors_from_db()
+            self.settings_update_button.clicked.connect(self.write_config_tell_user)
+
+            # postgres thread...
+            self.postgres_listen_thread = PostgresListen(self.connection)
+            self.postgres_listen_thread.start()
+            self.postgres_listen_thread.notifier.connect(self.force_sync)
 
     # overwritten methods
 
     def closeEvent(self, a0):
         self.write_config()
+        if self.connection is not False:
+            # in the first-startup case where the user hasn't set the ip correctly
+            self.connection.close() # close connection after we exit app..
         a0.accept()  # another random complaint from pyright
 
     # regular methods
@@ -269,6 +303,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.refresh_asset_location = MethodType(refresh_asset_location, self)
         self.refresh_manufacturer = MethodType(refresh_manufacturer, self)
         self.fetch_all_asset_types = MethodType(fetch_all_asset_types, self)
+        self.force_json_sync = MethodType(force_json_sync, self)
+        self.fetch_categories_and_years = MethodType(fetch_categories_and_years, self)
 
     def display_message(self, title: str, information: str):
         msg = QMessageBox()
@@ -309,7 +345,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
     def delete_and_remove_row(self, row):
         id = self.main_table.item(row, 14).text()
-        delete_from_uuid(id)
+        delete_from_uuid(self.connection, id)
         self.main_table.removeRow(row)
 
     def view_button_reveal_checkboxes(self):
@@ -352,6 +388,16 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         path = filedialog.getExistingDirectory(self)
         if path is not None and path != "":
             self.settings_backup_dir_text.setText(path)
+            
+    def open_settings_ssh_file_dialog(self):
+        filedialog = QFileDialog(self)
+        path = filedialog.getOpenFileName(self)
+        if path is not None and path != "":
+            try:
+                self.settings_ssh_file_text.setText(path[0])
+            except TypeError: # when the user exits out of the menu...
+                print("type error lol", path) 
+                pass
 
     def refresh_asset_value(
         self,
@@ -375,7 +421,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # should probably thread this...
         # ok maybe there is some way to create a new cell type, then add that to the stylesheets,
         # but i think this might require a hack and saw...
-        raw_data = fetch_all()
+        raw_data = fetch_all(self.connection)
         mapping = {}
         dark = self.settings_darkmode_checkbox.isChecked()
         increment = 35 if dark else -35
@@ -383,7 +429,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         default_color = (70, 0, 0) if dark else (255, 200, 200)
         for obj in raw_data:
             # i think that if a max color falls on a weekend, it will be hard to read...
-            date = QDate.fromString(obj.replacementdate, "yyyy-MM-dd")
+            # TODO unnecessary type cast? probs a better functions to use from QDate
+            date = QDate.fromString(str(obj.replacementdate), "yyyy-MM-dd")
             if date not in mapping.keys():
                 mapping[date] = QColor(*default_color)
             else:
@@ -470,7 +517,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if self.insert_status_bool.currentIndex() == 0:  # its active...
             self.insert_conditional_status_frame.setFixedWidth(0)
         else:
-            self.insert_conditional_status_frame.setFixedWidth(210)
+            self.insert_conditional_status_frame.setFixedWidth(270)
         
     def interface_handle_export(self):
         csv_val = (
@@ -507,7 +554,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self, index
     ):  # prepare everything for update_insert_page_from_obj
         uuid = self.main_table.item(index, 12).text()
-        obj = fetch_from_uuid_to_update(uuid)
+        obj = fetch_from_uuid_to_update(self.connection, uuid)
         self.swap_to_window(1)
         self.update_insert_page_from_obj(obj)
 
@@ -516,6 +563,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     ):  # fill the insert page with the
         # content given from choosen updated entry
         self.insert_serial_text.setText(inventory_obj.serial)
+        self.insert_name_text.setText(inventory_obj.name)
         self.insert_model_text.setText(inventory_obj.model)
         self.insert_cost_spinbox.setValue(float(inventory_obj.cost))
         cat_index = self.insert_asset_category_combobox.findText(
@@ -531,9 +579,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         manu_index = self.insert_manufacturer_combobox.findText(inventory_obj.manufacturer)
         self.insert_manufacturer_combobox.setCurrentIndex(manu_index)
         self.insert_assigned_to_text.setText(inventory_obj.assignedto)
-        self.insert_deployment_date_fmt.setDate(datetime.fromisoformat(inventory_obj.replacementdate))
+        if not inventory_obj.replacementdate or inventory_obj.replacementdate == "":
+            inventory_obj.replacementdate = datetime.fromisoformat("2000-01-01")
+        print(inventory_obj.replacementdate, type(inventory_obj.replacementdate))
+        self.insert_deployment_date_fmt.setDate(inventory_obj.replacementdate)
         self.insert_replacement_date_fmt.setDate(
-            datetime.fromisoformat(inventory_obj.replacementdate)
+            inventory_obj.replacementdate
         )
         self.insert_notes_text.setText(inventory_obj.notes)
         if inventory_obj.status == 1:
@@ -590,10 +641,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.export_file_path_choice.text(),
             self.analytics_field_combobox_top.currentText(),
             self.analytics_field_combobox_bottom.currentText(),
+            self.settings_invisman_username_text.text(),
+            self.settings_ssh_file_text.text(),
+            self.settings_ip_text.text()
         )
 
     def populate_table_with(
-        self, data: [TableObject], retirement_bool: bool=False
+        self, data: list[TableObject], retirement_bool: bool=False
     ):  # put all of the content in the table from the db, called on startup, and
         # when updated..
         if len(data) == 0:
@@ -613,9 +667,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             )  # set the column count to the size of the first data piece
         for row, rowdata in enumerate(data):
             for col, value in enumerate(rowdata):
-                item = QTableWidgetItem(str(value))
+                item = InvisManItem(str(value))
                 if col == 11:
-                    if value == "":
+                    if value == None: # now stored as null instead of empty string
                         button = self.generate_notes_button(
                             data[row].uniqueid, "Add Notes"
                         )
@@ -647,7 +701,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
     def display_notes(self, uuid: str):  # open the note-editing window
         # will be a text box
-        self.active_notes_window = NotesWindow(uuid)
+        self.active_notes_window = NotesWindow(self.connection, uuid)
         self.active_notes_window.show()
         position = self.pos()
         position.setX(position.x() + 250)
@@ -682,19 +736,19 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if target == "Category":
             self.insert_asset_category_combobox.clear()
             self.insert_asset_category_combobox.addItem("")
-            self.insert_asset_category_combobox.addItems(self.refresh_asset_category())
+            self.insert_asset_category_combobox.addItems(self.refresh_asset_category(self.connection))
         elif target == "Type":
             self.insert_asset_type_combobox.clear()
             self.insert_asset_type_combobox.addItem("")
-            self.insert_asset_type_combobox.addItems(self.refresh_asset_types())
+            self.insert_asset_type_combobox.addItems(self.refresh_asset_types(self.connection))
         elif target == "Manufacturer":
             self.insert_manufacturer_combobox.clear()
             self.insert_manufacturer_combobox.addItem("")
-            self.insert_manufacturer_combobox.addItems(self.refresh_manufacturer())
+            self.insert_manufacturer_combobox.addItems(self.refresh_manufacturer(self.connection))
         else:
             self.insert_asset_location_combobox.clear()
             self.insert_asset_location_combobox.addItem("")
-            self.insert_asset_location_combobox.addItems(self.refresh_asset_location())
+            self.insert_asset_location_combobox.addItems(self.refresh_asset_location(self.connection))
 
     def check_data_and_insert(
         self,
@@ -717,7 +771,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.insert_notes_text.toPlainText(),
                 self.insert_status_bool.currentText(),
             )
-            new_entry(obj)
+            new_entry(self.connection, obj)
         else:
             # we are updating an existing entry! (since the uuid string was set)
             obj = InventoryObject(
@@ -737,12 +791,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.insert_status_bool.currentText(),
                 self.insert_active_uuid,
             )
-            update_full_obj(obj)
+            update_full_obj(self.connection, obj)
         self.set_insert_data_to_default()
         # intentional choice here to not update the graphs, seems too expensive to call each time, and to see if data was even changed
         # from the current view.
         self.populate_table_with(
-            fetch_all_enabled_for_table(), False
+            fetch_all_enabled_for_table(self.connection), False
         )  # this will overwrite any filters / views
 
     def set_insert_data_to_default(
@@ -764,6 +818,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_notes_text.setText("")
         self.insert_status_bool.setCurrentIndex(0)
         self.insert_active_uuid = ""  # reset the uuid, so it doesn't persist
+        self.insert_name_text.setText("")
         self.hide_or_show_insert_conditional()  # ig the program won't know when to redraw it?
         # so in theory, if you insert with it visible, 
         # also re-enable all the potentially disabled boxes:
@@ -776,7 +831,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_asset_category_combobox.setDisabled(False)
         self.insert_deployment_date_fmt.setDisabled(False)
 
-    def set_table_size_and_headers(self, headers: [str]):  # only called on startup
+    def set_table_size_and_headers(self, headers: list[str]):  # only called on startup
         # kept sort of abigious since headers can be changed. if it was always all the headers it could be hardcoded
         headers.append(
             "UUID"
@@ -848,21 +903,22 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
     def toggle_retired_assets(self):
         if self.checkbox_view_retired_assets.isChecked():
-            self.populate_table_with(fetch_all_for_table(), True)  # lets view all content
+            self.populate_table_with(fetch_all_for_table(self.connection), True)  # lets view all content
         else:
-            self.populate_table_with(fetch_all_enabled_for_table(), False)  # only enabled content!
+            self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)  # only enabled content!
             
     def try_retire_row(self, uuid):
         try:
-            retire_from_uuid(uuid)
+            retire_from_uuid(self.connection, uuid)
             self.toggle_retired_assets()
-        except AttributeError:
+        except AttributeError as e:
+            print("fail!!", e)
             # this is the case where the user.. misses? a row
             pass
 
     def try_unretire_row(self, uuid):
         try:
-            unretire_from_uuid(uuid)
+            unretire_from_uuid(self.connection, uuid)
             self.toggle_retired_assets()
             # refresh table...?
         except AttributeError:
@@ -880,7 +936,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # we do a check to see if that serial number exists in our db.
         # if it does exist, we enable the button & allow the user to import from that serial number
         serial_str = self.insert_serial_text.text()
-        da_list = fetch_all_serial()
+        da_list = fetch_all_serial(self.connection)
         if serial_str == "":
             self.insert_serial_is_unique_button.setEnabled(False)
             self.insert_serial_is_unique_button.setText("cant import empty SN")
@@ -895,6 +951,29 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # this happens when the user clicks the button next to "serial #" on the add page when
         # the text inside the serial # lineedit already exists.
         # it invites the user to edit that gives object, based on the serial number identifier
-        obj = fetch_by_serial(self.insert_serial_text.text())
+        obj = fetch_by_serial(self.connection, self.insert_serial_text.text())
         self.update_insert_page_from_obj(obj)
         self.swap_to_window(1)
+
+    def create_db_connection(self, invisman_username, ssh_key_location, invisman_server_ip) -> bool | psycopg2.extensions.connection:
+        # okay, so we create our ssh tunnel, and our connection through it. we return the connection. I don't see why this won't live long...
+        # maybe we can't do this in a function? maybe? idk.
+        # ok secondary problem (that will be solved soon i hope) is credentials. i think the best way to do it is to
+        # force users to set some credentials in windows cred manager (ssh password. for now)
+        # and we can pull them out with keyring
+        try:
+            invisman_pw = get_password("invisman", invisman_username)
+            ssh_pw = get_password("invisman_sshkey", ssh_key_location)
+            server = SSHTunnelForwarder((invisman_server_ip, 22), ssh_pkey=ssh_key_location, ssh_username=invisman_username, ssh_private_key_password=ssh_pw, remote_bind_address=("127.0.0.1", 5432))
+            server.start()
+            print("returning db connection!!")
+            return connect(dbname="invisman", user="viewer", password=invisman_pw, host="127.0.0.1", port=server.local_bind_port)
+        except (AttributeError, PermissionError, BaseSSHTunnelForwarderError): # when the settings are not valid..
+            return False
+        # ok so user and pw need to both be pulled, not just pw
+        # these will live inside of windows credentials manager "invisman". has both username and password
+            
+    def force_sync(self):
+        # this is only called from the thread function.
+        print("we are forcing sync!!")
+        self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)
