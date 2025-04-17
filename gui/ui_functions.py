@@ -967,7 +967,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             server = SSHTunnelForwarder((invisman_server_ip, 22), ssh_pkey=ssh_key_location, ssh_username=invisman_username, ssh_private_key_password=ssh_pw, remote_bind_address=("127.0.0.1", 5432))
             server.start()
             print("returning db connection!!")
-            return connect(dbname="invisman", user="viewer", password=invisman_pw, host="127.0.0.1", port=server.local_bind_port)
+            return connect(dbname="invisman", user=invisman_username, password=invisman_pw, host="127.0.0.1", port=server.local_bind_port)
         except (AttributeError, PermissionError, BaseSSHTunnelForwarderError): # when the settings are not valid..
             return False
         # ok so user and pw need to both be pulled, not just pw
