@@ -582,7 +582,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if not inventory_obj.replacementdate or inventory_obj.replacementdate == "":
             inventory_obj.replacementdate = datetime.fromisoformat("2000-01-01")
         print(inventory_obj.replacementdate, type(inventory_obj.replacementdate))
-        self.insert_deployment_date_fmt.setDate(inventory_obj.replacementdate)
+        self.insert_deployment_date_fmt.setDate(inventory_obj.deploymentdate)
         self.insert_replacement_date_fmt.setDate(
             inventory_obj.replacementdate
         )

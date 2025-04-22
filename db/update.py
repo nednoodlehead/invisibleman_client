@@ -4,10 +4,10 @@ from PyQt5.QtCore import QDate
 from datetime import date
 
 
-def update_notes(notes: str, uuid: str):
-    with sqlite3.connect("main.db") as conn:
-        conn.execute("UPDATE main SET notes = ? WHERE uniqueid = ?", (notes, uuid))
-        conn.commit()
+def update_notes(conn, notes: str, uuid: str):
+    cur = conn.cursor()
+    cur.execute("UPDATE main SET notes = %s WHERE uniqueid = %s", (notes, uuid))
+    conn.commit()
     # it could be an idea to refresh the notes button, so when its update, it changes to either 'View Notes' or
     # 'Add Notes' based on the value of the field. But seems sort of silly bcs of the overhead
     # of passing in a reference to the main class, then the logic of changing the button.

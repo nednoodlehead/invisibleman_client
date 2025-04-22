@@ -15,6 +15,7 @@ class NotesWindow(QWidget):
     def __init__(self, conn, uuid: str):
         super().__init__()
         self.uuid = uuid
+        self.conn = conn
         notes = fetch_notes_from_uuid(
             conn,
             self.uuid
@@ -42,7 +43,7 @@ class NotesWindow(QWidget):
 
     def update_notes(self):
         notes = self.notes_window_note_browser.toPlainText()
-        update_notes(notes, self.uuid)
+        update_notes(self.conn, notes, self.uuid)
         time = QDateTime.currentDateTime()
         str_ver = time.toString("HH:mm:ss")
         self.feedback_label.setText(f"Last written: {str_ver}")
