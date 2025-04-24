@@ -4,6 +4,21 @@
 import json
 
 
+authoriative_json = {
+    "checkboxes": None,
+    "dark_mode": True,
+    "backup_path": "C:/",
+    "default_report_path": "C:/",
+    "auto_open_report_on_create": True,
+    "top_graph_type": "Line",
+    "top_graph_data": "Manufacturer",
+    "invisman_username": "none",
+    "ssh_path": "C:/where",
+    "invisman_ip": "192.168.1.1",
+    "switch_view_on_insert": True
+}
+
+
 def add_to_asset_list(conn, name: str, years: int):
     # ok, so now the "json" lives on the server inside of the "config" table, so we query that.
     # also, this adding to list here WILL NOT check for duplicates, it is up to the inserter to not be a moron
@@ -22,12 +37,6 @@ def add_to_type_or_location(conn, new: str, type_or_loc: str):
     # type or loc needs to have a capital letter at the beginning...
     cur.execute("insert into config values (%s, %s)", (type_or_loc, new))
     conn.commit()
-    # with open("10.100.0.9/srv/invisman/assetcategory.json", "r") as f:
-    #     raw = json.load(f)
-    #     raw[type_or_loc].append(new)
-    #     json_data = json.dumps(raw, indent=4)
-    # with open("10.100.0.9/srv/invisman/assetcategory.json", "w") as w:
-    #     w.write(json_data)
 
 
 def read_from_config() -> dict:
@@ -36,34 +45,17 @@ def read_from_config() -> dict:
     """
     with open("./volatile/config.json", "r") as f:
         raw = json.load(f)
+    for key, val in authoriative_json.items():
+        if key not in raw.keys():
+            print("malformed json, inserting extra key")
+            raw[key] = val
+            
+        
     return raw
 
 
-def write_to_config(
-    checkboxes: dict,
-    dark_mode_on: bool,
-    backup_path: str,
-    report: bool,
-    report_path: str,
-    top_graph_type: str,
-    top_graph_data: str,
-    invisman_username: str,
-    ssh_path: str,
-    invisman_ip: str,
-):
+def write_to_config(pre_json: dict):
     # completely overwrite the current config
-    pre_json = {
-        "checkboxes": checkboxes,
-        "dark_mode": dark_mode_on,
-        "backup_path": backup_path,
-        "default_report_path": report_path,
-        "auto_open_report_on_create": report,
-        "top_graph_type": top_graph_type,
-        "top_graph_data": top_graph_data,
-        "invisman_username": invisman_username,
-        "ssh_path": ssh_path,
-        "invisman_ip": invisman_ip,
-    }
     with open("./volatile/config.json", "w") as w:
         prep = json.dumps(pre_json, indent=4)
         w.write(prep)

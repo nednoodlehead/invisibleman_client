@@ -150,6 +150,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self, self.settings_darkmode_checkbox.isChecked()
             )
         )
+        self.settings_switch_to_main_on_insert_checkbox.setChecked(self.config["switch_view_on_insert"])
         if self.config["dark_mode"] is True:
             self.settings_darkmode_checkbox.setChecked(True)
             set_dark(self)
@@ -633,18 +634,23 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Replacement Date": self.checkbox_replacementdate.isChecked(),
             "Notes": self.checkbox_notes.isChecked(),
         }
-        write_to_config(
-            to_write,
-            self.settings_darkmode_checkbox.isChecked(),
-            self.settings_backup_dir_text.text(),
-            self.settings_report_auto_open_checkbox.isChecked(),
-            self.export_file_path_choice.text(),
-            self.analytics_field_combobox_top.currentText(),
-            self.analytics_field_combobox_bottom.currentText(),
-            self.settings_invisman_username_text.text(),
-            self.settings_ssh_file_text.text(),
-            self.settings_ip_text.text()
-        )
+        new_config = {
+        "checkboxes": to_write,
+        "dark_mode": self.settings_darkmode_checkbox.isChecked(),
+        "backup_path": self.settings_backup_dir_text.text(),
+        "default_report_path": self.settings_report_auto_open_checkbox.isChecked(),
+        "auto_open_report_on_create": self.export_file_path_choice.text(),
+        "top_graph_type": self.analytics_field_combobox_top.currentText(),
+        "top_graph_data": self.analytics_field_combobox_bottom.currentText(),
+        "invisman_username": self.settings_invisman_username_text.text(),
+        "ssh_path": self.settings_ssh_file_text.text(),
+        "invisman_ip": self.settings_ip_text.text(),
+        "switch_view_on_insert": self.settings_switch_to_main_on_insert_checkbox.isChecked()
+            
+        }
+        write_to_config(new_config)
+        # update new config!!
+        self.config = new_config
 
     def populate_table_with(
         self, data: list[TableObject], retirement_bool: bool=False
@@ -793,6 +799,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             )
             update_full_obj(self.connection, obj)
         self.set_insert_data_to_default()
+        if self.config["switch_view_on_insert"] is True:
+            print("SWAPPING")
+            self.swap_to_window(0)
+        print("HIT!!!")
         # intentional choice here to not update the graphs, seems too expensive to call each time, and to see if data was even changed
         # from the current view.
         self.populate_table_with(

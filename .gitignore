@@ -1,3 +1,5 @@
 *.pyc
 main.db
 *.json
+volatile/assetcategory.json
+volatile/config.json
