@@ -47,6 +47,7 @@ from gui.thread import PostgresListen
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from keyring import get_password
 from gui.overrides import InvisManItem
+import re
 # DEFAULT_DATE = datetime.strptime("2000-01-01", "%Y-%m-%d")
 
 class MainProgram(QMainWindow, Ui_MainWindow):
@@ -117,7 +118,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             # this just refreshes the assets, taking into account the checkbox for retired
             self.toggle_retired_assets
         )
-        # self.main_table.setSortingEnabled(True) # YOU!! this causes the weird inconsistencies..
+        self.main_table.setSortingEnabled(True) # YOU!! this causes the weird inconsistencies..
         # removed since i think it is a bit of over-engineering
         # self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
         self.checkbox_view_retired_assets.clicked.connect(self.toggle_retired_assets)
@@ -872,7 +873,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     continue
                 else:
                     cell_content = cell.text()
-                    if word in cell_content:
+                    if re.search(word, cell_content, re.IGNORECASE):
                         match = True
                         break
             if match is False:
@@ -912,11 +913,16 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.filter_options_combobox.setCurrentIndex(0)
 
     def toggle_retired_assets(self):
+        # TODO ok we need to come back to this. so without the setSortingeEnabled part, whenever we click "refresh table"
+        # it puts the items in (i think sorted by assettype) alphabetically. so it doesn't listen to the default order
+        # eh, idk maybe this is the best way to do it...
+        self.main_table.setSortingEnabled(False)         
         if self.checkbox_view_retired_assets.isChecked():
             self.populate_table_with(fetch_all_for_table(self.connection), True)  # lets view all content
         else:
             self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)  # only enabled content!
-            
+        self.main_table.setSortingEnabled(True)
+        
     def try_retire_row(self, uuid):
         try:
             retire_from_uuid(self.connection, uuid)

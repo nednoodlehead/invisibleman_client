@@ -12,4 +12,5 @@ class InvisManItem(QTableWidgetItem):
         if self.text() == "None":
             return False
         else:
+            
             return self.text() > other.text()
