@@ -14,19 +14,7 @@
         "Firewall"
     ],
     "Location": [
-        "GovHouse",
-        "Health",
-        "Culture BLD",
-        "CDRC (old)",
-        "CDRC (new)",
-        "Education",
-        "Ahsm Tah Ow",
-        "Church",
-        "Firehall",
-        "Fieldhouse",
-        "TMS",
-        "Gym",
-        "Lund"
+    "main"
     ],
     "Manufacturer": [
         "Dell",
