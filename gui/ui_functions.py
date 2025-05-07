@@ -657,6 +657,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self, data: list[TableObject], retirement_bool: bool=False
     ):  # put all of the content in the table from the db, called on startup, and
         # when updated..
+        self.main_table.setSortingEnabled(False)
         if len(data) == 0:
             return  # is this sort of feral?
         self.main_table.setRowCount(len(data))
@@ -688,6 +689,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                         self.main_table.setCellWidget(row, col, button)
                 else:
                     self.main_table.setItem(row, col, item)
+            # i like this comment because it reminds me that colored cells SUCK @#$#@$@!!!!!!
+        self.main_table.setSortingEnabled(True)            
             # if our row is retired, we'll make that known by changing the background color of the cell!            
         # ok the concept now is that if there is a retirement date, it is retired.
         # this stupid color *stuff* is horrible. impossible to set it correctly. keeps bugging
@@ -916,12 +919,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # TODO ok we need to come back to this. so without the setSortingeEnabled part, whenever we click "refresh table"
         # it puts the items in (i think sorted by assettype) alphabetically. so it doesn't listen to the default order
         # eh, idk maybe this is the best way to do it...
-        self.main_table.setSortingEnabled(False)         
         if self.checkbox_view_retired_assets.isChecked():
             self.populate_table_with(fetch_all_for_table(self.connection), True)  # lets view all content
         else:
             self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)  # only enabled content!
-        self.main_table.setSortingEnabled(True)
         
     def try_retire_row(self, uuid):
         try:

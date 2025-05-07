@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidgetItem, QTableWidget
 from PyQt5.QtCore import Qt
 
 
@@ -14,3 +14,5 @@ class InvisManItem(QTableWidgetItem):
         else:
             
             return self.text() > other.text()
+
+

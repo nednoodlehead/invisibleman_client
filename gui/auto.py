@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'interfaceAfUyCd.ui'
+## Form generated from reading UI file 'interfacewyAQOK.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -20,17 +20,26 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1300, 725)
+        MainWindow.resize(1439, 725)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
+        self.centralwidget.setSizePolicy(sizePolicy)
         self.stackedWidget = QStackedWidget(self.centralwidget)
         self.stackedWidget.setObjectName(u"stackedWidget")
-        self.stackedWidget.setGeometry(QRect(90, 0, 1201, 711))
+        self.stackedWidget.setGeometry(QRect(90, 0, 1321, 711))
+        sizePolicy.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
+        self.stackedWidget.setSizePolicy(sizePolicy)
         self.stacked_view_db_page = QWidget()
         self.stacked_view_db_page.setObjectName(u"stacked_view_db_page")
+        sizePolicy.setHeightForWidth(self.stacked_view_db_page.sizePolicy().hasHeightForWidth())
+        self.stacked_view_db_page.setSizePolicy(sizePolicy)
         self.main_table = QTableWidget(self.stacked_view_db_page)
         self.main_table.setObjectName(u"main_table")
-        self.main_table.setGeometry(QRect(10, 80, 1150, 550))
+        self.main_table.setGeometry(QRect(10, 80, 1311, 550))
         self.refresh_table_button = QPushButton(self.stacked_view_db_page)
         self.refresh_table_button.setObjectName(u"refresh_table_button")
         self.refresh_table_button.setGeometry(QRect(10, 30, 101, 23))
