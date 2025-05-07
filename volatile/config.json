@@ -20,6 +20,6 @@
     "top_graph_type": "Line",
     "top_graph_data": "Manufacturer",
     "invisman_username": "viewer",
-    "ssh_path": "C:/Users/SpencerBraak/.ssh/id_ed25519",
+    "ssh_path": "C:/",
     "invisman_ip": "10.100.0.9"
 }
