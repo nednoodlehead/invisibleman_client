@@ -18,9 +18,9 @@ from PyQt5.QtGui import QCursor, QPainter, QColor, QTextCharFormat
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from util.db_util import patch_dates
 from util.export import export_active, export_retired, export_loc, export_replacementdate
-from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial
+from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial, fetch_all_extras
 from db.insert import new_entry
-from db.update import update_full_obj, delete_from_uuid, retire_from_uuid, unretire_from_uuid
+from db.update import increase_extra_by_one, update_full_obj, delete_from_uuid, retire_from_uuid, unretire_from_uuid, decrease_extra_by_one, increase_extra_by_one
 from gui.notes_window import NotesWindow
 from gui.export_graph_window import ExportGraph
 from gui.settings import dark_light_mode_switch, set_dark
@@ -40,6 +40,7 @@ from gui.insert_functions import (
     refresh_manufacturer
 )
 from gui.add_item_window import GenericAddJsonWindow
+from gui.new_extra_window import ExtraWindow
 from datetime import datetime
 from psycopg2 import connect
 from sshtunnel import SSHTunnelForwarder, BaseSSHTunnelForwarderError
@@ -66,6 +67,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.active_notes_window = None
         self.active_json_window = None
         self.active_export_graph_window = None
+        self.new_extra_window = None
         self.insert_active_uuid = ""  # this is our variable for knowing if we are
         # editing an entry, or adding a new one. depends if it is empty string, or uuid4
         self.default_columns = [
@@ -101,11 +103,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.force_json_sync(self.connection)
             self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)
+            self.populate_extra_table()
         self.ham_button_insert.clicked.connect(lambda: self.swap_to_window(1))
         self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
         self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
         self.ham_button_reports.clicked.connect(self.swap_reports_refresh)
         self.ham_button_settings.clicked.connect(lambda: self.swap_to_window(4))
+        self.ham_button_extra.clicked.connect(lambda: self.swap_to_window(5))
         self.insert_asset_category_combobox.currentIndexChanged.connect(
             self.update_replacement_date
         )
@@ -195,6 +199,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_asset_type_combobox.addItems(typ)
         self.insert_asset_location_combobox.addItems(loc)
         self.insert_manufacturer_combobox.addItems(manu)
+        self.extra_add_new_button.clicked.connect(self.display_extra_window)
         # true = retired, false = in use
         self.insert_status_bool.addItems(["Active", "Retired"])
         # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
@@ -224,6 +229,11 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)  # error for no reason..?
         self.main_table.customContextMenuRequested.connect(
             self.display_table_context_menu
+        )
+        self.set_extra_headers()
+        self.extra_table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.extra_table.customContextMenuRequested.connect(
+            self.display_extra_table_context_menu
         )
 
         # threaded analyitics spawning :)
@@ -344,6 +354,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 lambda: self.try_retire_row(our_uuid),
             )
         menu.exec_(QCursor.pos())
+
+    def display_extra_table_context_menu(self, position=None):
+        menu = QMenu()
+        index = self.extra_table.indexAt(position)
+        row = index.row()
+        menu.AddAction("Edit", lambda: self.edit_extra(self.extra_table.item(row, 8)))
 
     def delete_and_remove_row(self, row):
         id = self.main_table.item(row, 14).text()
@@ -547,7 +563,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self,
                 csv_val,
                 filename,
-                self.reports_export_export_due_replacement_combo.currentText()
+                self.reports_export_export_due_replacement_combo.currentText(),
+                self.reports_export_include_overdue_checkbox.isChecked()
             )  # retired assets by year
         else:  # edge case where the user selects none of them
             self.display_message("Error!", "Please select one of the radio buttons!")
@@ -709,6 +726,32 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         button.clicked.connect(lambda: self.display_notes(uuid))
         return button
 
+    def generate_extra_add_button(self, uuid):
+        button = QPushButton()
+        button.setText("+")
+        button.clicked.connect(lambda: self.extra_table_add_to_buffer(uuid, 1))
+        return button
+
+    def generate_extra_minus_button(self, uuid):
+        button = QPushButton()
+        button.setText("-")
+        button.clicked.connect(lambda: self.extra_table_add_to_buffer(uuid, -1))
+        return button
+
+    def extra_table_add_to_buffer(self, uuid: str, change):
+        # this is how we will handle the whole +1 or -1 equipment steps
+        # im choosing this because if we dont have some buffer, the user might click it accidentally, or click it twice
+        # and that could cause inconsistencies, and the user might be like "oh i have no clue what the originial data was" and now the count is inaccurate
+        if change == -1:
+            decrease_extra_by_one(self.connection, uuid)
+        else:
+            increase_extra_by_one(self.connection, uuid)
+        # maybe there is some method to do here where we selectively update only the single row (based on uuid)..
+        # but honestly, overhead of refreshing whole table is not that bad
+        print("refeshing the extra table")
+        self.populate_extra_table()
+            
+
     def display_notes(self, uuid: str):  # open the note-editing window
         # will be a text box
         self.active_notes_window = NotesWindow(self.connection, uuid)
@@ -725,6 +768,16 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         position.setX(position.x() + 250)
         position.setY(position.y() + 250)
         self.active_json_window.move(position)
+
+    def display_extra_window(self):
+        uuid = None # TODO when we right click and 'update', we can pass that in here...
+        self.new_extra_window = ExtraWindow(self.connection, uuid)
+        self.new_extra_window.show()
+        position = self.pos()
+        position.setX(position.x() + 250)
+        position.setY(position.y() + 250)
+        self.new_extra_window.move(position)
+        
 
     def export_graph(self, top: bool):
         if top:
@@ -865,6 +918,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # sets the UUID to be hidden
         self.main_table.setColumnHidden(length - 1, True)  # must be done here
 
+    def set_extra_headers(self):
+        headers = ["Name", "Manufacturer", "-", "Count", "+", "Reserved", "Notes", "uniqueid(hidden)"]
+        self.extra_table.setHorizontalHeaderLabels(headers)
+        self.extra_table.setAlternatingRowColors(True)
+        self.extra_table.setColumnHidden(len(headers) -1, True)
+
     def filter_all_columns(
         self, word: str
     ):  # filters the columns. doesn't check notes.
@@ -983,7 +1042,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             ssh_pw = get_password("invisman_sshkey", ssh_key_location)
             server = SSHTunnelForwarder((invisman_server_ip, 22), ssh_pkey=ssh_key_location, ssh_username=invisman_username, ssh_private_key_password=ssh_pw, remote_bind_address=("127.0.0.1", 5432))
             server.start()
-            print("returning db connection!!")
             return connect(dbname="invisman", user=invisman_username, password=invisman_pw, host="127.0.0.1", port=server.local_bind_port)
         except (AttributeError, PermissionError, BaseSSHTunnelForwarderError): # when the settings are not valid..
             return False
@@ -992,5 +1050,48 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             
     def force_sync(self):
         # this is only called from the thread function.
-        print("we are forcing sync!!")
         self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)
+        
+    # will always populate withi default data. we will be able to sort it as well
+    def populate_extra_table(self):
+        extra_data = fetch_all_extras(self.connection)
+        self.extra_table.setSortingEnabled(False)
+        if len(extra_data) == 0:
+            return
+        self.extra_table.setRowCount(len(extra_data))
+        # there will be 7 columns visible: item, manufacturer, count, button to remove one from count, button to add one to count, reserved, notes
+        self.extra_table.setColumnCount(7)
+        # so, is it stupid to insert two "null"-type of rows that are meant to be consumed by the iterator when making the buttons?
+        # or is it smarter to manually assign the rows? im choosing adding the null operator lol, maybe the .insert is expensive?
+        for row_num, row in enumerate(extra_data):
+            print(f"inserting {row}")
+            but = self.generate_extra_add_button(row[6])
+            self.extra_table.setCellWidget(row_num, 2, but)
+            but = self.generate_extra_minus_button(row[6])
+            self.extra_table.setCellWidget(row_num, 4, but)
+            
+            for column_num, cell_data in enumerate(row):
+                if column_num == 0:
+                    item = QTableWidgetItem(str(cell_data))
+                    self.extra_table.setItem(row_num, 0, item)
+                if column_num == 1:
+                    item = QTableWidgetItem(str(cell_data))
+                    self.extra_table.setItem(row_num, 1, item)
+                if column_num == 2:
+                    print(f'the data: {cell_data}')
+                    item = QTableWidgetItem(str(cell_data))
+                    self.extra_table.setItem(row_num, 3, item)
+                elif column_num == 4:
+                    item = QTableWidgetItem(str(cell_data))
+                    self.extra_table.setItem(row_num, 5, item)
+                elif column_num == 5:
+                    # notes
+                    item = QTableWidgetItem(str(cell_data))
+                    self.extra_table.setItem(row_num, 6, item)
+                elif column_num == 6:
+                    item = QTableWidgetItem(str(cell_data))
+                    self.extra_table.setItem(row_num, 7, item)
+        self.extra_table.setSortingEnabled(True)
+
+    def edit_extra(self, uuid):
+        pass

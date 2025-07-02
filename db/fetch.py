@@ -1,5 +1,6 @@
 import sqlite3
-from util.data_types import InventoryObject, TableObject
+from util.data_types import InventoryObject, TableObject, ExtraObject
+from datetime import date
 
 
 def fetch_all(conn) -> list[InventoryObject]:
@@ -20,7 +21,7 @@ def fetch_all_enabled(conn):  # [InventoryObject] without the enabled field
         deploymentdate, replacementdate, notes, uniqueid FROM main WHERE status = false;
         """
     )
-    for item in data:
+    for item in cur.fetchall():
         return_list.append(item)
     return return_list
 
@@ -82,7 +83,7 @@ def fetch_obj_from_retired(conn):
         WHERE status = true;
         """,
     )
-    for item in cur.fetch_all():
+    for item in cur.fetchall():
         ret_list.append(item)
     return ret_list
 
@@ -99,23 +100,33 @@ def fetch_obj_from_loc(conn, location):
         """,
         (location,),
     )
-    for item in cur.fetch_all():
+    for item in cur.fetchall():
         ret_list.append(item)
     return ret_list
 
 
-def fetch_retired_assets(conn, year: str):
+def fetch_retired_assets(conn, year: str, include_overdue: bool):
     ret_list = []
     cur = conn.cursor()
-    cur.execute(
-        """
+    if include_overdue:
+        cur.execute(
+            """
+            SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
+            assetlocation, assetcategory, deploymentdate, replacementdate, notes, uniqueid
+            FROM main
+            WHERE replacementdate <= %s AND status = false;
+            """, (year,)
+        )
+    else:
+
+        cur.execute(
+            """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
         assetlocation, assetcategory, deploymentdate, replacementdate, notes, uniqueid
-        FROM main
-        WHERE replacementdate <= %s AND status = false;
-        """, (year,)
-    )
-    for item in cur.fetch_all():
+        FROM main where replacementdate between %s and %s and status = false;
+            """, (date.today(), year)
+        )
+    for item in cur.fetchall():
         ret_list.append(item)
     return ret_list
 
@@ -138,3 +149,12 @@ def fetch_by_serial(conn, finding: str) -> InventoryObject:
     # [0] because it returns in a tuple??
     return obj 
 
+def fetch_all_extras(conn):
+    cur = conn.cursor()
+    cur.execute("SELECT * from extras order by count;");
+    return [x for x in cur.fetchall()]
+
+def fetch_specific_extra(conn, uuid):
+    cur = conn.cursor()
+    cur.execute("select item, manufacturer, count, low_amount, reserved, notes from extras where uniqueid =%s;", (uuid,))
+    return cur.fetchone()[0] # [0] cause it returns a tuple with one item in it??

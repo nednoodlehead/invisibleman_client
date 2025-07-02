@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1281</width>
+    <width>1278</width>
     <height>725</height>
    </rect>
   </property>
@@ -114,6 +114,19 @@
           <string>Reports</string>
          </property>
         </widget>
+        <widget class="QPushButton" name="ham_button_extra">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>360</y>
+           <width>91</width>
+           <height>50</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Extra Inv</string>
+         </property>
+        </widget>
        </widget>
       </item>
       <item>
@@ -140,7 +153,7 @@
             </sizepolicy>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>5</number>
            </property>
            <widget class="QWidget" name="stacked_view_db_page">
             <property name="sizePolicy">
@@ -1438,7 +1451,7 @@
               <property name="geometry">
                <rect>
                 <x>200</x>
-                <y>270</y>
+                <y>280</y>
                 <width>91</width>
                 <height>22</height>
                </rect>
@@ -1463,14 +1476,14 @@
              <widget class="QComboBox" name="reports_export_location_combobox">
               <property name="geometry">
                <rect>
-                <x>210</x>
+                <x>200</x>
                 <y>350</y>
-                <width>69</width>
+                <width>91</width>
                 <height>22</height>
                </rect>
               </property>
              </widget>
-             <widget class="QRadioButton" name="reports_expor_export_active_radio">
+             <widget class="QRadioButton" name="reports_export_export_active_radio">
               <property name="geometry">
                <rect>
                 <x>20</x>
@@ -1611,6 +1624,19 @@
               </property>
               <property name="text">
                <string/>
+              </property>
+             </widget>
+             <widget class="QCheckBox" name="reports_export_include_overdue_checkbox">
+              <property name="geometry">
+               <rect>
+                <x>200</x>
+                <y>250</y>
+                <width>141</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Include Overdue Assets</string>
               </property>
              </widget>
             </widget>
@@ -1854,6 +1880,86 @@
              </property>
              <property name="text">
               <string>Auto-switch to main on insert</string>
+             </property>
+            </widget>
+           </widget>
+           <widget class="QWidget" name="stacked_extras">
+            <widget class="QPushButton" name="extra_refresh_button">
+             <property name="geometry">
+              <rect>
+               <x>60</x>
+               <y>30</y>
+               <width>75</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Refresh</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="extra_add_new_button">
+             <property name="geometry">
+              <rect>
+               <x>50</x>
+               <y>530</y>
+               <width>75</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Add New</string>
+             </property>
+            </widget>
+            <widget class="QTableWidget" name="extra_table">
+             <property name="geometry">
+              <rect>
+               <x>60</x>
+               <y>60</y>
+               <width>721</width>
+               <height>461</height>
+              </rect>
+             </property>
+            </widget>
+            <widget class="QFrame" name="extra_buffer_frame">
+             <property name="geometry">
+              <rect>
+               <x>790</x>
+               <y>60</y>
+               <width>341</width>
+               <height>391</height>
+              </rect>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="extra_clear_changes_button">
+             <property name="geometry">
+              <rect>
+               <x>800</x>
+               <y>480</y>
+               <width>91</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Clear Changes</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="extra_write_changes_button">
+             <property name="geometry">
+              <rect>
+               <x>1030</x>
+               <y>480</y>
+               <width>91</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Write Changes</string>
              </property>
             </widget>
            </widget>

@@ -169,3 +169,25 @@ class TableObject:
 
     def __repr__(self):
         return f"table_Object: {self.name, self.serial, self.uniqueid}"
+
+# this is the object that represents a new entry in our periphreal inventory (idc how you spell it)
+class ExtraObject:
+    def __init__(self, item: str, manufacturer: str, count: int, low_amount: int, reserved: str, notes: str, uniqueid: None | str) -> None:
+           self.item = item
+           self.manufacturer = manufacturer
+           self.count = count
+           self.low_amount = low_amount
+           self.reserved = reserved
+           self.notes = notes
+           if not uniqueid:
+               self.uniqueid = str(uuid4())
+           else:
+               self.uniqueid = uniqueid
+    def __iter__(self):
+        yield self.item
+        yield self.manufacturer
+        yield self.count
+        yield self.low_amount
+        yield self.reserved
+        yield self.notes
+        yield self.uniqueid

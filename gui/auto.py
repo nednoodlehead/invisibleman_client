@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'interfacetestergjafOy.ui'
+## Form generated from reading UI file 'interfaceHUPZvL.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -20,7 +20,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1281, 725)
+        MainWindow.resize(1278, 725)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -58,6 +58,9 @@ class Ui_MainWindow(object):
         self.ham_button_reports = QPushButton(self.left_buttons_frame)
         self.ham_button_reports.setObjectName(u"ham_button_reports")
         self.ham_button_reports.setGeometry(QRect(0, 260, 91, 50))
+        self.ham_button_extra = QPushButton(self.left_buttons_frame)
+        self.ham_button_extra.setObjectName(u"ham_button_extra")
+        self.ham_button_extra.setGeometry(QRect(0, 360, 91, 50))
 
         self.main_horizontal.addWidget(self.left_buttons_frame)
 
@@ -175,7 +178,7 @@ class Ui_MainWindow(object):
         self.stacked_add_to_db_page.setObjectName(u"stacked_add_to_db_page")
         self.insert_clear_selections_button = QPushButton(self.stacked_add_to_db_page)
         self.insert_clear_selections_button.setObjectName(u"insert_clear_selections_button")
-        self.insert_clear_selections_button.setGeometry(QRect(740, 600, 75, 23))
+        self.insert_clear_selections_button.setGeometry(QRect(1070, 600, 75, 23))
         self.insert_insert_button = QPushButton(self.stacked_add_to_db_page)
         self.insert_insert_button.setObjectName(u"insert_insert_button")
         self.insert_insert_button.setGeometry(QRect(140, 590, 131, 31))
@@ -413,7 +416,7 @@ class Ui_MainWindow(object):
         self.stacked_reports.setObjectName(u"stacked_reports")
         self.reports_export_frame = QFrame(self.stacked_reports)
         self.reports_export_frame.setObjectName(u"reports_export_frame")
-        self.reports_export_frame.setGeometry(QRect(110, 30, 351, 631))
+        self.reports_export_frame.setGeometry(QRect(110, 30, 351, 651))
         self.reports_export_frame.setFrameShape(QFrame.StyledPanel)
         self.reports_export_frame.setFrameShadow(QFrame.Raised)
         self.label = QLabel(self.reports_export_frame)
@@ -442,7 +445,7 @@ class Ui_MainWindow(object):
         self.frame_4.setFrameShadow(QFrame.Raised)
         self.reports_export_export_due_replacement_combo = QComboBox(self.reports_export_frame)
         self.reports_export_export_due_replacement_combo.setObjectName(u"reports_export_export_due_replacement_combo")
-        self.reports_export_export_due_replacement_combo.setGeometry(QRect(200, 270, 91, 22))
+        self.reports_export_export_due_replacement_combo.setGeometry(QRect(200, 280, 91, 22))
         self.frame_5 = QFrame(self.reports_export_frame)
         self.frame_5.setObjectName(u"frame_5")
         self.frame_5.setGeometry(QRect(0, 320, 341, 2))
@@ -450,10 +453,10 @@ class Ui_MainWindow(object):
         self.frame_5.setFrameShadow(QFrame.Raised)
         self.reports_export_location_combobox = QComboBox(self.reports_export_frame)
         self.reports_export_location_combobox.setObjectName(u"reports_export_location_combobox")
-        self.reports_export_location_combobox.setGeometry(QRect(210, 350, 69, 22))
-        self.reports_expor_export_active_radio = QRadioButton(self.reports_export_frame)
-        self.reports_expor_export_active_radio.setObjectName(u"reports_expor_export_active_radio")
-        self.reports_expor_export_active_radio.setGeometry(QRect(20, 130, 131, 17))
+        self.reports_export_location_combobox.setGeometry(QRect(200, 350, 91, 22))
+        self.reports_export_export_active_radio = QRadioButton(self.reports_export_frame)
+        self.reports_export_export_active_radio.setObjectName(u"reports_export_export_active_radio")
+        self.reports_export_export_active_radio.setGeometry(QRect(20, 130, 131, 17))
         self.reports_export_export_retired_radio = QRadioButton(self.reports_export_frame)
         self.reports_export_export_retired_radio.setObjectName(u"reports_export_export_retired_radio")
         self.reports_export_export_retired_radio.setGeometry(QRect(20, 200, 131, 17))
@@ -485,7 +488,10 @@ class Ui_MainWindow(object):
         self.reports_export_status_label.setGeometry(QRect(10, 540, 47, 13))
         self.reports_export_status_content = QLabel(self.reports_export_frame)
         self.reports_export_status_content.setObjectName(u"reports_export_status_content")
-        self.reports_export_status_content.setGeometry(QRect(50, 530, 241, 51))
+        self.reports_export_status_content.setGeometry(QRect(50, 530, 241, 91))
+        self.reports_export_include_overdue_checkbox = QCheckBox(self.reports_export_frame)
+        self.reports_export_include_overdue_checkbox.setObjectName(u"reports_export_include_overdue_checkbox")
+        self.reports_export_include_overdue_checkbox.setGeometry(QRect(200, 250, 141, 21))
         self.stackedWidget.addWidget(self.stacked_reports)
         self.stacked_settings = QWidget()
         self.stacked_settings.setObjectName(u"stacked_settings")
@@ -515,7 +521,7 @@ class Ui_MainWindow(object):
         self.settings_backup_dir_text.setGeometry(QRect(230, 80, 171, 20))
         self.settings_update_button = QPushButton(self.stacked_settings)
         self.settings_update_button.setObjectName(u"settings_update_button")
-        self.settings_update_button.setGeometry(QRect(400, 640, 241, 23))
+        self.settings_update_button.setGeometry(QRect(940, 660, 241, 23))
         self.settings_create_backup_button = QPushButton(self.stacked_settings)
         self.settings_create_backup_button.setObjectName(u"settings_create_backup_button")
         self.settings_create_backup_button.setGeometry(QRect(450, 80, 111, 23))
@@ -550,6 +556,18 @@ class Ui_MainWindow(object):
         self.settings_switch_to_main_on_insert_label.setObjectName(u"settings_switch_to_main_on_insert_label")
         self.settings_switch_to_main_on_insert_label.setGeometry(QRect(80, 180, 141, 16))
         self.stackedWidget.addWidget(self.stacked_settings)
+        self.stacked_extras = QWidget()
+        self.stacked_extras.setObjectName(u"stacked_extras")
+        self.extra_refresh_button = QPushButton(self.stacked_extras)
+        self.extra_refresh_button.setObjectName(u"extra_refresh_button")
+        self.extra_refresh_button.setGeometry(QRect(60, 30, 75, 23))
+        self.extra_add_new_button = QPushButton(self.stacked_extras)
+        self.extra_add_new_button.setObjectName(u"extra_add_new_button")
+        self.extra_add_new_button.setGeometry(QRect(50, 530, 75, 23))
+        self.extra_table = QTableWidget(self.stacked_extras)
+        self.extra_table.setObjectName(u"extra_table")
+        self.extra_table.setGeometry(QRect(60, 60, 951, 461))
+        self.stackedWidget.addWidget(self.stacked_extras)
 
         self.horizontalLayout_4.addWidget(self.stackedWidget)
 
@@ -579,6 +597,7 @@ class Ui_MainWindow(object):
         self.ham_button_analytics.setText(QCoreApplication.translate("MainWindow", u"Analytics", None))
         self.ham_button_settings.setText(QCoreApplication.translate("MainWindow", u"Settings", None))
         self.ham_button_reports.setText(QCoreApplication.translate("MainWindow", u"Reports", None))
+        self.ham_button_extra.setText(QCoreApplication.translate("MainWindow", u"Extra Inv", None))
         self.filter_clear_button.setText(QCoreApplication.translate("MainWindow", u"clear filter", None))
         self.filter_column_button.setText(QCoreApplication.translate("MainWindow", u"Apply Filter", None))
         self.refresh_table_button.setText(QCoreApplication.translate("MainWindow", u"Refresh Table", None))
@@ -637,7 +656,7 @@ class Ui_MainWindow(object):
         self.analytics_y_axis_label.setText(QCoreApplication.translate("MainWindow", u"Y Axis Values", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Export", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Export File Type", None))
-        self.reports_expor_export_active_radio.setText(QCoreApplication.translate("MainWindow", u"Export Active Assets", None))
+        self.reports_export_export_active_radio.setText(QCoreApplication.translate("MainWindow", u"Export Active Assets", None))
         self.reports_export_export_retired_radio.setText(QCoreApplication.translate("MainWindow", u"Export Retired Assets", None))
         self.reports_export_export_due_replacement_radio.setText(QCoreApplication.translate("MainWindow", u"Assets Due For Replacement", None))
         self.reports_export_export_location_radio.setText(QCoreApplication.translate("MainWindow", u"Export active By Location", None))
@@ -646,6 +665,7 @@ class Ui_MainWindow(object):
         self.reports_export_main_export_button.setText(QCoreApplication.translate("MainWindow", u"Export!", None))
         self.reports_export_status_label.setText(QCoreApplication.translate("MainWindow", u"Status:", None))
         self.reports_export_status_content.setText("")
+        self.reports_export_include_overdue_checkbox.setText(QCoreApplication.translate("MainWindow", u"Include Overdue Assets", None))
         self.settings_backup_dir_label.setText(QCoreApplication.translate("MainWindow", u"Backup Directory Path", None))
         self.settings_darkmode_label.setText(QCoreApplication.translate("MainWindow", u"Dark Mode", None))
         self.settings_report_auto_open_label.setText(QCoreApplication.translate("MainWindow", u"Auto-open report in explorer", None))
@@ -660,5 +680,7 @@ class Ui_MainWindow(object):
         self.setting_ssh_file_dialog_button.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.settings_switch_to_main_on_insert_checkbox.setText("")
         self.settings_switch_to_main_on_insert_label.setText(QCoreApplication.translate("MainWindow", u"Auto-switch to main on insert", None))
+        self.extra_refresh_button.setText(QCoreApplication.translate("MainWindow", u"Refresh", None))
+        self.extra_add_new_button.setText(QCoreApplication.translate("MainWindow", u"Add New", None))
     # retranslateUi
 

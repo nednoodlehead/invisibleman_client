@@ -1,5 +1,5 @@
 import sqlite3
-from util.data_types import InventoryObject
+from util.data_types import ExtraObject, InventoryObject
 from PyQt5.QtCore import QDate
 from datetime import date
 
@@ -92,4 +92,24 @@ def replace_server_config(conn, dict_or_list, target: str):
         for val in dict_or_list:
             # this is going to spam updates, wont it!?
             cur.execute("insert into config (type, data) values (%s, %s)", (target, val))
+    conn.commit()
+
+def update_extras(conn, new_obj: ExtraObject):
+    cur = conn.cursor()
+    cur.execute("update extras set item = %s, manufacturer = %s, count = %s, low_amount = %s, reserved = %s, notes = %s where uniqueid = %s",
+                (new_obj.item, new_obj.manufacturer, new_obj.count, new_obj.low_amount, new_obj.reserved, new_obj.notes, new_obj.uniqueid))
+    conn.commit()
+
+# special method, since this will be a "giving item away" event
+def decrease_extra_by_one(conn, uuid):
+    # doesnt check for making numbers negative btw
+    cur = conn.cursor()
+    cur.execute("update extras set count = count -1 where uniqueid = %s;", (uuid,))
+    conn.commit()
+
+    
+def increase_extra_by_one(conn, uuid):
+    print(f'target uuid: {uuid}')
+    cur = conn.cursor()
+    cur.execute("update extras set count = count +1 where uniqueid = %s;", (uuid,))
     conn.commit()

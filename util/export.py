@@ -4,6 +4,8 @@
 import os
 import shutil
 import openpyxl
+from openpyxl.worksheet.table import TABLESTYLES, Table, TableStyleInfo
+from openpyxl.styles import Color, PatternFill
 import csv
 import sqlite3
 import datetime
@@ -28,7 +30,7 @@ import dateutil.relativedelta
 def export_active(self, csv: bool, file: str):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
     file = f"{file}_ACTIVE{csv_or_xlsx_str}"
-    data = fetch_all_enabled()
+    data = fetch_all_enabled(self.connection)
     if csv:
         write_iter_into_csv(self.default_columns, data, file)
     else:  # excel export :D
@@ -39,7 +41,7 @@ def export_active(self, csv: bool, file: str):
 def export_retired(self, csv: bool, file: str):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
     file = f"{file}_RETIRED{csv_or_xlsx_str}"
-    data = fetch_obj_from_retired()
+    data = fetch_obj_from_retired(self.connection)
     all_col = self.default_columns.copy()
     all_col.append("Retirement Date")
     if csv:
@@ -52,7 +54,7 @@ def export_retired(self, csv: bool, file: str):
 def export_loc(self, csv: bool, file: str, place: str):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
     file = f"{file}_LOCATION{csv_or_xlsx_str}"
-    data = fetch_obj_from_loc(place)
+    data = fetch_obj_from_loc(self.connection, place)
     if csv:
         write_iter_into_csv(self.default_columns, data, file)
     else:  # excel export :D
@@ -60,13 +62,13 @@ def export_loc(self, csv: bool, file: str, place: str):
     open_explorer_at_file(self, file)
 
 
-def export_replacementdate(self, csv: bool, file: str, time_period: str):
+def export_replacementdate(self, csv: bool, file: str, time_period: str, include_overdue):
     # time period is our 3, 6, 9, 12, 24 month period
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
     file = f"{file}_DUE-REPLACEMENT{csv_or_xlsx_str}"
     num = int(time_period.split(" ")[0])  # the number part of the '3 Months' or '12 Months'
     time_period = datetime.date.today() + dateutil.relativedelta.relativedelta(months=num)
-    data = fetch_retired_assets(time_period)
+    data = fetch_retired_assets(self.connection, time_period, include_overdue)
     if csv:
         write_iter_into_csv(self.default_columns, data, file)
     else:  # excel export :D
@@ -84,12 +86,21 @@ def write_iter_into_csv(columns, iterable, filename: str):
 
 def write_iter_into_excel(columns, iterable, filename: str):
     wb = openpyxl.Workbook()
+    letter_list = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
+    row_hex = "9A9C9B"
     active_ws = wb.active
+    color = PatternFill(start_color=row_hex, end_color=row_hex, fill_type='solid')
     active_ws.append(columns)
-    for row in iterable:
+    for count, row in enumerate(iterable):
         active_ws.append(row)
-    for col in ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]:
+        if (count + 1) % 2 == 0:
+            for letter in letter_list:
+                active_ws[f'{letter}{count}'].fill = color                
+    for col in letter_list:
         active_ws.column_dimensions[col].width = 20
+    # we add +1 because indexes start at 0 in py, but start at one in excel..
+    table = Table(displayName="exported", ref=f'A1:L{len(iterable) +1}')
+    active_ws.add_table(table)
     wb.save(filename)
 
 
