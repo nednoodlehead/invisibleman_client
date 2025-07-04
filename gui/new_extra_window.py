@@ -14,16 +14,12 @@ class ExtraWindow(QWidget):
     accessed from the notes button on a column
     """
 
-    def __init__(self, conn, uuid: str):
+    def __init__(self, conn, uuid: str | None, refresh_func):
         super().__init__()
         self.uuid = uuid
         self.conn = conn
-        if uuid:
-            to_change = fetch_specific_extra(
-                conn,
-                self.uuid
-            )  # notes are found here so when updating with new notes, the button returns the right data
-            print(to_change)
+        self.refresh_func = refresh_func
+        print(f'extrawin: {type(uuid), uuid}')
         self.setObjectName("Notes")
         self.config = read_from_config()
         if self.config["dark_mode"] is True:
@@ -77,6 +73,18 @@ class ExtraWindow(QWidget):
         self.notes_label.setText(u"Notes")
         self.extra_add_button.setText(u"Add!")
         self.extra_add_button.clicked.connect(self.update_extras)
+        if uuid:
+            to_change = fetch_specific_extra(
+                conn,
+                self.uuid
+            )  # notes are found here so when updating with new notes, the button returns the right data
+            self.item_name_text.setText(to_change[0])
+            print(to_change)
+            self.manufacturer_text.setText(to_change[1])
+            self.amount_number.setValue(int(to_change[2]))
+            self.low_amount_number.setValue(int(to_change[3]))
+            self.reserved_text.setText(to_change[4])
+            self.notes_text.setText(to_change[5])
         
     def update_extras(self):
         # self.uuid will be a null when this window is initialized if it needs to be (aka we are inserting new, not updating)
@@ -86,3 +94,6 @@ class ExtraWindow(QWidget):
             update_extras(self.conn, item)
         else:
             new_extra(self.conn, item)        
+        # love passing the function in.. maybe i should replicate this with the other windows..
+        self.refresh_func()
+        self.close()

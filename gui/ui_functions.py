@@ -359,7 +359,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         menu = QMenu()
         index = self.extra_table.indexAt(position)
         row = index.row()
-        menu.AddAction("Edit", lambda: self.edit_extra(self.extra_table.item(row, 8)))
+        for x in range(10):
+            y = self.extra_table.item(row, x)
+            if y:
+                print(y.text())
+        menu.addAction("Edit", lambda: self.display_extra_window(self.extra_table.item(row, 7).text()))
+        menu.exec_(QCursor.pos())
 
     def delete_and_remove_row(self, row):
         id = self.main_table.item(row, 14).text()
@@ -748,7 +753,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             increase_extra_by_one(self.connection, uuid)
         # maybe there is some method to do here where we selectively update only the single row (based on uuid)..
         # but honestly, overhead of refreshing whole table is not that bad
-        print("refeshing the extra table")
         self.populate_extra_table()
             
 
@@ -769,9 +773,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         position.setY(position.y() + 250)
         self.active_json_window.move(position)
 
-    def display_extra_window(self):
-        uuid = None # TODO when we right click and 'update', we can pass that in here...
-        self.new_extra_window = ExtraWindow(self.connection, uuid)
+    def display_extra_window(self, uuid=None):
+        self.new_extra_window = ExtraWindow(self.connection, uuid, self.populate_extra_table)
         self.new_extra_window.show()
         position = self.pos()
         position.setX(position.x() + 250)
@@ -1060,11 +1063,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             return
         self.extra_table.setRowCount(len(extra_data))
         # there will be 7 columns visible: item, manufacturer, count, button to remove one from count, button to add one to count, reserved, notes
-        self.extra_table.setColumnCount(7)
+        self.extra_table.setColumnCount(8) # 8 is correct, we have to remember the uuid column...
         # so, is it stupid to insert two "null"-type of rows that are meant to be consumed by the iterator when making the buttons?
         # or is it smarter to manually assign the rows? im choosing adding the null operator lol, maybe the .insert is expensive?
         for row_num, row in enumerate(extra_data):
-            print(f"inserting {row}")
             but = self.generate_extra_add_button(row[6])
             self.extra_table.setCellWidget(row_num, 2, but)
             but = self.generate_extra_minus_button(row[6])
@@ -1078,7 +1080,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     item = QTableWidgetItem(str(cell_data))
                     self.extra_table.setItem(row_num, 1, item)
                 if column_num == 2:
-                    print(f'the data: {cell_data}')
                     item = QTableWidgetItem(str(cell_data))
                     self.extra_table.setItem(row_num, 3, item)
                 elif column_num == 4:
@@ -1093,5 +1094,3 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     self.extra_table.setItem(row_num, 7, item)
         self.extra_table.setSortingEnabled(True)
 
-    def edit_extra(self, uuid):
-        pass

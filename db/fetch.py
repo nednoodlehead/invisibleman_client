@@ -151,10 +151,10 @@ def fetch_by_serial(conn, finding: str) -> InventoryObject:
 
 def fetch_all_extras(conn):
     cur = conn.cursor()
-    cur.execute("SELECT * from extras order by count;");
+    cur.execute("SELECT * from extras order by count desc;");
     return [x for x in cur.fetchall()]
 
 def fetch_specific_extra(conn, uuid):
     cur = conn.cursor()
     cur.execute("select item, manufacturer, count, low_amount, reserved, notes from extras where uniqueid =%s;", (uuid,))
-    return cur.fetchone()[0] # [0] cause it returns a tuple with one item in it??
+    return cur.fetchone() # [0] cause it returns a tuple with one item in it??
