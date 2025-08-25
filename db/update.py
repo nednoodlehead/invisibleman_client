@@ -31,8 +31,6 @@ def update_full_obj(conn, obj: InventoryObject):
     obj.replacementdate = None if obj.replacementdate == date.fromisoformat("2000-01-01") else obj.replacementdate
     obj.retirementdate = None if obj.retirementdate == date.fromisoformat("2000-01-01") else obj.retirementdate
     obj.notes = None if obj.notes == "" else obj.notes
-    for x in obj:
-        print(type(x), x)
     cur.execute(
         """
                    UPDATE main 

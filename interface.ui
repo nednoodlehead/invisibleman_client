@@ -153,7 +153,7 @@
             </sizepolicy>
            </property>
            <property name="currentIndex">
-            <number>5</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="stacked_view_db_page">
             <property name="sizePolicy">
@@ -1354,7 +1354,7 @@
                <x>110</x>
                <y>30</y>
                <width>351</width>
-               <height>651</height>
+               <height>631</height>
               </rect>
              </property>
              <property name="frameShape">
@@ -1538,8 +1538,8 @@
              <widget class="QLabel" name="label_4">
               <property name="geometry">
                <rect>
-                <x>50</x>
-                <y>460</y>
+                <x>40</x>
+                <y>470</y>
                 <width>61</width>
                 <height>16</height>
                </rect>
@@ -1567,8 +1567,8 @@
              <widget class="QLineEdit" name="export_file_path_choice">
               <property name="geometry">
                <rect>
-                <x>110</x>
-                <y>460</y>
+                <x>100</x>
+                <y>470</y>
                 <width>161</width>
                 <height>20</height>
                </rect>
@@ -1577,8 +1577,8 @@
              <widget class="QPushButton" name="export_file_dialog_button">
               <property name="geometry">
                <rect>
-                <x>270</x>
-                <y>460</y>
+                <x>260</x>
+                <y>470</y>
                 <width>31</width>
                 <height>23</height>
                </rect>
@@ -1590,8 +1590,8 @@
              <widget class="QPushButton" name="reports_export_main_export_button">
               <property name="geometry">
                <rect>
-                <x>50</x>
-                <y>482</y>
+                <x>40</x>
+                <y>492</y>
                 <width>251</width>
                 <height>31</height>
                </rect>
@@ -1637,6 +1637,55 @@
               </property>
               <property name="text">
                <string>Include Overdue Assets</string>
+              </property>
+             </widget>
+             <widget class="QFrame" name="frame_9">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>460</y>
+                <width>341</width>
+                <height>2</height>
+               </rect>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+             </widget>
+             <widget class="QRadioButton" name="reports_export_export_changed_radio">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>420</y>
+                <width>161</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Export changed (by month)</string>
+              </property>
+             </widget>
+             <widget class="QComboBox" name="reports_export_export_changed_combo">
+              <property name="geometry">
+               <rect>
+                <x>190</x>
+                <y>420</y>
+                <width>69</width>
+                <height>22</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QSpinBox" name="report_export_export_changed_spinbox">
+              <property name="geometry">
+               <rect>
+                <x>270</x>
+                <y>420</y>
+                <width>61</width>
+                <height>22</height>
+               </rect>
               </property>
              </widget>
             </widget>
@@ -1742,8 +1791,8 @@
             <widget class="QPushButton" name="settings_update_button">
              <property name="geometry">
               <rect>
-               <x>940</x>
-               <y>660</y>
+               <x>880</x>
+               <y>630</y>
                <width>241</width>
                <height>23</height>
               </rect>
@@ -1915,18 +1964,18 @@
               <rect>
                <x>60</x>
                <y>60</y>
-               <width>721</width>
+               <width>941</width>
                <height>461</height>
               </rect>
              </property>
             </widget>
-            <widget class="QFrame" name="extra_buffer_frame">
+            <widget class="QFrame" name="extra_log_frame">
              <property name="geometry">
               <rect>
-               <x>790</x>
-               <y>60</y>
-               <width>341</width>
-               <height>391</height>
+               <x>690</x>
+               <y>520</y>
+               <width>441</width>
+               <height>141</height>
               </rect>
              </property>
              <property name="frameShape">
@@ -1934,32 +1983,6 @@
              </property>
              <property name="frameShadow">
               <enum>QFrame::Raised</enum>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="extra_clear_changes_button">
-             <property name="geometry">
-              <rect>
-               <x>800</x>
-               <y>480</y>
-               <width>91</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Clear Changes</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="extra_write_changes_button">
-             <property name="geometry">
-              <rect>
-               <x>1030</x>
-               <y>480</y>
-               <width>91</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Write Changes</string>
              </property>
             </widget>
            </widget>

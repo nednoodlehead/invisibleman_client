@@ -26,3 +26,21 @@ def create_db():
                        """
         )
         conn.commit()
+
+
+"""
+Here is the 'changed' table
+It is a table of devices that have had their location / name changed, so we can update external trackers accurately
+this is sort of an optional tracker? other organizations probably dont have this need, maybe make this configurable somewhere...
+
+weirdly enough I don't see a reason for a pk. we are querying only by month, never updating this...
+if a change happens twice (lpt -> lpt2 2021/01/01. lpt2 -> lpt3 2021/01/05), only the recent one is pulled?
+
+create table changed
+    old_name text,
+    new_name text,
+    old_location text,
+    new_location text,
+    edit_date date
+
+"""

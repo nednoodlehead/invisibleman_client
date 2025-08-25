@@ -12,6 +12,5 @@ def new_entry(conn, insert: InventoryObject):
 
 def new_extra(conn, obj: ExtraObject) -> None:
     cur = conn.cursor()
-    print(obj.uniqueid, type(obj.uniqueid))
     cur.execute("insert into extras values (%s, %s, %s, %s, %s, %s, %s);", (obj.item, obj.manufacturer, obj.count, obj.low_amount, obj.reserved, obj.notes, obj.uniqueid))
     conn.commit()

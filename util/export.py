@@ -15,6 +15,7 @@ from db.fetch import (
     fetch_obj_from_retired,
     fetch_obj_from_loc,
     fetch_retired_assets,
+    fetch_changed_assets
 )
 import datetime
 import dateutil.relativedelta
@@ -125,3 +126,15 @@ def create_backup(self):
     shutil.copyfile("main.db", end_file)
     self.display_message("Success!", f"Backup created successfully: {filename}")
     open_explorer_at_file(self, end_file)
+
+def export_changed(self, csv: bool, file: str, month, year):
+    # we are going to export the entire `changed` table
+    csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
+    data = fetch_changed_assets(self.connection, month, year)
+    special_columns = ["Old Name", "New Name", "Old Location", "New Location", "Date Changed"]
+    final_filename = f'changed_assets-{file}{csv_or_xlsx_str}'
+    if csv:
+        write_iter_into_csv(special_columns, data, file)
+    else:  # excel export :D
+        write_iter_into_excel(special_columns, data, file)
+    open_explorer_at_file(self, file)

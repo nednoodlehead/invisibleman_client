@@ -151,10 +151,23 @@ def fetch_by_serial(conn, finding: str) -> InventoryObject:
 
 def fetch_all_extras(conn):
     cur = conn.cursor()
-    cur.execute("SELECT * from extras order by count desc;");
+    cur.execute("SELECT * from extras order by item;");
     return [x for x in cur.fetchall()]
 
 def fetch_specific_extra(conn, uuid):
     cur = conn.cursor()
     cur.execute("select item, manufacturer, count, low_amount, reserved, notes from extras where uniqueid =%s;", (uuid,))
     return cur.fetchone() # [0] cause it returns a tuple with one item in it??
+
+def fetch_changed_assets(conn, month=None, year=None):
+    # MONTH SHOULD BE AN INT (1-12)
+    # year should be: '2025'-like int
+    # get only the target month and year. originally had the concept to delete the data after a given month / year, but why not keep this data. no reason to delete it... 
+    today = date.today()
+    if not month:
+        month = today.month
+    if not year:
+        year = today.year
+    cur = conn.cursor()
+    cur.execute("select * from changed where date_part('year', edit_date) = %s and date_part('month', edit_date) = %s;", (year, month))
+    return cur.fetchall()

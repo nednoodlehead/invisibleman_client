@@ -17,7 +17,7 @@ from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect, pyqtSignal
 from PyQt5.QtGui import QCursor, QPainter, QColor, QTextCharFormat
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from util.db_util import patch_dates
-from util.export import export_active, export_retired, export_loc, export_replacementdate
+from util.export import export_active, export_changed, export_retired, export_loc, export_replacementdate
 from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial, fetch_all_extras
 from db.insert import new_entry
 from db.update import increase_extra_by_one, update_full_obj, delete_from_uuid, retire_from_uuid, unretire_from_uuid, decrease_extra_by_one, increase_extra_by_one
@@ -92,13 +92,19 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "12 Months",
             "24 Months"
         ]
-        # self.setStyle(QStyleFactory.create("Fusion"))
+        # thanks AI
+        self.months = [
+            "January", "February", "March", "April",
+            "May", "June", "July", "August",
+            "September", "October", "November", "December"
+        ]        # self.setStyle(QStyleFactory.create("Fusion"))
         # there is some argument to use a QTableView instead of a QTableWidget, since the view better supports
         # M/V style programming, which would (in theory) significantly improve the performance of certain
         # operations, namely filtering. would require quite a lot of refactoring though. so maybe another time :)
         # https://stackoverflow.com/questions/6785481/how-to-implement-a-filter-option-in-qtablewidget
         # the concept is that QTableWidget has a built-in model, and a QTableView does not, so you can edit it
         # ui functions
+        self.filter_user_text.returnPressed.connect(self.handle_filter_request)
         if self.connection is not False: # this is when the connection is made successfully!
             self.force_json_sync(self.connection)
             self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -118,10 +124,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_clear_selections_button.clicked.connect(
             self.set_insert_data_to_default
         )
-        self.refresh_table_button.clicked.connect(
-            # this just refreshes the assets, taking into account the checkbox for retired
-            self.toggle_retired_assets
-        )
+        self.refresh_table_button.clicked.connect(self.handle_filter_request)
         self.main_table.setSortingEnabled(True) # YOU!! this causes the weird inconsistencies..
         # removed since i think it is a bit of over-engineering
         # self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
@@ -203,6 +206,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # true = retired, false = in use
         self.insert_status_bool.addItems(["Active", "Retired"])
         # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
+        # should we get the current date...? more effecticnt?
         self.insert_deployment_date_fmt.setDate(QDate.currentDate())
         self.insert_replacement_date_fmt.setDate(QDate.currentDate())
         self.insert_cost_spinbox.setMaximum(99999.99)
@@ -224,6 +228,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.reports_export_main_export_button.clicked.connect(
             self.interface_handle_export
         )
+        # default values for the "exported changed" (pulls from the `changed` table)
+        self.reports_export_export_changed_combo.addItems(self.months)
+        # this feels sloppy... i feel like we should just get the date once when init the program...
+        self.reports_export_export_changed_combo.setCurrentIndex(datetime.today().month -1) # am i stupid or is it not possible to view december??
+        self.report_export_export_changed_spinbox.setMaximum(3000) # this just in, unexpected behaviour will occur in the year 3001
+        self.report_export_export_changed_spinbox.setValue(datetime.today().year)
         # edit buttons
         self.set_table_size_and_headers(self.default_columns)
         self.main_table.setContextMenuPolicy(Qt.CustomContextMenu)  # error for no reason..?
@@ -235,7 +245,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.extra_table.customContextMenuRequested.connect(
             self.display_extra_table_context_menu
         )
-
+        # these are my wonderful hand-choosen sizes for the extra table columns :)
+        self.extra_table.setColumnWidth(0, 225)
+        self.extra_table.setColumnWidth(2, 50)
+        self.extra_table.setColumnWidth(3, 50)
+        self.extra_table.setColumnWidth(4, 50)
+        self.extra_table.setColumnWidth(5, 130)
+        self.extra_table.setColumnWidth(6, 300)
         # threaded analyitics spawning :)
         self.graphs_and_charts_top = ["Line", "Bar"]
         self.acceptable_all_charts = [
@@ -571,6 +587,13 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.reports_export_export_due_replacement_combo.currentText(),
                 self.reports_export_include_overdue_checkbox.isChecked()
             )  # retired assets by year
+        elif self.reports_export_export_changed_radio.isChecked():
+            month = self.reports_export_export_changed_combo.currentIndex() +1
+            if month == 13:
+                # december -> january rollover
+                month = 1
+            export_changed(self, csv_val, filename, month, self.report_export_export_changed_spinbox.value())
+            
         else:  # edge case where the user selects none of them
             self.display_message("Error!", "Please select one of the radio buttons!")
 
@@ -860,7 +883,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             update_full_obj(self.connection, obj)
         self.set_insert_data_to_default()
         if self.config["switch_view_on_insert"] is True:
-            print("SWAPPING")
             self.swap_to_window(0)
         print("HIT!!!")
         # intentional choice here to not update the graphs, seems too expensive to call each time, and to see if data was even changed
@@ -1067,10 +1089,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # so, is it stupid to insert two "null"-type of rows that are meant to be consumed by the iterator when making the buttons?
         # or is it smarter to manually assign the rows? im choosing adding the null operator lol, maybe the .insert is expensive?
         for row_num, row in enumerate(extra_data):
-            but = self.generate_extra_add_button(row[6])
-            self.extra_table.setCellWidget(row_num, 2, but)
-            but = self.generate_extra_minus_button(row[6])
-            self.extra_table.setCellWidget(row_num, 4, but)
+            but_plus = self.generate_extra_add_button(row[6])
+            but_minus = self.generate_extra_minus_button(row[6])
+            self.extra_table.setCellWidget(row_num, 2, but_minus)
+            self.extra_table.setCellWidget(row_num, 4, but_plus)
             
             for column_num, cell_data in enumerate(row):
                 if column_num == 0:
