@@ -18,6 +18,33 @@ authoriative_json = {
     "switch_view_on_insert": True
 }
 
+default_json = {
+    "checkboxes": {
+        "Asset Type": True,
+        "Manufacturer": True,
+        "Serial Number": True,
+        "Model": True,
+        "Cost": True,
+        "Assigned To": True,
+        "Name": True,
+        "Asset Location": True,
+        "Asset Category": True,
+        "Deployment Date": True,
+        "Replacement Date": True,
+        "Notes": True
+    },
+    "dark_mode": True,
+    "backup_path": "c:/",
+    "default_report_path": "C:/",
+    "auto_open_report_on_create": True,
+    "top_graph_type": "Line",
+    "top_graph_data": "Manufacturer",
+    "invisman_username": "none",
+    "ssh_path": "",
+    "invisman_ip": "192.168.1.1",
+    "switch_view_on_insert": True
+}
+
 
 def add_to_asset_list(conn, name: str, years: int):
     # ok, so now the "json" lives on the server inside of the "config" table, so we query that.
@@ -43,8 +70,13 @@ def read_from_config() -> dict:
     """
     "ham_menu_status" & "checkboxes"
     """
-    with open("./volatile/config.json", "r") as f:
-        raw = json.load(f)
+    try:
+        with open("./volatile/config.json", "r") as f:
+            raw = json.load(f)
+    except FileNotFoundError:
+        with open("./volatile.config.json", "w") as f:
+            f.write(json.dumps(default_json, indent=4))
+            return default_json
     for key, val in authoriative_json.items():
         if key not in raw.keys():
             print("malformed json, inserting extra key")

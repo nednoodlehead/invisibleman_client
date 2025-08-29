@@ -61,7 +61,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # because someone booting for the first time wont have the configurations configured..
         # we also have to do checks for where self.connection is used, so it doesn't goof everything if the person doesn't
         # have anything configured yet
-        self.connection = self.create_db_connection(self.config["invisman_username"], self.config["ssh_path"], self.config["invisman_ip"])
+        try:
+            self.connection = self.create_db_connection(self.config["invisman_username"], self.config["ssh_path"], self.config["invisman_ip"])
+        except ValueError as e:
+            print("Missing values, likely a config problem: ", e)
+            self.connection = None
+        
         self.worker_signal = pyqtSignal(str)
         # patch_dates(self.connection, self.fetch_categories_and_years()) # was a o
         self.active_notes_window = None
@@ -105,11 +110,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # the concept is that QTableWidget has a built-in model, and a QTableView does not, so you can edit it
         # ui functions
         self.filter_user_text.returnPressed.connect(self.handle_filter_request)
-        if self.connection is not False: # this is when the connection is made successfully!
+        if self.connection: # this is when the connection is made successfully!
             self.force_json_sync(self.connection)
             self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)
             self.populate_extra_table()
+            self.reports_export_location_combobox.addItems(self.refresh_asset_location(self.connection))
         self.ham_button_insert.clicked.connect(lambda: self.swap_to_window(1))
         self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
         self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
@@ -134,7 +140,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.filter_options_combobox.addItem("Global")
         self.filter_options_combobox.addItems(self.default_columns)
         self.reports_export_file_combobox.addItems(["Excel", "CSV"])
-        self.reports_export_location_combobox.addItems(self.refresh_asset_location(self.connection))
         self.reports_export_export_due_replacement_combo.addItems(self.when_can_assets_retire)
         self.insert_deployment_date_fmt.setDisplayFormat(
             "yyyy-MM-dd"
@@ -300,7 +305,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # okay, so if the connection isn't initialized, we can ignore this part
         # since the data doesn't matter, and the thread wont matter either
         # the user can use the "Test Connection"
-        if self.connection is not False:
+        if self.connection:
             self.graph_1.change_graph(
                 self.config["top_graph_data"], self.config["top_graph_type"]
             )
@@ -317,7 +322,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, a0):
         self.write_config()
-        if self.connection is not False:
+        if self.connection:
             # in the first-startup case where the user hasn't set the ip correctly
             self.connection.close() # close connection after we exit app..
         a0.accept()  # another random complaint from pyright
@@ -1056,7 +1061,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.update_insert_page_from_obj(obj)
         self.swap_to_window(1)
 
-    def create_db_connection(self, invisman_username, ssh_key_location, invisman_server_ip) -> bool | psycopg2.extensions.connection:
+    def create_db_connection(self, invisman_username, ssh_key_location, invisman_server_ip) -> None | psycopg2.extensions.connection:
         # okay, so we create our ssh tunnel, and our connection through it. we return the connection. I don't see why this won't live long...
         # maybe we can't do this in a function? maybe? idk.
         # ok secondary problem (that will be solved soon i hope) is credentials. i think the best way to do it is to
@@ -1068,8 +1073,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             server = SSHTunnelForwarder((invisman_server_ip, 22), ssh_pkey=ssh_key_location, ssh_username=invisman_username, ssh_private_key_password=ssh_pw, remote_bind_address=("127.0.0.1", 5432))
             server.start()
             return connect(dbname="invisman", user=invisman_username, password=invisman_pw, host="127.0.0.1", port=server.local_bind_port)
-        except (AttributeError, PermissionError, BaseSSHTunnelForwarderError): # when the settings are not valid..
-            return False
+        except (AttributeError, PermissionError, BaseSSHTunnelForwarderError) as e: # when the settings are not valid..
+            print("The error is:", e)
+            return None
         # ok so user and pw need to both be pulled, not just pw
         # these will live inside of windows credentials manager "invisman". has both username and password
             
