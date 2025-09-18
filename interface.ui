@@ -1351,8 +1351,8 @@
             <widget class="QFrame" name="reports_export_frame">
              <property name="geometry">
               <rect>
-               <x>110</x>
-               <y>30</y>
+               <x>40</x>
+               <y>20</y>
                <width>351</width>
                <height>631</height>
               </rect>
@@ -1367,43 +1367,25 @@
               <property name="geometry">
                <rect>
                 <x>120</x>
-                <y>30</y>
+                <y>20</y>
                 <width>91</width>
-                <height>21</height>
+                <height>31</height>
                </rect>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>16</pointsize>
+               </font>
               </property>
               <property name="text">
                <string>Export</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_2">
-              <property name="geometry">
-               <rect>
-                <x>30</x>
-                <y>70</y>
-                <width>81</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Export File Type</string>
-              </property>
-             </widget>
-             <widget class="QComboBox" name="reports_export_file_combobox">
-              <property name="geometry">
-               <rect>
-                <x>120</x>
-                <y>70</y>
-                <width>69</width>
-                <height>22</height>
-               </rect>
               </property>
              </widget>
              <widget class="QFrame" name="reports_line_1">
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>110</y>
+                <y>60</y>
                 <width>341</width>
                 <height>2</height>
                </rect>
@@ -1419,7 +1401,7 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>170</y>
+                <y>120</y>
                 <width>341</width>
                 <height>2</height>
                </rect>
@@ -1435,7 +1417,7 @@
               <property name="geometry">
                <rect>
                 <x>10</x>
-                <y>240</y>
+                <y>190</y>
                 <width>341</width>
                 <height>2</height>
                </rect>
@@ -1451,7 +1433,7 @@
               <property name="geometry">
                <rect>
                 <x>200</x>
-                <y>280</y>
+                <y>230</y>
                 <width>91</width>
                 <height>22</height>
                </rect>
@@ -1477,7 +1459,7 @@
               <property name="geometry">
                <rect>
                 <x>200</x>
-                <y>350</y>
+                <y>300</y>
                 <width>91</width>
                 <height>22</height>
                </rect>
@@ -1487,7 +1469,7 @@
               <property name="geometry">
                <rect>
                 <x>20</x>
-                <y>130</y>
+                <y>80</y>
                 <width>131</width>
                 <height>17</height>
                </rect>
@@ -1500,7 +1482,7 @@
               <property name="geometry">
                <rect>
                 <x>20</x>
-                <y>200</y>
+                <y>150</y>
                 <width>131</width>
                 <height>17</height>
                </rect>
@@ -1513,7 +1495,7 @@
               <property name="geometry">
                <rect>
                 <x>20</x>
-                <y>270</y>
+                <y>220</y>
                 <width>171</width>
                 <height>17</height>
                </rect>
@@ -1526,7 +1508,7 @@
               <property name="geometry">
                <rect>
                 <x>20</x>
-                <y>350</y>
+                <y>300</y>
                 <width>161</width>
                 <height>17</height>
                </rect>
@@ -1535,24 +1517,11 @@
                <string>Export active By Location</string>
               </property>
              </widget>
-             <widget class="QLabel" name="label_4">
-              <property name="geometry">
-               <rect>
-                <x>40</x>
-                <y>470</y>
-                <width>61</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Export Path:</string>
-              </property>
-             </widget>
              <widget class="QFrame" name="frame_8">
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>400</y>
+                <y>350</y>
                 <width>341</width>
                 <height>2</height>
                </rect>
@@ -1564,73 +1533,11 @@
                <enum>QFrame::Raised</enum>
               </property>
              </widget>
-             <widget class="QLineEdit" name="export_file_path_choice">
-              <property name="geometry">
-               <rect>
-                <x>100</x>
-                <y>470</y>
-                <width>161</width>
-                <height>20</height>
-               </rect>
-              </property>
-             </widget>
-             <widget class="QPushButton" name="export_file_dialog_button">
-              <property name="geometry">
-               <rect>
-                <x>260</x>
-                <y>470</y>
-                <width>31</width>
-                <height>23</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>..</string>
-              </property>
-             </widget>
-             <widget class="QPushButton" name="reports_export_main_export_button">
-              <property name="geometry">
-               <rect>
-                <x>40</x>
-                <y>492</y>
-                <width>251</width>
-                <height>31</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Export!</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="reports_export_status_label">
-              <property name="geometry">
-               <rect>
-                <x>10</x>
-                <y>540</y>
-                <width>47</width>
-                <height>13</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Status:</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="reports_export_status_content">
-              <property name="geometry">
-               <rect>
-                <x>50</x>
-                <y>530</y>
-                <width>241</width>
-                <height>91</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
              <widget class="QCheckBox" name="reports_export_include_overdue_checkbox">
               <property name="geometry">
                <rect>
                 <x>200</x>
-                <y>250</y>
+                <y>200</y>
                 <width>141</width>
                 <height>21</height>
                </rect>
@@ -1643,7 +1550,7 @@
               <property name="geometry">
                <rect>
                 <x>10</x>
-                <y>460</y>
+                <y>410</y>
                 <width>341</width>
                 <height>2</height>
                </rect>
@@ -1659,7 +1566,7 @@
               <property name="geometry">
                <rect>
                 <x>20</x>
-                <y>420</y>
+                <y>370</y>
                 <width>161</width>
                 <height>21</height>
                </rect>
@@ -1672,7 +1579,7 @@
               <property name="geometry">
                <rect>
                 <x>190</x>
-                <y>420</y>
+                <y>370</y>
                 <width>69</width>
                 <height>22</height>
                </rect>
@@ -1682,12 +1589,290 @@
               <property name="geometry">
                <rect>
                 <x>270</x>
-                <y>420</y>
+                <y>370</y>
                 <width>61</width>
                 <height>22</height>
                </rect>
               </property>
              </widget>
+            </widget>
+            <widget class="QFrame" name="reports_utilities_frame">
+             <property name="geometry">
+              <rect>
+               <x>690</x>
+               <y>20</y>
+               <width>421</width>
+               <height>631</height>
+              </rect>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <widget class="QFrame" name="frame_10">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>110</y>
+                <width>450</width>
+                <height>2</height>
+               </rect>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_14">
+              <property name="geometry">
+               <rect>
+                <x>130</x>
+                <y>20</y>
+                <width>81</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>16</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Utilities</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_15">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>80</y>
+                <width>91</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Intune Comparison</string>
+              </property>
+             </widget>
+             <widget class="QFrame" name="frame_11">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>50</y>
+                <width>450</width>
+                <height>2</height>
+               </rect>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="reports_utilities_compare_intune_file_dialog">
+              <property name="geometry">
+               <rect>
+                <x>310</x>
+                <y>80</y>
+                <width>31</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>..</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="reports_utilities_intune_file_path">
+              <property name="geometry">
+               <rect>
+                <x>150</x>
+                <y>80</y>
+                <width>161</width>
+                <height>20</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_16">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>130</y>
+                <width>121</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Bitdefender Comparison</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="reports_utilities_compare_bitdefender_file_dialog_2">
+              <property name="geometry">
+               <rect>
+                <x>310</x>
+                <y>130</y>
+                <width>31</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>..</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="reports_utilities_bitdefender_comparison_path">
+              <property name="geometry">
+               <rect>
+                <x>150</x>
+                <y>130</y>
+                <width>161</width>
+                <height>20</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QFrame" name="frame_13">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>160</y>
+                <width>450</width>
+                <height>2</height>
+               </rect>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="reports_utilities_intune_run_button">
+              <property name="geometry">
+               <rect>
+                <x>360</x>
+                <y>80</y>
+                <width>41</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Run</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="reports_utilities_bitdef_run_button">
+              <property name="geometry">
+               <rect>
+                <x>360</x>
+                <y>130</y>
+                <width>41</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Run</string>
+              </property>
+             </widget>
+            </widget>
+            <widget class="QPushButton" name="export_file_dialog_button">
+             <property name="geometry">
+              <rect>
+               <x>640</x>
+               <y>88</y>
+               <width>31</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>..</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_4">
+             <property name="geometry">
+              <rect>
+               <x>420</x>
+               <y>88</y>
+               <width>61</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Export Path:</string>
+             </property>
+            </widget>
+            <widget class="QLineEdit" name="export_file_path_choice">
+             <property name="geometry">
+              <rect>
+               <x>480</x>
+               <y>88</y>
+               <width>161</width>
+               <height>20</height>
+              </rect>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="reports_export_main_export_button">
+             <property name="geometry">
+              <rect>
+               <x>420</x>
+               <y>110</y>
+               <width>251</width>
+               <height>31</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Export!</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="reports_export_status_label">
+             <property name="geometry">
+              <rect>
+               <x>420</x>
+               <y>230</y>
+               <width>47</width>
+               <height>13</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Status:</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="reports_export_status_content">
+             <property name="geometry">
+              <rect>
+               <x>420</x>
+               <y>250</y>
+               <width>241</width>
+               <height>191</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+            <widget class="QComboBox" name="reports_export_file_combobox">
+             <property name="geometry">
+              <rect>
+               <x>540</x>
+               <y>160</y>
+               <width>69</width>
+               <height>22</height>
+              </rect>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_2">
+             <property name="geometry">
+              <rect>
+               <x>450</x>
+               <y>160</y>
+               <width>81</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Export File Type</string>
+             </property>
             </widget>
            </widget>
            <widget class="QWidget" name="stacked_settings">
@@ -1840,71 +2025,6 @@
               </rect>
              </property>
             </widget>
-            <widget class="QLabel" name="settings_invisman_username_label">
-             <property name="geometry">
-              <rect>
-               <x>596</x>
-               <y>120</y>
-               <width>111</width>
-               <height>20</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Invisman Username</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-            <widget class="QLineEdit" name="settings_invisman_username_text">
-             <property name="geometry">
-              <rect>
-               <x>720</x>
-               <y>120</y>
-               <width>113</width>
-               <height>20</height>
-              </rect>
-             </property>
-            </widget>
-            <widget class="QLabel" name="settings_ssh_file_label">
-             <property name="geometry">
-              <rect>
-               <x>640</x>
-               <y>160</y>
-               <width>61</width>
-               <height>20</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>SSH key file</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-            <widget class="QLineEdit" name="settings_ssh_file_text">
-             <property name="geometry">
-              <rect>
-               <x>720</x>
-               <y>160</y>
-               <width>221</width>
-               <height>20</height>
-              </rect>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="setting_ssh_file_dialog_button">
-             <property name="geometry">
-              <rect>
-               <x>940</x>
-               <y>160</y>
-               <width>21</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-            </widget>
             <widget class="QCheckBox" name="settings_switch_to_main_on_insert_checkbox">
              <property name="geometry">
               <rect>
@@ -1929,6 +2049,134 @@
              </property>
              <property name="text">
               <string>Auto-switch to main on insert</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_5">
+             <property name="geometry">
+              <rect>
+               <x>610</x>
+               <y>120</y>
+               <width>371</width>
+               <height>41</height>
+              </rect>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>18</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>About Credentials / Connecting</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_6">
+             <property name="geometry">
+              <rect>
+               <x>610</x>
+               <y>150</y>
+               <width>401</width>
+               <height>31</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>This is an application made for windows, this will not work on linux</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_7">
+             <property name="geometry">
+              <rect>
+               <x>610</x>
+               <y>180</y>
+               <width>311</width>
+               <height>41</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>You must set 2 credentials in your window's credential manager. This is done from the &quot;Windows Credential&quot; option, and &quot;Add a generic credential&quot; </string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::RichText</enum>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_8">
+             <property name="geometry">
+              <rect>
+               <x>610</x>
+               <y>240</y>
+               <width>211</width>
+               <height>31</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Internet or network address: . . . invisman</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_9">
+             <property name="geometry">
+              <rect>
+               <x>610</x>
+               <y>280</y>
+               <width>291</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Username: . . . . . . . . . . . . . . . The user name for the db</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_10">
+             <property name="geometry">
+              <rect>
+               <x>610</x>
+               <y>310</y>
+               <width>281</width>
+               <height>41</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Password: . . . . . . . . . . . . .  . . Password for the db</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_11">
+             <property name="geometry">
+              <rect>
+               <x>610</x>
+               <y>390</y>
+               <width>251</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Internet or network Address: . . . invisman_sshkey</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_12">
+             <property name="geometry">
+              <rect>
+               <x>610</x>
+               <y>420</y>
+               <width>321</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Username: . . . . . . . . . . . . . . . &lt;Path to private sshkey&gt;</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_13">
+             <property name="geometry">
+              <rect>
+               <x>610</x>
+               <y>450</y>
+               <width>321</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Password: . . . . . . . . . . . . . . . Passphrase for the private key</string>
              </property>
             </widget>
            </widget>
