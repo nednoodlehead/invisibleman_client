@@ -24,7 +24,7 @@ from db.update import increase_extra_by_one, update_full_obj, delete_from_uuid, 
 from gui.notes_window import NotesWindow
 from gui.export_graph_window import ExportGraph
 from gui.settings import dark_light_mode_switch, set_dark
-from util.export import create_backup
+from util.export import create_backup, compare_intune_and_invisman, compare_bitdefender_and_invisman
 from volatile.write_to_volatile import write_to_config, read_from_config
 from data.visualization import DataCanvas
 from types import MethodType
@@ -46,7 +46,7 @@ from psycopg2 import connect
 from sshtunnel import SSHTunnelForwarder, BaseSSHTunnelForwarderError
 from gui.thread import PostgresListen
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from keyring import get_password
+from keyring import get_credential
 from gui.overrides import InvisManItem
 import re
 # DEFAULT_DATE = datetime.strptime("2000-01-01", "%Y-%m-%d")
@@ -62,7 +62,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # we also have to do checks for where self.connection is used, so it doesn't goof everything if the person doesn't
         # have anything configured yet
         try:
-            self.connection = self.create_db_connection(self.config["invisman_username"], self.config["ssh_path"], self.config["invisman_ip"])
+            self.connection = self.create_db_connection(self.config["invisman_ip"])
         except ValueError as e:
             print("Missing values, likely a config problem: ", e)
             self.connection = None
@@ -146,9 +146,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         )  # thanks qt5 for randomly changing the default display format... commi #108
         self.export_file_dialog_button.clicked.connect(self.open_report_file_dialog)
         self.settings_file_dialog_button.clicked.connect(self.open_settings_file_dialog)
-        self.setting_ssh_file_dialog_button.clicked.connect(self.open_settings_ssh_file_dialog)
         self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
         self.insert_conditional_retirement_date_fmt.setDisplayFormat("yyyy-MM-dd")
+        self.reports_utilities_intune_run_button.clicked.connect(self.compare_intune_and_invisman)
+        self.reports_utilities_compare_intune_file_dialog.clicked.connect(self.intune_filedialog)
         # when date is changed, update the replacement date accordingly
         self.insert_deployment_date_fmt.dateChanged.connect(self.update_replacement_date)
         self.analytics_export_top_button.clicked.connect(
@@ -170,12 +171,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         else:
             self.setStyleSheet(
                 "QFrame#reports_export_frame{border: 1px solid black;\nborder-radius: 15px;}"
+                "QFrame#reports_utilities_frame{border: 1px solid black;\nborder-radius: 15px;}"
+                
             )
         if self.config["auto_open_report_on_create"] is True:
             self.settings_report_auto_open_checkbox.setChecked(True)
         self.settings_backup_dir_text.setText(self.config["backup_path"])
-        self.settings_invisman_username_text.setText(self.config["invisman_username"])
-        self.settings_ssh_file_text.setText(self.config["ssh_path"])
         self.settings_ip_text.setText(self.config["invisman_ip"])
         # opens with height == 250, so no need to `else` set that..
         self.insert_widgets = [
@@ -338,6 +339,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.fetch_all_asset_types = MethodType(fetch_all_asset_types, self)
         self.force_json_sync = MethodType(force_json_sync, self)
         self.fetch_categories_and_years = MethodType(fetch_categories_and_years, self)
+        self.compare_intune_and_invisman = MethodType(compare_intune_and_invisman, self)
 
     def display_message(self, title: str, information: str):
         msg = QMessageBox()
@@ -693,8 +695,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         "auto_open_report_on_create": self.settings_report_auto_open_checkbox.isChecked(),
         "top_graph_type": self.analytics_field_combobox_top.currentText(),
         "top_graph_data": self.analytics_field_combobox_bottom.currentText(),
-        "invisman_username": self.settings_invisman_username_text.text(),
-        "ssh_path": self.settings_ssh_file_text.text(),
         "invisman_ip": self.settings_ip_text.text(),
         "switch_view_on_insert": self.settings_switch_to_main_on_insert_checkbox.isChecked()
             
@@ -1061,18 +1061,19 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.update_insert_page_from_obj(obj)
         self.swap_to_window(1)
 
-    def create_db_connection(self, invisman_username, ssh_key_location, invisman_server_ip) -> None | psycopg2.extensions.connection:
+    def create_db_connection(self, invisman_server_ip) -> None | psycopg2.extensions.connection:
         # okay, so we create our ssh tunnel, and our connection through it. we return the connection. I don't see why this won't live long...
         # maybe we can't do this in a function? maybe? idk.
         # ok secondary problem (that will be solved soon i hope) is credentials. i think the best way to do it is to
         # force users to set some credentials in windows cred manager (ssh password. for now)
         # and we can pull them out with keyring
         try:
-            invisman_pw = get_password("invisman", invisman_username)
-            ssh_pw = get_password("invisman_sshkey", ssh_key_location)
-            server = SSHTunnelForwarder((invisman_server_ip, 22), ssh_pkey=ssh_key_location, ssh_username=invisman_username, ssh_private_key_password=ssh_pw, remote_bind_address=("127.0.0.1", 5432))
+            # get_credential retreives both the username and pw
+            invisman_cred = get_credential("invisman", None)
+            ssh_cred = get_credential("invisman_sshkey", None)
+            server = SSHTunnelForwarder((invisman_server_ip, 22), ssh_pkey=ssh_cred.username, ssh_username=invisman_cred.username, ssh_private_key_password=ssh_cred.password, remote_bind_address=("127.0.0.1", 5432))
             server.start()
-            return connect(dbname="invisman", user=invisman_username, password=invisman_pw, host="127.0.0.1", port=server.local_bind_port)
+            return connect(dbname="invisman", user=invisman_cred.username, password=invisman_cred.password, host="127.0.0.1", port=server.local_bind_port)
         except (AttributeError, PermissionError, BaseSSHTunnelForwarderError) as e: # when the settings are not valid..
             print("The error is:", e)
             return None
@@ -1122,3 +1123,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     self.extra_table.setItem(row_num, 7, item)
         self.extra_table.setSortingEnabled(True)
 
+    def intune_filedialog(self):
+        filedia = QFileDialog(self)
+        filedia.setFileMode(QFileDialog.FileMode.AnyFile)
+        path = filedia.getOpenFileUrl(self)
+        if path is not None and path != "":
+            print(path[0].fileName())
+            self.reports_utilities_intune_file_path.setText(path[0].toLocalFile())
