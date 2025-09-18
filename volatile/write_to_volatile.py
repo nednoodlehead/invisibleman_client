@@ -12,8 +12,6 @@ authoriative_json = {
     "auto_open_report_on_create": True,
     "top_graph_type": "Line",
     "top_graph_data": "Manufacturer",
-    "invisman_username": "none",
-    "ssh_path": "C:/where",
     "invisman_ip": "192.168.1.1",
     "switch_view_on_insert": True
 }
@@ -39,8 +37,6 @@ default_json = {
     "auto_open_report_on_create": True,
     "top_graph_type": "Line",
     "top_graph_data": "Manufacturer",
-    "invisman_username": "none",
-    "ssh_path": "",
     "invisman_ip": "192.168.1.1",
     "switch_view_on_insert": True
 }
