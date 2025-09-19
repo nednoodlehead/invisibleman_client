@@ -24,7 +24,7 @@ from db.update import increase_extra_by_one, update_full_obj, delete_from_uuid, 
 from gui.notes_window import NotesWindow
 from gui.export_graph_window import ExportGraph
 from gui.settings import dark_light_mode_switch, set_dark
-from util.export import create_backup, compare_intune_and_invisman, compare_bitdefender_and_invisman
+from util.export import create_backup, compare_intune_and_invisman, compare_ip_to_site_and_invisman
 from volatile.write_to_volatile import write_to_config, read_from_config
 from data.visualization import DataCanvas
 from types import MethodType

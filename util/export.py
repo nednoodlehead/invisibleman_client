@@ -290,5 +290,5 @@ def write_comparison_to_excel(self, export_dir, invis_only, intune_only, discrep
     open_explorer_at_file(self, full_file_path)
     
 
-def compare_bitdefender_and_invisman(self):
+def compare_ip_to_site_and_invisman(self):
     pass
