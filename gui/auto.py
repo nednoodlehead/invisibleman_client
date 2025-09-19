@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'interfacehfovAi.ui'
+## Form generated from reading UI file 'interfacezeeNWv.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -513,15 +513,15 @@ class Ui_MainWindow(object):
         self.reports_utilities_intune_file_path = QLineEdit(self.reports_utilities_frame)
         self.reports_utilities_intune_file_path.setObjectName(u"reports_utilities_intune_file_path")
         self.reports_utilities_intune_file_path.setGeometry(QRect(150, 80, 161, 20))
-        self.label_16 = QLabel(self.reports_utilities_frame)
-        self.label_16.setObjectName(u"label_16")
-        self.label_16.setGeometry(QRect(10, 130, 121, 16))
-        self.reports_utilities_compare_bitdefender_file_dialog_2 = QPushButton(self.reports_utilities_frame)
-        self.reports_utilities_compare_bitdefender_file_dialog_2.setObjectName(u"reports_utilities_compare_bitdefender_file_dialog_2")
-        self.reports_utilities_compare_bitdefender_file_dialog_2.setGeometry(QRect(310, 130, 31, 23))
-        self.reports_utilities_bitdefender_comparison_path = QLineEdit(self.reports_utilities_frame)
-        self.reports_utilities_bitdefender_comparison_path.setObjectName(u"reports_utilities_bitdefender_comparison_path")
-        self.reports_utilities_bitdefender_comparison_path.setGeometry(QRect(150, 130, 161, 20))
+        self.reports_utilities_ip_site_comparison = QLabel(self.reports_utilities_frame)
+        self.reports_utilities_ip_site_comparison.setObjectName(u"reports_utilities_ip_site_comparison")
+        self.reports_utilities_ip_site_comparison.setGeometry(QRect(10, 130, 121, 16))
+        self.reports_utilities_compare_ip_site_dialog = QPushButton(self.reports_utilities_frame)
+        self.reports_utilities_compare_ip_site_dialog.setObjectName(u"reports_utilities_compare_ip_site_dialog")
+        self.reports_utilities_compare_ip_site_dialog.setGeometry(QRect(310, 130, 31, 23))
+        self.reports_utilities_ip_site__comparison_path = QLineEdit(self.reports_utilities_frame)
+        self.reports_utilities_ip_site__comparison_path.setObjectName(u"reports_utilities_ip_site__comparison_path")
+        self.reports_utilities_ip_site__comparison_path.setGeometry(QRect(150, 130, 161, 20))
         self.frame_13 = QFrame(self.reports_utilities_frame)
         self.frame_13.setObjectName(u"frame_13")
         self.frame_13.setGeometry(QRect(0, 160, 450, 2))
@@ -749,8 +749,8 @@ class Ui_MainWindow(object):
         self.label_14.setText(QCoreApplication.translate("MainWindow", u"Utilities", None))
         self.label_15.setText(QCoreApplication.translate("MainWindow", u"Intune Comparison", None))
         self.reports_utilities_compare_intune_file_dialog.setText(QCoreApplication.translate("MainWindow", u"..", None))
-        self.label_16.setText(QCoreApplication.translate("MainWindow", u"Bitdefender Comparison", None))
-        self.reports_utilities_compare_bitdefender_file_dialog_2.setText(QCoreApplication.translate("MainWindow", u"..", None))
+        self.reports_utilities_ip_site_comparison.setText(QCoreApplication.translate("MainWindow", u"IP/Site Comparison", None))
+        self.reports_utilities_compare_ip_site_dialog.setText(QCoreApplication.translate("MainWindow", u"..", None))
         self.reports_utilities_intune_run_button.setText(QCoreApplication.translate("MainWindow", u"Run", None))
         self.reports_utilities_bitdef_run_button.setText(QCoreApplication.translate("MainWindow", u"Run", None))
         self.export_file_dialog_button.setText(QCoreApplication.translate("MainWindow", u"..", None))
