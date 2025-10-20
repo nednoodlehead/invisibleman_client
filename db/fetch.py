@@ -15,10 +15,23 @@ def fetch_all(conn) -> list[InventoryObject]:
 def fetch_all_enabled(conn):  # [InventoryObject] without the enabled field
     return_list = []
     cur = conn.cursor()
-    data = cur.execute(
+    cur.execute(
         """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
         deploymentdate, replacementdate, notes, uniqueid FROM main WHERE status = false;
+        """
+    )
+    for item in cur.fetchall():
+        return_list.append(item)
+    return return_list
+
+def fetch_active_assets(conn):
+    return_list = []
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
+        deploymentdate, replacementdate, notes, CASE WHEN is_local = true then 'Local' WHEN is_local = false THEN 'Clouded' END FROM main WHERE status = false;
         """
     )
     for item in cur.fetchall():
@@ -34,7 +47,7 @@ def fetch_all_enabled_for_table(conn) -> list[TableObject]:
     data = cur.execute(
         """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
-        deploymentdate, replacementdate, retirementdate, notes, status, uniqueid FROM main WHERE status = false order by deploymentdate desc NULLS last;"""
+        deploymentdate, replacementdate, retirementdate, notes, CASE WHEN is_local = true then 'Local' WHEN is_local = false THEN 'Clouded' END, status,  uniqueid FROM main WHERE status = false order by deploymentdate desc NULLS last;"""
     )
     data = cur.fetchall()
     for item in data:
@@ -48,7 +61,8 @@ def fetch_all_for_table(conn) -> list[TableObject]:
     cur.execute(
         """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
-        deploymentdate, replacementdate, retirementdate, notes, status, uniqueid FROM main order by deploymentdate desc nulls last;
+        deploymentdate, replacementdate, retirementdate, notes, CASE WHEN is_local = true then 'Local' WHEN is_local = false THEN 'Clouded' END,
+        status, uniqueid FROM main order by deploymentdate desc nulls last;
         """
     )
     for item in cur.fetchall():
@@ -65,7 +79,8 @@ def fetch_notes_from_uuid(conn, uuid: str) -> str:
 
 def fetch_from_uuid_to_update(conn, uuid: str) -> InventoryObject:
     cur = conn.cursor()
-    cur.execute("SELECT * FROM main WHERE uniqueid = %s;", [uuid])
+    cur.execute("""SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
+                 deploymentdate, replacementdate, retirementdate, notes, is_local, status, uniqueid FROM main WHERE uniqueid = %s;""", [uuid])
     processed = cur.fetchone()
     obj = InventoryObject(*processed)
     return obj
@@ -79,7 +94,7 @@ def fetch_obj_from_retired(conn):
         """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
         assetlocation, assetcategory, deploymentdate, replacementdate,
-        notes, uniqueid, retirementdate FROM main
+        notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END, retirementdate FROM main
         WHERE status = true;
         """,
     )
@@ -95,7 +110,7 @@ def fetch_obj_from_loc(conn, location):
         """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
         assetlocation, assetcategory, deploymentdate, replacementdate,
-        notes, uniqueid FROM main
+        notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END FROM main
         WHERE status = false AND assetlocation = %s;
         """,
         (location,),
@@ -112,7 +127,7 @@ def fetch_retired_assets(conn, year: str, include_overdue: bool):
         cur.execute(
             """
             SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
-            assetlocation, assetcategory, deploymentdate, replacementdate, notes, uniqueid
+            assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END
             FROM main
             WHERE replacementdate <= %s AND status = false;
             """, (year,)
@@ -122,7 +137,7 @@ def fetch_retired_assets(conn, year: str, include_overdue: bool):
         cur.execute(
             """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
-        assetlocation, assetcategory, deploymentdate, replacementdate, notes, uniqueid
+        assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END
         FROM main where replacementdate between %s and %s and status = false;
             """, (date.today(), year)
         )
@@ -169,5 +184,17 @@ def fetch_changed_assets(conn, month=None, year=None):
     if not year:
         year = today.year
     cur = conn.cursor()
-    cur.execute("select * from changed where date_part('year', edit_date) = %s and date_part('month', edit_date) = %s;", (year, month))
+    # idk why this requires a left join, makes no sense
+    # like all instances in the `left` should be represented in the middle
+    cur.execute("""select old_name, new_name, old_location, new_location, edit_date, (CASE WHEN m.retirementdate is null then 'Active' else 'Retired' END) as is_retired
+                 from changed
+                 left join main as m on new_name = m.name
+                 where date_part('year', edit_date) = %s and date_part('month', edit_date) = %s;""", (year, month))
     return cur.fetchall()
+
+def fetch_from_date_range(conn, date_start, date_end):
+    cur = conn.cursor()
+    cur.execute("""select assettype, manufacturer, serial, model, cost, assignedto, name,
+        assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END
+        FROM main where status = false AND replacementdate between %s AND %s""", (date_start, date_end))
+    return [x for x in cur.fetchall()]

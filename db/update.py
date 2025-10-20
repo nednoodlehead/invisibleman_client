@@ -31,6 +31,7 @@ def update_full_obj(conn, obj: InventoryObject):
     obj.replacementdate = None if obj.replacementdate == date.fromisoformat("2000-01-01") else obj.replacementdate
     obj.retirementdate = None if obj.retirementdate == date.fromisoformat("2000-01-01") else obj.retirementdate
     obj.notes = None if obj.notes == "" else obj.notes
+    print("ID IS: ", obj)
     cur.execute(
         """
                    UPDATE main 
@@ -48,10 +49,26 @@ def update_full_obj(conn, obj: InventoryObject):
                    replacementdate = %s,
                    retirementdate = %s,
                    notes = %s,
+                   is_local = %s,
                    status = %s
                    WHERE uniqueid = %s;
                     """,
-        (*obj,),
+        (obj.assettype,
+         obj.manufacturer,
+         obj.serial,
+         obj.model,
+         obj.cost,
+         obj.assignedto,
+         obj.name,
+         obj.assetlocation,
+         obj.assetcategory,
+         obj.deploymentdate,
+         obj.replacementdate,
+         obj.retirementdate,
+         obj.notes,
+         obj.is_local,
+         obj.status,
+         obj.uniqueid) # to hell with unpacking 
     )
     conn.commit()
 

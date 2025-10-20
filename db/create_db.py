@@ -3,6 +3,8 @@ import sqlite3
 
 # this is not used anymore, we will leave this here though, since it shows our table
 def create_db():
+    # honestly there is probably some merit in messing with the nullif keywrods to store null better (and handle it better in invisman)
+    # is_local is for computers that are not registered in intune. primarily adding so we can view the intune report more accurately
     with sqlite3.connect("main.db") as conn:  # creates if not created already
         conn.execute(
             """
@@ -21,6 +23,7 @@ def create_db():
                          retirementdate date,
                          notes mediumtext,
                          status bool,
+                         is_local bool,
                          uniqueid text PRIMARY KEY
                        )
                        """
