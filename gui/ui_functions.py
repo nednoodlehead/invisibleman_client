@@ -17,8 +17,8 @@ from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect, pyqtSignal
 from PyQt5.QtGui import QCursor, QPainter, QColor, QTextCharFormat
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from util.db_util import patch_dates
-from util.export import export_active, export_changed, export_retired, export_loc, export_replacementdate
-from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial, fetch_all_extras
+from util.export import export_active, export_changed, export_retired, export_loc, export_replacementdate, export_date_range
+from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial, fetch_all_extras, fetch_from_date_range
 from db.insert import new_entry
 from db.update import increase_extra_by_one, update_full_obj, delete_from_uuid, retire_from_uuid, unretire_from_uuid, decrease_extra_by_one, increase_extra_by_one
 from gui.notes_window import NotesWindow
@@ -89,6 +89,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Replacement Date",
             # retirement date would go here...
             "Notes",
+            "Clouded or Local"
         ]
         self.when_can_assets_retire = [
             "3 Months",
@@ -144,6 +145,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_deployment_date_fmt.setDisplayFormat(
             "yyyy-MM-dd"
         )  # thanks qt5 for randomly changing the default display format... commi #108
+        self.reports_export_by_date_from.setDate(QDate.currentDate())
+        self.reports_export_by_date_until.setDate(QDate.currentDate())
         self.export_file_dialog_button.clicked.connect(self.open_report_file_dialog)
         self.settings_file_dialog_button.clicked.connect(self.open_settings_file_dialog)
         self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
@@ -192,6 +195,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.checkbox_deploymentdate,
             self.checkbox_replacementdate,
             self.checkbox_notes,
+            self.checkbox_is_local
         ]
         # enabled by default, we will set the width to 0 :)
         self.insert_conditional_status_frame.setFixedWidth(0)
@@ -298,6 +302,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.calendarWidget.clicked[QDate].connect(self.on_calendar_click)
         # configure the serial input to update the button next to it
         self.insert_serial_text.textChanged.connect(self.serial_input_typed)
+        self.insert_model_text.textChanged.connect(self.model_input_typed)
         # set the button as disabled because it does not match a serial number
         # see self.serial_input_typed for more
         self.insert_serial_is_unique_button.setEnabled(False)
@@ -354,7 +359,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         index = self.main_table.indexAt(position)
         row = index.row()
         # item will be none if the retirment date row is not shown
-        retirement_option = self.main_table.item(row, 13)
+        # NEW items need to also update this number below here so the retire / unretire works as expected
+        retirement_option = self.main_table.item(row, 14)
         menu.addAction(
             "Update",
             lambda: self.try_update_row(
@@ -364,6 +370,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         our_uuid = self.main_table.item(row, 12).text()
         if retirement_option:
             if retirement_option.text() != "":
+                print(f'the option: {type(retirement_option.text()), retirement_option.text()}')
                 menu.addAction("Unretire", lambda: self.try_unretire_row(our_uuid))
             else:
                 # option when retired assets are visible, but we click on a non-retired asset
@@ -570,19 +577,20 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             True if self.reports_export_file_combobox.currentText() == "CSV" else False
         )
         # ensure there is a / at the end :)
-        user_file = self.export_file_path_choice.text()
-        user_file = user_file if user_file.endswith("/") is False else f"{user_file}/"
-        filename = f'{user_file}/{str(datetime.now()).replace(":", "-")[:19]}'  # should always end in a /, need to validate elsewhere
+        select_directory = self.export_file_path_choice.text()
+        select_directory = select_directory if select_directory.endswith("/") is True else f"{select_directory}/"
+        print(f"DIR TO EXPORT: {select_directory.endswith("/")}(SHOULD HAVE A / ON THE END): {select_directory}")
+        time_stamp = str(datetime.now()).replace(":", "-")[:19]  # should always end in a /, need to validate elsewhere
         if self.reports_export_export_active_radio.isChecked():
-            export_active(self, csv_val, filename)
+            export_active(self, csv_val, select_directory, time_stamp)
         elif self.reports_export_export_retired_radio.isChecked():
-            export_retired(self, csv_val, filename)
+            export_retired(self, csv_val, select_directory, time_stamp)
         elif self.reports_export_export_location_radio.isChecked():
             # cant be none...
             export_loc(
                 self,
                 csv_val,
-                filename,
+                select_directory, time_stamp,
                 self.reports_export_location_combobox.currentText(),
             )
         elif self.reports_export_export_due_replacement_radio.isChecked():
@@ -590,7 +598,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             export_replacementdate(
                 self,
                 csv_val,
-                filename,
+                select_directory, time_stamp,
                 self.reports_export_export_due_replacement_combo.currentText(),
                 self.reports_export_include_overdue_checkbox.isChecked()
             )  # retired assets by year
@@ -599,15 +607,26 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             if month == 13:
                 # december -> january rollover
                 month = 1
-            export_changed(self, csv_val, filename, month, self.report_export_export_changed_spinbox.value())
+            export_changed(self, csv_val, select_directory, time_stamp, month, self.report_export_export_changed_spinbox.value())
+        elif self.reports_export_export_date_radio.isChecked():
+            from_date = str(self.reports_export_by_date_from.date().toPyDate())
+            until_date = str(self.reports_export_by_date_until.date().toPyDate())
+            export_date_range(self, csv_val, select_directory, time_stamp, from_date, until_date)
             
         else:  # edge case where the user selects none of them
             self.display_message("Error!", "Please select one of the radio buttons!")
 
-    def send_update_data_to_insert(
-        self, index
-    ):  # prepare everything for update_insert_page_from_obj
-        uuid = self.main_table.item(index, 12).text()
+    def send_update_data_to_insert(self, index):
+        # prepare everything for update_insert_page_from_obj
+        # should be updated each time...
+        for x in range(15):
+            p = self.main_table.item(index, x)
+            if p:
+                print(index, p.text())
+            else:
+                print(index, "NONE" )
+        uuid = self.main_table.item(index, 13).text()
+        print(uuid)
         obj = fetch_from_uuid_to_update(self.connection, uuid)
         self.swap_to_window(1)
         self.update_insert_page_from_obj(obj)
@@ -652,6 +671,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.insert_status_bool.setCurrentIndex(0)
         self.insert_active_uuid = inventory_obj.uniqueid
         # disable the fields that 'we dont want to edit'
+        print(inventory_obj.is_local)
+        if inventory_obj.is_local:
+            self.insert_is_local_checkbox.setChecked(True)
 
     def toggle_burger(self):  # toggle burger menu. TODO give it the icon
         if self.ham_menu_frame.height() == 250:
@@ -686,6 +708,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Deployment Date": self.checkbox_deploymentdate.isChecked(),
             "Replacement Date": self.checkbox_replacementdate.isChecked(),
             "Notes": self.checkbox_notes.isChecked(),
+            "Clouded or Local": self.checkbox_is_local.isChecked()
         }
         new_config = {
         "checkboxes": to_write,
@@ -714,14 +737,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if retirement_bool:
             # this is sort of sloppy. idk
             self.main_table.setColumnCount(
-                14
+                15
             )  # set the column count to the size of the first data piece
             new_headers = self.default_columns.copy()
             new_headers.append("Retirement Date")
             self.main_table.setHorizontalHeaderLabels(new_headers)
         else:
             self.main_table.setColumnCount(
-                13
+                14
             )  # set the column count to the size of the first data piece
         for row, rowdata in enumerate(data):
             for col, value in enumerate(rowdata):
@@ -864,10 +887,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 None if self.insert_status_bool.currentText() == "Active" else self.insert_conditional_retirement_date_fmt.text(),
                 self.insert_notes_text.toPlainText(),
                 self.insert_status_bool.currentText(),
+                self.insert_is_local_checkbox.isChecked(),
             )
             new_entry(self.connection, obj)
         else:
             # we are updating an existing entry! (since the uuid string was set)
+            print("EISITIGNG!")
             obj = InventoryObject(
                 self.insert_asset_type_combobox.currentText(),
                 self.insert_manufacturer_combobox.currentText(),
@@ -882,8 +907,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.insert_replacement_date_fmt.text(),
                 None if self.insert_status_bool.currentText() == "Active" else self.insert_conditional_retirement_date_fmt.text(),
                 self.insert_notes_text.toPlainText(),
+                self.insert_is_local_checkbox.isChecked(),
                 self.insert_status_bool.currentText(),
-                self.insert_active_uuid,
+                self.insert_active_uuid
             )
             update_full_obj(self.connection, obj)
         self.set_insert_data_to_default()
@@ -895,6 +921,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.populate_table_with(
             fetch_all_enabled_for_table(self.connection), False
         )  # this will overwrite any filters / views
+        self.handle_filter_request()
 
     def set_insert_data_to_default(
         self,
@@ -927,6 +954,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_cost_spinbox.setDisabled(False)
         self.insert_asset_category_combobox.setDisabled(False)
         self.insert_deployment_date_fmt.setDisabled(False)
+        self.insert_is_local_checkbox.setChecked(False)
 
     def set_table_size_and_headers(self, headers: list[str]):  # only called on startup
         # kept sort of abigious since headers can be changed. if it was always all the headers it could be hardcoded
@@ -1033,8 +1061,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     def try_update_row(self, position):
         try:
             self.send_update_data_to_insert(self.main_table.itemAt(position).row())
-        except AttributeError:
+        except AttributeError as e:
             # this is the case where the user.. misses? a row
+            print("HEY!?!", e)
             pass
 
     def serial_input_typed(self):
@@ -1042,6 +1071,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # we do a check to see if that serial number exists in our db.
         # if it does exist, we enable the button & allow the user to import from that serial number
         serial_str = self.insert_serial_text.text()
+        # we could probably cache this and make it quicker. Not that ive ever noticed poor performance on this...
         da_list = fetch_all_serial(self.connection)
         if serial_str == "":
             self.insert_serial_is_unique_button.setEnabled(False)
@@ -1053,6 +1083,27 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.insert_serial_is_unique_button.setEnabled(False)
             self.insert_serial_is_unique_button.setText("Unique")
 
+    def model_input_typed(self):
+        # tries to derive other information from the model
+        # im not really sure if this should be hardcoded, or something that you can edit...?
+        # i will hardcode it for now, and maybe we can change it another time
+        # could be represented by json, sort of like:
+        # {"type": "model",
+        # "target": "Latitude",
+        # "derived_values": ["Assettype": "Laptop", "Manufacturer": "Dell"]}
+        model_str = self.insert_model_text.text()
+        # ineffecient? better way to do it?
+        if model_str in ["Dell", "Latitude"]:
+            # should we be getting index and setting to index??
+            self.insert_asset_type_combobox.setCurrentText("Laptop")
+            self.insert_manufacturer_combobox.setCurrentText("Dell")
+            self.insert_asset_category_combobox.setCurrentText("User Hardware")
+        if model_str in ["Optiplex", "OptiPlex"]:
+            self.insert_asset_type_combobox.setCurrentText("Desktop")
+            self.insert_manufacturer_combobox.setCurrentText("Dell")
+            self.insert_asset_category_combobox.setCurrentText("User Hardware")
+            # we could do cost as well if it 
+        
     def pull_unique_uuid_data(self):
         # this happens when the user clicks the button next to "serial #" on the add page when
         # the text inside the serial # lineedit already exists.
