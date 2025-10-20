@@ -61,12 +61,10 @@ class InventoryObject:
         yield self.uniqueid  # uuid-4 for the devic
 
     def __str__(self):
-        print(self.__dict__)
-        return ""
+        return f'{self.serial} | {self.name}'
 
     def __repr__(self):
-        print(self.__dict__)
-        return ""
+        return f'{self.serial} | {self.name}'
 
 
 def create_inventory_object(
