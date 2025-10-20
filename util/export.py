@@ -6,17 +6,20 @@ import shutil
 import openpyxl
 from openpyxl.worksheet.table import TABLESTYLES, Table, TableStyleInfo
 from openpyxl.styles import Color, PatternFill
+from openpyxl.formatting.rule import CellIsRule
 import csv
 import sqlite3
 import datetime
-from db.fetch import fetch_all
+from db.fetch import fetch_all, fetch_from_date_range
 from util.data_types import InventoryObject
 from db.fetch import (
+    fetch_active_assets,
     fetch_all_enabled,
     fetch_obj_from_retired,
     fetch_obj_from_loc,
     fetch_retired_assets,
-    fetch_changed_assets
+    fetch_changed_assets,
+    fetch_from_date_range
 )
 import datetime
 import dateutil.relativedelta
@@ -28,23 +31,41 @@ import dateutil.relativedelta
 
 # TODO refactor this file so its less redundant.. dont need 4 if csv statements
 
+export_columns = [
+    "Asset Type",
+    "Manufacturer",
+    "Serial Number",
+    "Model",
+    "Cost",
+    "Assigned To",
+    "Name",
+    "Asset Location",
+    "Asset Category",
+    "Deployment Date",
+    "Replacement Date",
+    # retirement date would go here...
+    "Notes",
+    "Clouded or Local"
+]
 
-def export_active(self, csv: bool, file: str):
+
+def export_active(self, csv: bool, dir, timestamp):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
-    file = f"{file}_ACTIVE{csv_or_xlsx_str}"
-    data = fetch_all_enabled(self.connection)
+    file = f"{dir}Active_assets_{timestamp}{csv_or_xlsx_str}"
+    data = fetch_active_assets(self.connection)
     if csv:
-        write_iter_into_csv(self.default_columns, data, file)
+        write_iter_into_csv(export_columns, data, file)
     else:  # excel export :D
-        write_iter_into_excel(self.default_columns, data, file)
+        write_iter_into_excel(export_columns, data, file)
     open_explorer_at_file(self, file)
 
 
-def export_retired(self, csv: bool, file: str):
+def export_retired(self, csv: bool, dir, timestamp ):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
-    file = f"{file}_RETIRED{csv_or_xlsx_str}"
+    file = f"{dir}RETIRED_{timestamp}{csv_or_xlsx_str}"
     data = fetch_obj_from_retired(self.connection)
-    all_col = self.default_columns.copy()
+    all_col = export_columns.copy()
+    all_col.pop() # remove "UUID"
     all_col.append("Retirement Date")
     if csv:
         write_iter_into_csv(all_col, data, file)
@@ -53,28 +74,28 @@ def export_retired(self, csv: bool, file: str):
     open_explorer_at_file(self, file)
 
 
-def export_loc(self, csv: bool, file: str, place: str):
+def export_loc(self, csv: bool, dir, timestamp, place: str):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
-    file = f"{file}_LOCATION{csv_or_xlsx_str}"
+    file = f"{dir}by_location{timestamp}{csv_or_xlsx_str}"
     data = fetch_obj_from_loc(self.connection, place)
     if csv:
-        write_iter_into_csv(self.default_columns, data, file)
+        write_iter_into_csv(export_columns, data, file)
     else:  # excel export :D
-        write_iter_into_excel(self.default_columns, data, file)
+        write_iter_into_excel(export_columns, data, file)
     open_explorer_at_file(self, file)
 
 
-def export_replacementdate(self, csv: bool, file: str, time_period: str, include_overdue):
+def export_replacementdate(self, csv: bool, dir: str, time_stamp, time_period: str, include_overdue):
     # time period is our 3, 6, 9, 12, 24 month period
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
-    file = f"{file}_DUE-REPLACEMENT{csv_or_xlsx_str}"
+    file = f"{dir}by_replacement_date{time_stamp}{csv_or_xlsx_str}"
     num = int(time_period.split(" ")[0])  # the number part of the '3 Months' or '12 Months'
     time_period = datetime.date.today() + dateutil.relativedelta.relativedelta(months=num)
     data = fetch_retired_assets(self.connection, time_period, include_overdue)
     if csv:
-        write_iter_into_csv(self.default_columns, data, file)
+        write_iter_into_csv(export_columns, data, file)
     else:  # excel export :D
-        write_iter_into_excel(self.default_columns, data, file)
+        write_iter_into_excel(export_columns, data, file)
     open_explorer_at_file(self, file)
 
 
@@ -88,24 +109,47 @@ def write_iter_into_csv(columns, iterable, filename: str):
 
 def write_iter_into_excel(columns, iterable, filename: str):
     wb = openpyxl.Workbook()
-    letter_list = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"]
-    row_hex = "9A9C9B"
+    letter_list = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o"]
+    print(f'len of columns:{len(columns), columns}')
+    # not entire sure why -1 is needed ngl...
+    row_length_to_letter = letter_list[len(columns) -1]
     active_ws = wb.active
-    color = PatternFill(start_color=row_hex, end_color=row_hex, fill_type='solid')
     active_ws.append(columns)
-    for count, row in enumerate(iterable):
+    for row in iterable:
+        print(f'exporting: {row}')
         # so the count must begin at 1, but if the 
         active_ws.append(row)
-        if (count + 1) % 2 == 0:
-            for internal_count, _ in enumerate(columns):
-                print("painting", letter_list[internal_count], count)
-                active_ws[f'{letter_list[internal_count]}{count}'].fill = color                
-    for count, col in enumerate(letter_list):
+    for col in letter_list:
         active_ws.column_dimensions[col].width = 20
     # we add +1 because indexes start at 0 in py, but start at one in excel..
-    table = Table(displayName="exported", ref=f'A1:{letter_list[len(columns) -1]}{len(iterable) +1}')
+    print(f'we go as far as the letter: {row_length_to_letter}')
+    sty = TableStyleInfo(name="TableStyleDark1", showRowStripes=True)
+    table = Table(displayName="exported", ref=f'A1:{row_length_to_letter}{len(iterable) +1}')
+    table.tableStyleInfo = sty
     active_ws.add_table(table)
     wb.save(filename)
+
+def write_changed_into_excel(columns, iterable, filename):
+    # for this one, we want to do some conditional formatting based on some values that we get
+    # doesn't really make sense imo to stuff this into the `write_iter_into_excel` functions
+    # also dont need the `columms` since we are hardcoding this!
+    wb = openpyxl.Workbook()
+    letter_list = ["a", "b", "c", "d", "e", "f"] # less is more or less
+    active_ws = wb.active
+    active_ws.append(columns)
+    for row in iterable:
+        active_ws.append(row)
+    for col in letter_list:
+        active_ws.column_dimensions[col].width = 20
+    sty = TableStyleInfo(name="TableStyleDark1", showRowStripes=True)
+    table = Table(displayName="exported", ref=f'A1:F{len(iterable) +1}')
+    table.tableStyleInfo = sty
+    active_ws.add_table(table)
+    pattern_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+    rule = CellIsRule(operator="equal", formula=['"Retired"'], fill=pattern_fill)
+    active_ws.conditional_formatting.add(f'F2:F{len(iterable) +1}', rule)
+    wb.save(filename)
+    
 
 
 # not really an 'export' file, but is only used here, an fits nowhere else really..
@@ -130,16 +174,26 @@ def create_backup(self):
     self.display_message("Success!", f"Backup created successfully: {filename}")
     open_explorer_at_file(self, end_file)
 
-def export_changed(self, csv: bool, file: str, month, year):
+def export_changed(self, csv: bool, dir, time_stamp, month, year):
     # we are going to export the entire `changed` table
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
     data = fetch_changed_assets(self.connection, month, year)
-    special_columns = ["Old Name", "New Name", "Old Location", "New Location", "Date Changed"]
-    file = f'{file}_CHANGED{csv_or_xlsx_str}'
+    special_columns = ["Old Name", "New Name", "Old Location", "New Location", "Date Changed", "Retired?"]
+    file = f'{dir}CHANGED_{time_stamp}{csv_or_xlsx_str}'
     if csv:
         write_iter_into_csv(special_columns, data, file)
     else:  # excel export :D
-        write_iter_into_excel(special_columns, data, file)
+        write_changed_into_excel(special_columns, data, file)
+    open_explorer_at_file(self, file)
+
+def export_date_range(self, csv: bool, dir, time_stamp, start_date, end_date):
+    csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
+    data = fetch_from_date_range(self.connection, start_date, end_date)
+    file = f'{dir}Date-Range_{time_stamp}{csv_or_xlsx_str}'
+    if csv:
+        write_iter_into_csv(export_columns, data, file)
+    else:  # excel export :D
+        write_iter_into_excel(export_columns, data, file)
     open_explorer_at_file(self, file)
 
 def compare_intune_and_invisman(self):
@@ -241,7 +295,7 @@ def write_comparison_to_excel(self, export_dir, invis_only, intune_only, discrep
     table.tableStyleInfo = sty
     ws.add_table(table)
     start_second_table = f'A{count +5}'
-    ws[f"A{count+ 4}"] = "Exists in invisman ✅ Exists in intune ❌"
+    ws[f"A{count+ 4}"] = "Exists in intune ✅ Exists in invisman ❌"
     ws[f"A{count+ 5}"] = "Name"
     ws[f"B{count+ 5}"] = "Serial"
     ws[f"C{count+ 5}"] = "Manufacturer"
@@ -291,4 +345,5 @@ def write_comparison_to_excel(self, export_dir, invis_only, intune_only, discrep
     
 
 def compare_ip_to_site_and_invisman(self):
+    # so we will filter columns that don't have the "Endpoint Name" or "IP" column, we only want those ones...
     pass
