@@ -21,6 +21,7 @@ class InventoryObject:
         replacementdate: datetime.date,
         retirementdate: datetime.date | None,
         notes: str,
+        is_local: bool,
         status: bool,
         uniqueid: str,
     ):
@@ -37,6 +38,7 @@ class InventoryObject:
         self.replacementdate = replacementdate
         self.retirementdate = retirementdate
         self.notes = notes  # other notes about the item
+        self.is_local = is_local
         self.status = status
         self.uniqueid = uniqueid  # uuid-4 for the device
 
@@ -54,14 +56,17 @@ class InventoryObject:
         yield self.replacementdate
         yield self.retirementdate
         yield self.notes  # other notes about the ite
+        yield self.is_local
         yield self.status
         yield self.uniqueid  # uuid-4 for the devic
 
     def __str__(self):
-        return f"Inventory_Object: {self.serial} id: {self.uniqueid}"
+        print(self.__dict__)
+        return ""
 
     def __repr__(self):
-        return f"Inventory_Object: {self.serial} id: {self.uniqueid}"
+        print(self.__dict__)
+        return ""
 
 
 def create_inventory_object(
@@ -79,14 +84,11 @@ def create_inventory_object(
     retirementdate: datetime.date | None,
     notes: str,
     status: str,  # active | retired
+    is_local: bool
 ) -> InventoryObject:
     # with open(".\\volatile\\assetcategory.json") as f:  # what was the purpose of this ..?
     #     raw_json = json.load(f)
     id = str(uuid4())
-    if status == "Enabled":
-        stat = True
-    else:
-        stat = False
     return InventoryObject(
         assettype, 
         manufacturer,
@@ -102,7 +104,8 @@ def create_inventory_object(
         retirementdate,
         notes,
         False if status.lower() == "active" else True,
-        id
+        id,
+        is_local
     )
 
 
@@ -123,8 +126,10 @@ class TableObject:
         replacementdate: datetime.date,
         retirementdate: datetime.date,
         notes: str,
+        is_local: bool,
         status: bool,
         uniqueid: str,  # not displayed, kept as hidden column
+        
     ):
         self.assettype = assettype
         self.manufacturer = manufacturer
@@ -139,6 +144,7 @@ class TableObject:
         self.replacementdate = replacementdate
         self.retirementdate = retirementdate
         self.notes = notes
+        self.is_local = is_local
         self.status = status
         self.uniqueid = uniqueid
 
@@ -155,6 +161,7 @@ class TableObject:
         yield self.deploymentdate
         yield self.replacementdate
         yield self.notes
+        yield self.is_local
         # yield self.status <- this messed with right click -> 'update' pulling 'None'
         yield self.uniqueid
         # makes it so active assets have an empty cell under "retirement date"
