@@ -29,7 +29,8 @@ default_json = {
         "Asset Category": True,
         "Deployment Date": True,
         "Replacement Date": True,
-        "Notes": True
+        "Notes": True,
+        "Clouded or local": True
     },
     "dark_mode": True,
     "backup_path": "c:/",
@@ -75,7 +76,7 @@ def read_from_config() -> dict:
             return default_json
     for key, val in authoriative_json.items():
         if key not in raw.keys():
-            print("malformed json, inserting extra key")
+            print(f"missing {key}, inserting...")
             raw[key] = val
             
         

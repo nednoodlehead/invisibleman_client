@@ -367,7 +367,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 position
             ),
         )
-        our_uuid = self.main_table.item(row, 12).text()
+        our_uuid = self.main_table.item(row, 13).text()
         if retirement_option:
             if retirement_option.text() != "":
                 print(f'the option: {type(retirement_option.text()), retirement_option.text()}')
@@ -918,10 +918,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         print("HIT!!!")
         # intentional choice here to not update the graphs, seems too expensive to call each time, and to see if data was even changed
         # from the current view.
-        self.populate_table_with(
-            fetch_all_enabled_for_table(self.connection), False
-        )  # this will overwrite any filters / views
-        self.handle_filter_request()
+        self.refresh_table()
 
     def set_insert_data_to_default(
         self,
@@ -1044,7 +1041,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     def try_retire_row(self, uuid):
         try:
             retire_from_uuid(self.connection, uuid)
-            self.toggle_retired_assets()
+            self.refresh_table()
         except AttributeError as e:
             print("fail!!", e)
             # this is the case where the user.. misses? a row
@@ -1053,7 +1050,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     def try_unretire_row(self, uuid):
         try:
             unretire_from_uuid(self.connection, uuid)
-            self.toggle_retired_assets()
+            # self.toggle_retired_assets()
+            self.refresh_table()
             # refresh table...?
         except AttributeError:
             pass
@@ -1181,3 +1179,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if path is not None and path != "":
             print(path[0].fileName())
             self.reports_utilities_intune_file_path.setText(path[0].toLocalFile())
+
+    def refresh_table(self):
+        # this will refresh the table from database
+        if self.checkbox_view_retired_assets.isChecked():
+            self.populate_table_with(
+                fetch_all_for_table(self.connection), True)  # this will overwrite any filters / views
+        else:
+            self.populate_table_with(
+                fetch_all_enabled_for_table(self.connection), False)
+         # this will overwrite any filters / views
+        
+        self.handle_filter_request()
