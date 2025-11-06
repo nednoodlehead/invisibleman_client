@@ -242,6 +242,8 @@ def compare_intune_and_invisman(self):
     in_invis_not_intune = []
     in_intune_not_invis = []
     discrepancy = []
+    seen = []
+    duplicate_intune_values = {} # refers to instances where the SN's are the same, this results from a wiped device not deleted from intune
     both = []
     for invent in invisman_db:
         for intune in intune_list:
@@ -255,15 +257,25 @@ def compare_intune_and_invisman(self):
     for sn in intune_list:
         if sn.serial not in both:
             in_intune_not_invis.append(sn)
+    for sn in intune_list:
+        if sn.serial in seen:
+            if sn in duplicate_intune_values.keys():
+                duplicate_intune_values[sn.serial] += 1
+            else:
+                duplicate_intune_values[sn.serial] = 2
+        else:
+            seen.append(sn.serial)
+    
+    print(f'SEEN IS: {seen}')
     export_file = self.export_file_path_choice.text()
-    write_comparison_to_excel(self, export_file, in_invis_not_intune, in_intune_not_invis, discrepancy)
+    write_comparison_to_excel(self, export_file, in_invis_not_intune, in_intune_not_invis, discrepancy, duplicate_intune_values)
     print(in_invis_not_intune, "\n", "\n")
     print(in_intune_not_invis, "\n")
     for (inv, intu) in discrepancy:
         print(f'inv: {inv} | intune: {intu} ')
     print(len(both))
 
-def write_comparison_to_excel(self, export_dir, invis_only, intune_only, discrepancy):
+def write_comparison_to_excel(self, export_dir, invis_only, intune_only, discrepancy, dup_intune):
     # honestly, writing this into csv seems sort of trivial and not very useful
     # well, not trivial because it's hard, but trivial because there is no great spot for the radio button..
     # also how would you represent the 3 different types in a csv file?
@@ -336,10 +348,17 @@ def write_comparison_to_excel(self, export_dir, invis_only, intune_only, discrep
     table_3 = Table(displayName="da_third", ref=f'{third_table_begin}:H{third_count + second_count + count +9}')
     table_3.tableStyleInfo = sty
     ws.add_table(table_3)
-
-
-
-        
+    fouth_table_begin = f'A{count + second_count + third_count + 12}' # is this right!?!?
+    ws[f'A{count + second_count + third_count + 12}'] = "Duplicate S/N (intune)❌"
+    ws[f"B{count + second_count + third_count + 12}"] = "Occurances"
+    for final_count, (sn, amount) in enumerate(dup_intune.items()):
+        print(f'adding to {count + second_count + third_count +final_count + 13}')
+        ws[f'A{count + second_count + third_count +final_count + 13}'] = sn
+        ws[f'B{count + second_count + third_count +final_count + 13}'] = amount
+    sty = TableStyleInfo(name="TableStyleDark2", showRowStripes=True, showColumnStripes=False)
+    table_4 = Table(displayName="final", ref=f'{fouth_table_begin}:B{count + second_count + third_count + final_count + 13}')
+    table_4.tableStyleInfo = sty
+    ws.add_table(table_4)
     workb.save(full_file_path)
     open_explorer_at_file(self, full_file_path)
     
