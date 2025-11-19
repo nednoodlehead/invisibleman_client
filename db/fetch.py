@@ -198,3 +198,32 @@ def fetch_from_date_range(conn, date_start, date_end):
         assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END
         FROM main where status = false AND replacementdate between %s AND %s""", (date_start, date_end))
     return [x for x in cur.fetchall()]
+
+def fetch_by_variable(conn, display_name):
+    # turn the display names into the columns names in the database
+    # no, im not worried about sql injection, the possible values are derived from a list
+    # would it make more sense to just have a separate function for each of these possibilities? Maybe?
+    # this keeps it a bit simpler imo, and this list could be a 'remove whitespace and .lower()' but i prefer this
+    # due to readability
+    var_map = {
+        "Manufacturer": "manufacturer",
+        "Asset Category": "assetcategory",
+        "Asset Type": "assettype",
+        "Asset Location": "assetlocation",
+        "Deployment Date": "deploymentdate",
+        "Replacement Date": "replacementdate",
+        # notes are handled a bit differnetly (with it being the 'notes or no notes' type, but that is handled later)
+    }
+    cur = conn.cursor()
+    if display_name == "Deployment Date" or display_name == "Replacement Date":
+        column = var_map[display_name]
+        cur.execute(f"select extract(year from {column}) as yr, count(*) as total from main group by yr order by total desc;")
+    elif display_name == "Notes":
+        cur.execute("select count(*) filter (where notes is null) as No_notes, count(*) filter (where notes is not null) as Some_Notes from main")        
+        y = cur.fetchall()
+        print(y)
+        return {"None": y[0][0], "Some": y[0][1]}
+    else:
+        column = var_map[display_name]
+        cur.execute(f"select coalesce({column}, 'Unknown'), count(*) as total from main group by {column} order by total desc;")
+    return cur.fetchall()

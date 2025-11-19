@@ -1,7 +1,7 @@
 import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-from db.fetch import fetch_all
+from db.fetch import fetch_by_variable
 matplotlib.use("Qt5Agg")  # i think this is important...
 
 
@@ -77,67 +77,61 @@ class DataCanvas(FigureCanvasQTAgg):
             raise ValueError("how did you get this ?")
 
     def fetch_from_db_and_insert(self, name: str) -> dict:  #
+        # name = one of the `self.acceptable_all_charts` options
         # thread this !?
         # maybe this is sort of stupid to fetch all, then goof with the data,
         # would be better to select only relevant fields, then goof with it
-        property_to_int = {
-            "Asset Type": 0,
-            "Manufacturer": 1,
-            "Serial Number": 2,
-            "Model": 3,
-            "Cost": 4,
-            "Assigned To": 5,
-            "Asset Location": 6,
-            "Asset Category": 7,
-            "Deployment Date": 8,
-            "Replacement Date": 9,
-            # retirement date would go here...
-            "Notes": 10,
-        }
-        months = {
-            "01": "January",
-            "02": "February",
-            "03": "March",
-            "04": "April",
-            "05": "May",
-            "06": "June",
-            "07": "July",
-            "08": "August",
-            "09": "September",
-            "10": "October",
-            "11": "November",
-            "12": "December",
-        }
-        vals = {}
-        raw_data = fetch_all(self.connection)
-        if (
-            name == "Notes"
-        ):  # for notes, we separate into has notes, or doesn't have notes
-            vals["Some Notes"] = 0
-            vals["No Notes"] = 0
-            for obj in raw_data:
-                if obj.notes == "":
-                    vals["No Notes"] += 1
-                else:
-                    vals["Some Notes"] += 1
-        # should sort this list, so it makes sense when viewing...
-        elif name == "Deployment Date":  # all data should be like: 2024-09-24
-            raw_data = sorted(raw_data, key=lambda x: x.deploymentdate)
-            for obj in raw_data:
-                # use to have: - {months[obj.purchasedate[5:7]]}
-                value = f"{obj.deploymentdate[:4]}"
-                if value not in vals:
-                    vals[value] = 1
-                else:
-                    vals[value] += 1
-        elif name == "Replacement Date":
-            sorted(raw_data, key=lambda x: x.replacementdate)
-            for obj in raw_data:
-                value = f"{obj.replacementdate[:4]}"
-                if value not in vals:
-                    vals[value] = 1
-                else:
-                    vals[value] += 1
+        # match name:
+        #     case "Asset Type":
+        x = dict(fetch_by_variable(self.connection, name))
+        print(x)
+        return x
+                
+                
+        # property_to_int = {
+        #     "Asset Type": 0,
+        #     "Manufacturer": 1,
+        #     "Serial Number": 2,
+        #     "Model": 3,
+        #     "Cost": 4,
+        #     "Assigned To": 5,
+        #     "Asset Location": 6,
+        #     "Asset Category": 7,
+        #     "Deployment Date": 8,
+        #     "Replacement Date": 9,
+        #     # retirement date would go here...
+        #     "Notes": 10,
+        # }
+        # vals = {}
+        # raw_data = fetch_all(self.connection)
+        # if (
+        #     name == "Notes"
+        # ):  # for notes, we separate into has notes, or doesn't have notes
+        #     vals["Some Notes"] = 0
+        #     vals["No Notes"] = 0
+        #     for obj in raw_data:
+        #         if obj.notes == "":
+        #             vals["No Notes"] += 1
+        #         else:
+        #             vals["Some Notes"] += 1
+        # # should sort this list, so it makes sense when viewing...
+        # elif name == "Deployment Date":  # all data should be like: 2024-09-24
+        #     raw_data = sorted(raw_data, key=lambda x: x.deploymentdate)
+        #     for obj in raw_data:
+        #         # use to have: - {months[obj.purchasedate[5:7]]}
+        #         value = f"{obj.deploymentdate[:4]}"
+        #         if value not in vals:
+        #             vals[value] = 1
+        #         else:
+        #             vals[value] += 1
+        # elif name == "Replacement Date":
+        #     sorted(raw_data, key=lambda x: x.replacementdate)
+        #     for obj in raw_data:
+        #         value = f"{obj.replacementdate[:4]}"
+        #         if value not in vals:
+        #             vals[value] = 1
+        #         else:
+        #             vals[value] += 1
         # elif name == "Replacement Date":  maybe something special for retirement? TODO
         #     raw_data = sorted(raw_data, key=lambda x: x.replacementdate)
         #     for obj in raw_data:
@@ -147,15 +141,15 @@ class DataCanvas(FigureCanvasQTAgg):
         #         else:
         #             vals[value] += 1
 
-        else:
-            for obj in raw_data:
-                for count, data in enumerate(obj):
-                    if count == property_to_int[name]:
-                        if data not in vals:
-                            vals[data] = 1
-                        else:
-                            vals[data] += 1
-        return vals
+        # else:
+        #     for obj in raw_data:
+        #         for count, data in enumerate(obj):
+        #             if count == property_to_int[name]:
+        #                 if data not in vals:
+        #                     vals[data] = 1
+        #                 else:
+        #                     vals[data] += 1
+        # return vals
 
 
 # https://stackoverflow.com/questions/60659643/how-to-change-the-background-colour-of-a-cell-in-a-qcalendarwidget-using-an-sql
