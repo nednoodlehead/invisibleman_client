@@ -137,8 +137,14 @@ def write_changed_into_excel(columns, iterable, filename):
     letter_list = ["a", "b", "c", "d", "e", "f"] # less is more or less
     active_ws = wb.active
     active_ws.append(columns)
-    for row in iterable:
-        active_ws.append(row)
+    retired_not_redeployed = []
+    new = []
+    retired_and_redeployed = []
+    # for row in iterable:
+    #     if row[0] == '':
+    #         print(f'NEW: {row}')
+    #         new.append(row)
+    #     elif 
     for col in letter_list:
         active_ws.column_dimensions[col].width = 20
     sty = TableStyleInfo(name="TableStyleDark1", showRowStripes=True)
