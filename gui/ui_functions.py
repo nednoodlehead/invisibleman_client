@@ -82,7 +82,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Model",
             "Cost",
             "Assigned To",
-            "Name",
+            "Device Name",
             "Asset Location",
             "Asset Category",
             "Deployment Date",
@@ -90,13 +90,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             # retirement date would go here...
             "Notes",
             "Clouded or Local"
-        ]
-        self.when_can_assets_retire = [
-            "3 Months",
-            "6 Months",
-            "9 Months",
-            "12 Months",
-            "24 Months"
         ]
         # thanks AI
         self.months = [
@@ -141,7 +134,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.filter_options_combobox.addItem("Global")
         self.filter_options_combobox.addItems(self.default_columns)
         self.reports_export_file_combobox.addItems(["Excel", "CSV"])
-        self.reports_export_export_due_replacement_combo.addItems(self.when_can_assets_retire)
         self.insert_deployment_date_fmt.setDisplayFormat(
             "yyyy-MM-dd"
         )  # thanks qt5 for randomly changing the default display format... commi #108
@@ -285,7 +277,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             height_2=290,
             width_2=790,
         )
-        self.analytics_field_combobox_bottom.addItems(self.graphs_and_charts_top)
         # self.graph_2.figure.subplots_adjust(left=-0.1)  # was used to move the pie chart. Fine where is
         self.analytics_field_combobox_top.currentIndexChanged.connect(
             lambda: self.graph_1.change_graph(
@@ -417,11 +408,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
 
         # if you replace this function and col with lambda, it does not work. on god
         box.clicked.connect(button_target)
-        if self.config["checkboxes"][self.default_columns[column]] is True:
+        try:
+            if self.config["checkboxes"][self.default_columns[column]] is True:
+                box.setChecked(True)
+            else:
+                self.main_table.setColumnHidden(column, True)
+                pass  # set setchecked false by default on startup?
+        except KeyError:
             box.setChecked(True)
-        else:
-            self.main_table.setColumnHidden(column, True)
-            pass  # set setchecked false by default on startup?
 
     def tester(self):  # ignore this!
         print("here")
@@ -702,7 +696,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Model": self.checkbox_model.isChecked(),
             "Cost": self.checkbox_cost.isChecked(),
             "Assigned To": self.checkbox_assignedto.isChecked(),
-            "Name": self.checkbox_name.isChecked(),
+            "Device Name": self.checkbox_name.isChecked(),
             "Asset Location": self.checkbox_assetlocation.isChecked(),
             "Asset Category": self.checkbox_assetcategory.isChecked(),
             "Deployment Date": self.checkbox_deploymentdate.isChecked(),
@@ -1089,18 +1083,23 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # {"type": "model",
         # "target": "Latitude",
         # "derived_values": ["Assettype": "Laptop", "Manufacturer": "Dell"]}
-        model_str = self.insert_model_text.text()
+        model_str = self.insert_model_text.text().lower()
         # ineffecient? better way to do it?
-        if model_str in ["Dell", "Latitude"]:
+        if model_str in ["dell", "latitude"]:
             # should we be getting index and setting to index??
             self.insert_asset_type_combobox.setCurrentText("Laptop")
             self.insert_manufacturer_combobox.setCurrentText("Dell")
             self.insert_asset_category_combobox.setCurrentText("User Hardware")
-        if model_str in ["Optiplex", "OptiPlex"]:
+        if model_str in ["optiplex"]:
             self.insert_asset_type_combobox.setCurrentText("Desktop")
             self.insert_manufacturer_combobox.setCurrentText("Dell")
             self.insert_asset_category_combobox.setCurrentText("User Hardware")
             # we could do cost as well if it 
+
+    # def asset_type_derive(self):
+    #     # from just the asset type, the asset category is derived
+    #     asset_type = self.insert_asset_type_combobox.currentText()
+    #     if asset_type == "Software"
         
     def pull_unique_uuid_data(self):
         # this happens when the user clicks the button next to "serial #" on the add page when
