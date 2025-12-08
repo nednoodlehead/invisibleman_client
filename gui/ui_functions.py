@@ -107,7 +107,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if self.connection: # this is when the connection is made successfully!
             self.force_json_sync(self.connection)
             self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-            self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)
+            self.refresh_table()
+            # self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)
             self.populate_extra_table()
             self.reports_export_location_combobox.addItems(self.refresh_asset_location(self.connection))
         self.ham_button_insert.clicked.connect(lambda: self.swap_to_window(1))
@@ -128,7 +129,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.main_table.setSortingEnabled(True) # YOU!! this causes the weird inconsistencies..
         # removed since i think it is a bit of over-engineering
         # self.view_columns_button.clicked.connect(self.view_button_reveal_checkboxes)
-        self.checkbox_view_retired_assets.clicked.connect(self.toggle_retired_assets)
+        self.checkbox_view_retired_assets.clicked.connect(self.refresh_table)
         self.settings_update_button.clicked.connect(self.write_config)
         self.filter_column_button.clicked.connect(self.handle_filter_request)
         self.filter_options_combobox.addItem("Global")
@@ -1023,14 +1024,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.filter_user_text.setText("")
         self.filter_options_combobox.setCurrentIndex(0)
 
-    def toggle_retired_assets(self):
-        # TODO ok we need to come back to this. so without the setSortingeEnabled part, whenever we click "refresh table"
-        # it puts the items in (i think sorted by assettype) alphabetically. so it doesn't listen to the default order
-        # eh, idk maybe this is the best way to do it...
-        if self.checkbox_view_retired_assets.isChecked():
-            self.populate_table_with(fetch_all_for_table(self.connection), True)  # lets view all content
-        else:
-            self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)  # only enabled content!
         
     def try_retire_row(self, uuid):
         try:
@@ -1130,7 +1123,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             
     def force_sync(self):
         # this is only called from the thread function.
-        self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)
+        # self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)
+        self.refresh_table()
         
     # will always populate withi default data. we will be able to sort it as well
     def populate_extra_table(self):
@@ -1188,5 +1182,5 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.populate_table_with(
                 fetch_all_enabled_for_table(self.connection), False)
          # this will overwrite any filters / views
-        
-        self.handle_filter_request()
+        if self.filter_user_text.text() != '': # if there is nothing to filter by, don't filter. shrimple as that :shrimp:
+            self.handle_filter_request()
