@@ -49,6 +49,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from keyring import get_credential
 from gui.overrides import InvisManItem
 import re
+import pyperclip
 # DEFAULT_DATE = datetime.strptime("2000-01-01", "%Y-%m-%d")
 
 class MainProgram(QMainWindow, Ui_MainWindow):
@@ -325,6 +326,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.connection.close() # close connection after we exit app..
         a0.accept()  # another random complaint from pyright
 
+    def copy_text(self, sn):
+        pyperclip.copy(sn)
+
     # regular methods
     def imported_methods(self):
         # for loop at some point? lmao
@@ -359,6 +363,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 position
             ),
         )
+        menu.addAction("Copy SN", lambda: self.copy_text(self.main_table.item(row, 2).text()))
+        menu.addAction("Copy Name", lambda: self.copy_text(self.main_table.item(row, 6).text()))
         our_uuid = self.main_table.item(row, 13).text()
         if retirement_option:
             if retirement_option.text() != "":
@@ -383,8 +389,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         row = index.row()
         for x in range(10):
             y = self.extra_table.item(row, x)
-            if y:
-                print(y.text())
         menu.addAction("Edit", lambda: self.display_extra_window(self.extra_table.item(row, 7).text()))
         menu.exec_(QCursor.pos())
 
