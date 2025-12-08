@@ -221,7 +221,6 @@ def fetch_by_variable(conn, display_name):
     elif display_name == "Notes":
         cur.execute("select count(*) filter (where notes is null) as No_notes, count(*) filter (where notes is not null) as Some_Notes from main")        
         y = cur.fetchall()
-        print(y)
         return {"None": y[0][0], "Some": y[0][1]}
     else:
         column = var_map[display_name]

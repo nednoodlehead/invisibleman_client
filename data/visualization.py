@@ -84,7 +84,6 @@ class DataCanvas(FigureCanvasQTAgg):
         # match name:
         #     case "Asset Type":
         x = dict(fetch_by_variable(self.connection, name))
-        print(x)
         return x
                 
                 
