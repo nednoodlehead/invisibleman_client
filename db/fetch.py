@@ -11,6 +11,14 @@ def fetch_all(conn) -> list[InventoryObject]:
         return_list.append(InventoryObject(*item))
     return return_list
 
+def fetch_all_normal(conn) -> list[InventoryObject]:
+    return_list = []
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM main;")
+    for item in cur.fetchall():
+        return_list.append(item)
+    return return_list
+
 
 def fetch_all_enabled(conn):  # [InventoryObject] without the enabled field
     return_list = []

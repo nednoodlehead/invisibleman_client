@@ -19,7 +19,8 @@ from db.fetch import (
     fetch_obj_from_loc,
     fetch_retired_assets,
     fetch_changed_assets,
-    fetch_from_date_range
+    fetch_from_date_range,
+    fetch_all_normal
 )
 import datetime
 import dateutil.relativedelta
@@ -202,6 +203,16 @@ def export_date_range(self, csv: bool, dir, time_stamp, start_date, end_date):
         write_iter_into_excel(export_columns, data, file)
     open_explorer_at_file(self, file)
 
+def export_all(self, csv: bool, dir, time_stamp):
+    csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
+    data = fetch_all_normal(self.connection)
+    file = f'{dir}ALL-ASSETS_{time_stamp}{csv_or_xlsx_str}'
+    if csv:
+        write_iter_into_csv(export_columns, data, file)
+    else:  # excel export :D
+        write_iter_into_excel(export_columns, data, file)
+    open_explorer_at_file(self, file)
+
 def compare_intune_and_invisman(self):
     intune_file = self.reports_utilities_intune_file_path.text()
     if intune_file is None:
@@ -358,7 +369,6 @@ def write_comparison_to_excel(self, export_dir, invis_only, intune_only, discrep
     ws[f'A{count + second_count + third_count + 12}'] = "Duplicate S/N (intune)❌"
     ws[f"B{count + second_count + third_count + 12}"] = "Occurances"
     for final_count, (sn, amount) in enumerate(dup_intune.items()):
-        print(f'adding to {count + second_count + third_count +final_count + 13}')
         ws[f'A{count + second_count + third_count +final_count + 13}'] = sn
         ws[f'B{count + second_count + third_count +final_count + 13}'] = amount
     sty = TableStyleInfo(name="TableStyleDark2", showRowStripes=True, showColumnStripes=False)
@@ -372,3 +382,4 @@ def write_comparison_to_excel(self, export_dir, invis_only, intune_only, discrep
 def compare_ip_to_site_and_invisman(self):
     # so we will filter columns that don't have the "Endpoint Name" or "IP" column, we only want those ones...
     pass
+

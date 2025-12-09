@@ -24,7 +24,7 @@ from db.update import increase_extra_by_one, update_full_obj, delete_from_uuid, 
 from gui.notes_window import NotesWindow
 from gui.export_graph_window import ExportGraph
 from gui.settings import dark_light_mode_switch, set_dark
-from util.export import create_backup, compare_intune_and_invisman, compare_ip_to_site_and_invisman
+from util.export import create_backup, compare_intune_and_invisman, compare_ip_to_site_and_invisman, export_all
 from volatile.write_to_volatile import write_to_config, read_from_config
 from data.visualization import DataCanvas
 from types import MethodType
@@ -592,7 +592,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 select_directory, time_stamp,
                 self.reports_export_location_combobox.currentText(),
             )
-        elif self.reports_export_export_due_replacement_radio.isChecked():
+        elif self.reports_export_export_date_radio.isChecked():
             # also cant be none, no null check required.. :)
             export_replacementdate(
                 self,
@@ -611,6 +611,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             from_date = str(self.reports_export_by_date_from.date().toPyDate())
             until_date = str(self.reports_export_by_date_until.date().toPyDate())
             export_date_range(self, csv_val, select_directory, time_stamp, from_date, until_date)
+        elif self.reports_export_all_radio.isChecked():
+            export_all(self, csv_val, select_directory, time_stamp)
             
         else:  # edge case where the user selects none of them
             self.display_message("Error!", "Please select one of the radio buttons!")
