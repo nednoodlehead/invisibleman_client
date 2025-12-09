@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'interfaceKPtsUy.ui'
+## Form generated from reading UI file 'interfaceSPNsef.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -692,7 +692,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(5)
+        self.stackedWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)

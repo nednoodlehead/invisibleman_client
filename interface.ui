@@ -2092,19 +2092,6 @@
               <string>UPDATE!!</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="settings_create_backup_button">
-             <property name="geometry">
-              <rect>
-               <x>450</x>
-               <y>80</y>
-               <width>111</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Create backup</string>
-             </property>
-            </widget>
             <widget class="QLabel" name="settings_ip_label">
              <property name="geometry">
               <rect>
