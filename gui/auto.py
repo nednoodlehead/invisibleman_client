@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'interfacetpNXoL.ui'
+## Form generated from reading UI file 'interfaceKPtsUy.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -613,9 +613,6 @@ class Ui_MainWindow(object):
         self.settings_update_button = QPushButton(self.stacked_settings)
         self.settings_update_button.setObjectName(u"settings_update_button")
         self.settings_update_button.setGeometry(QRect(880, 630, 241, 23))
-        self.settings_create_backup_button = QPushButton(self.stacked_settings)
-        self.settings_create_backup_button.setObjectName(u"settings_create_backup_button")
-        self.settings_create_backup_button.setGeometry(QRect(450, 80, 111, 23))
         self.settings_ip_label = QLabel(self.stacked_settings)
         self.settings_ip_label.setObjectName(u"settings_ip_label")
         self.settings_ip_label.setGeometry(QRect(600, 80, 111, 20))
@@ -695,7 +692,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(5)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -798,7 +795,6 @@ class Ui_MainWindow(object):
         self.settings_darkmode_checkbox.setText("")
         self.settings_report_auto_open_checkbox.setText("")
         self.settings_update_button.setText(QCoreApplication.translate("MainWindow", u"UPDATE!!", None))
-        self.settings_create_backup_button.setText(QCoreApplication.translate("MainWindow", u"Create backup", None))
         self.settings_ip_label.setText(QCoreApplication.translate("MainWindow", u"Invisman Server IP", None))
         self.settings_switch_to_main_on_insert_checkbox.setText("")
         self.settings_switch_to_main_on_insert_label.setText(QCoreApplication.translate("MainWindow", u"Auto-switch to main on insert", None))
