@@ -389,7 +389,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         our_uuid = self.main_table.item(row, 13).text()
         if retirement_option:
             if retirement_option.text() != "":
-            else:
                 # option when retired assets are visible, but we click on a non-retired asset
                 menu.addAction(
                     "Retire",
