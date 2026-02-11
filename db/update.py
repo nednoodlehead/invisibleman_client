@@ -50,7 +50,9 @@ def update_full_obj(conn, obj: InventoryObject):
                    retirementdate = %s,
                    notes = %s,
                    is_local = %s,
-                   status = %s
+                   status = %s,
+                   loandate = %s,
+                   returndate = %s
                    WHERE uniqueid = %s;
                     """,
         (obj.assettype,
@@ -68,6 +70,8 @@ def update_full_obj(conn, obj: InventoryObject):
          obj.notes,
          obj.is_local,
          obj.status,
+         obj.loandate,
+         obj.returndate,
          obj.uniqueid) # to hell with unpacking 
     )
     conn.commit()

@@ -11,6 +11,17 @@ def fetch_all(conn) -> list[InventoryObject]:
         return_list.append(InventoryObject(*item))
     return return_list
 
+def fetch_all_for_backup(conn):
+    return_list = []
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
+        deploymentdate, replacementdate, retirementdate, notes, CASE WHEN is_local = true THEN 'Local' ELSE 'Clouded' END, loandate, returndate, uniqueid FROM main;
+        """)
+    for item in cur.fetchall():
+        return_list.append(item)
+    return return_list
+
 def fetch_all_normal(conn) -> list[InventoryObject]:
     return_list = []
     cur = conn.cursor()
@@ -20,18 +31,6 @@ def fetch_all_normal(conn) -> list[InventoryObject]:
     return return_list
 
 
-def fetch_all_enabled(conn):  # [InventoryObject] without the enabled field
-    return_list = []
-    cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
-        deploymentdate, replacementdate, notes, uniqueid FROM main WHERE status = false;
-        """
-    )
-    for item in cur.fetchall():
-        return_list.append(item)
-    return return_list
 
 def fetch_active_assets(conn):
     return_list = []
@@ -39,7 +38,7 @@ def fetch_active_assets(conn):
     cur.execute(
         """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
-        deploymentdate, replacementdate, notes, CASE WHEN is_local = true then 'Local' WHEN is_local = false THEN 'Clouded' END FROM main WHERE status = false;
+        deploymentdate, replacementdate, notes, CASE WHEN is_local = true then 'Local' WHEN is_local = false THEN 'Clouded' END, loandate, returndate FROM main WHERE status = false;
         """
     )
     for item in cur.fetchall():
@@ -55,7 +54,7 @@ def fetch_all_enabled_for_table(conn) -> list[TableObject]:
     data = cur.execute(
         """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
-        deploymentdate, replacementdate, retirementdate, notes, CASE WHEN is_local = true then 'Local' WHEN is_local = false THEN 'Clouded' END, status,  uniqueid FROM main WHERE status = false order by deploymentdate desc NULLS last;"""
+        deploymentdate, replacementdate, retirementdate, notes, CASE WHEN is_local = true then 'Local' WHEN is_local = false THEN 'Clouded' END, status, loandate, returndate, uniqueid FROM main WHERE status = false order by deploymentdate desc NULLS last;"""
     )
     data = cur.fetchall()
     for item in data:
@@ -70,7 +69,7 @@ def fetch_all_for_table(conn) -> list[TableObject]:
         """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
         deploymentdate, replacementdate, retirementdate, notes, CASE WHEN is_local = true then 'Local' WHEN is_local = false THEN 'Clouded' END,
-        status, uniqueid FROM main order by deploymentdate desc nulls last;
+        status, loandate, returndate, uniqueid FROM main order by deploymentdate desc nulls last;
         """
     )
     for item in cur.fetchall():
@@ -88,7 +87,7 @@ def fetch_notes_from_uuid(conn, uuid: str) -> str:
 def fetch_from_uuid_to_update(conn, uuid: str) -> InventoryObject:
     cur = conn.cursor()
     cur.execute("""SELECT assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory,
-                 deploymentdate, replacementdate, retirementdate, notes, is_local, status, uniqueid FROM main WHERE uniqueid = %s;""", [uuid])
+                 deploymentdate, replacementdate, retirementdate, notes, is_local, status, loandate, returndate, uniqueid FROM main WHERE uniqueid = %s;""", [uuid])
     processed = cur.fetchone()
     obj = InventoryObject(*processed)
     return obj
@@ -118,7 +117,7 @@ def fetch_obj_from_loc(conn, location):
         """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
         assetlocation, assetcategory, deploymentdate, replacementdate,
-        notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END FROM main
+        notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END, loandate, returndate FROM main
         WHERE status = false AND assetlocation = %s;
         """,
         (location,),
@@ -135,7 +134,7 @@ def fetch_retired_assets(conn, year: str, include_overdue: bool):
         cur.execute(
             """
             SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
-            assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END
+            assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END, loandate, returndate
             FROM main
             WHERE replacementdate <= %s AND status = false;
             """, (year,)
@@ -145,7 +144,7 @@ def fetch_retired_assets(conn, year: str, include_overdue: bool):
         cur.execute(
             """
         SELECT assettype, manufacturer, serial, model, cost, assignedto, name,
-        assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END
+        assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END, loandate, returndate
         FROM main where replacementdate between %s and %s and status = false;
             """, (date.today(), year)
         )
@@ -169,7 +168,6 @@ def fetch_by_serial(conn, finding: str) -> InventoryObject:
     # so, don't be stupid and have a bunch of same-type serial numbers. They should be unique irl anyways
     ret = cur.fetchone()
     obj = InventoryObject(*ret)
-    # [0] because it returns in a tuple??
     return obj 
 
 def fetch_all_extras(conn):
@@ -203,7 +201,7 @@ def fetch_changed_assets(conn, month=None, year=None):
 def fetch_from_date_range(conn, date_start, date_end):
     cur = conn.cursor()
     cur.execute("""select assettype, manufacturer, serial, model, cost, assignedto, name,
-        assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END
+        assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = false THEN 'Clouded' WHEN is_local = true THEN 'Local' END, loandate, returndate
         FROM main where status = false AND replacementdate between %s AND %s""", (date_start, date_end))
     return [x for x in cur.fetchall()]
 
@@ -234,3 +232,20 @@ def fetch_by_variable(conn, display_name):
         column = var_map[display_name]
         cur.execute(f"select coalesce({column}, 'Unknown'), count(*) as total from main group by {column} order by total desc;")
     return cur.fetchall()
+
+def fetch_all_name(conn):
+    cur = conn.cursor()
+    cur.execute("select name from main;")
+    return [x[0].lower() for x in cur.fetchall()]
+
+def fetch_by_loaned_date(conn, date_start, date_end):
+    cur = conn.cursor()
+    cur.execute("Select assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = true THEN 'Local' ELSE 'Clouded' END, loandate, returndate from main where returndate > %s AND returndate < %s",
+                (date_start, date_end));
+    return [x for x in cur.fetchall()]
+
+def fetch_all_loaned(conn):
+    cur = conn.cursor()
+    cur.execute("Select assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = true THEN 'Local' ELSE 'Clouded' END, loandate, returndate from main where returndate is not null");
+    return [x for x in cur.fetchall()]
+    
