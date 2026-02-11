@@ -13,14 +13,15 @@ from PyQt5.QtWidgets import (
     QStyleFactory,
     QFileDialog,
 )
-from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect, pyqtSignal
+from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect, pyqtSignal, QThread
 from PyQt5.QtGui import QCursor, QPainter, QColor, QTextCharFormat
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from util.db_util import patch_dates
-from util.export import export_active, export_changed, export_retired, export_loc, export_replacementdate, export_date_range
-from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial, fetch_all_extras, fetch_from_date_range
+from util.export import export_active, export_changed, export_retired, export_loc, export_replacementdate, export_date_range, export_by_return_date, export_all_return_date
+from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial, fetch_all_extras, fetch_from_date_range, fetch_all_for_backup, fetch_all_name
 from db.insert import new_entry
 from db.update import increase_extra_by_one, update_full_obj, delete_from_uuid, retire_from_uuid, unretire_from_uuid, decrease_extra_by_one, increase_extra_by_one
+from db.backup import BackupThread, backup_invisman
 from gui.notes_window import NotesWindow
 from gui.export_graph_window import ExportGraph
 from gui.settings import dark_light_mode_switch, set_dark
@@ -41,6 +42,7 @@ from gui.insert_functions import (
 )
 from gui.add_item_window import GenericAddJsonWindow
 from gui.new_extra_window import ExtraWindow
+from util.intune_import import import_intune
 from datetime import datetime
 from psycopg2 import connect
 from sshtunnel import SSHTunnelForwarder, BaseSSHTunnelForwarderError
@@ -49,7 +51,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from keyring import get_credential
 from gui.overrides import InvisManItem
 import re
-import pyperclip
+import pyperclip # for copying text to the clipboard (right click on row -> copy S/N)
 # DEFAULT_DATE = datetime.strptime("2000-01-01", "%Y-%m-%d")
 
 class MainProgram(QMainWindow, Ui_MainWindow):
@@ -67,8 +69,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         except ValueError as e:
             print("Missing values, likely a config problem: ", e)
             self.connection = None
-        
-        self.worker_signal = pyqtSignal(str)
         # patch_dates(self.connection, self.fetch_categories_and_years()) # was a o
         self.active_notes_window = None
         self.active_json_window = None
@@ -90,7 +90,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Replacement Date",
             # retirement date would go here...
             "Notes",
-            "Clouded or Local"
+            "Clouded or Local",
+            "Date Loaned",
+            "Date to Return"
         ]
         # thanks AI
         self.months = [
@@ -112,6 +114,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             # self.populate_table_with(fetch_all_enabled_for_table(self.connection), False)
             self.populate_extra_table()
             self.reports_export_location_combobox.addItems(self.refresh_asset_location(self.connection))
+            # only run if connection is successful!
+            if self.config["opt_in_backup"]:
+                thr = BackupThread(self.config["backup_path"], self.connection, self.config["last_daily_backup"], self.config["last_weekly_backup"], self.config["last_monthly_backup"])
+                # thr.run = lambda:)
+                thr.send_res.connect(self.handle_backup_callback)
+                thr.start()
         self.ham_button_insert.clicked.connect(lambda: self.swap_to_window(1))
         self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
         self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
@@ -122,6 +130,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.update_replacement_date
         )
         self.insert_conditional_retirement_date_fmt.setDate(QDate.currentDate())
+        self.insert_date_loaned_date.setDate(QDate.currentDate())
+        self.insert_date_returned_date.setDate(QDate.currentDate()) # just today i guess?
         self.insert_insert_button.clicked.connect(self.check_data_and_insert)
         self.insert_clear_selections_button.clicked.connect(
             self.set_insert_data_to_default
@@ -141,12 +151,16 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         )  # thanks qt5 for randomly changing the default display format... commi #108
         self.reports_export_by_date_from.setDate(QDate.currentDate())
         self.reports_export_by_date_until.setDate(QDate.currentDate())
+        self.export_export_loaned_range_start_date.setDate(QDate.currentDate())
+        self.export_export_loaned_range_end_date.setDate(QDate.currentDate())
         self.export_file_dialog_button.clicked.connect(self.open_report_file_dialog)
         self.settings_file_dialog_button.clicked.connect(self.open_settings_file_dialog)
         self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
         self.insert_conditional_retirement_date_fmt.setDisplayFormat("yyyy-MM-dd")
         self.reports_utilities_intune_run_button.clicked.connect(self.compare_intune_and_invisman)
         self.reports_utilities_compare_intune_file_dialog.clicked.connect(self.intune_filedialog)
+        self.reports_utilities_import_intune_dialog.clicked.connect(self.intune_import_filedialog)
+        self.insert_name_text.textChanged.connect(self.name_input_typed)
         # when date is changed, update the replacement date accordingly
         self.insert_deployment_date_fmt.dateChanged.connect(self.update_replacement_date)
         self.analytics_export_top_button.clicked.connect(
@@ -171,6 +185,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 "QFrame#reports_utilities_frame{border: 1px solid black;\nborder-radius: 15px;}"
                 
             )
+        if self.config["opt_in_backup"]:
+            self.settings_enable_backups_checkbox.setChecked(True)
         if self.config["auto_open_report_on_create"] is True:
             self.settings_report_auto_open_checkbox.setChecked(True)
         self.settings_backup_dir_text.setText(self.config["backup_path"])
@@ -189,11 +205,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.checkbox_deploymentdate,
             self.checkbox_replacementdate,
             self.checkbox_notes,
-            self.checkbox_is_local
-        ]
+            self.checkbox_is_local,
+            self.checkbox_date_loaned,
+            self.checkbox_date_to_return
+             ]
         # enabled by default, we will set the width to 0 :)
         self.insert_conditional_status_frame.setFixedWidth(0)
+        self.insert_conditional_loan_frame.setFixedWidth(0)
         self.insert_status_bool.activated.connect(self.hide_or_show_insert_conditional)
+        self.insert_is_loaned_out_checkbox.stateChanged.connect(self.hide_or_show_loan_conditional)
         for count, checkbox in enumerate(self.insert_widgets):
             self.handle_checkboxes_and_columns(count, checkbox)
         # populating combo boxes. "" is an empty default value
@@ -232,6 +252,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.reports_export_main_export_button.clicked.connect(
             self.interface_handle_export
         )
+        self.reports_utilities_import_intune_button.clicked.connect(self.intune_import)
         # default values for the "exported changed" (pulls from the `changed` table)
         self.reports_export_export_changed_combo.addItems(self.months)
         # this feels sloppy... i feel like we should just get the date once when init the program...
@@ -368,8 +389,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         our_uuid = self.main_table.item(row, 13).text()
         if retirement_option:
             if retirement_option.text() != "":
-                print(f'the option: {type(retirement_option.text()), retirement_option.text()}')
-                menu.addAction("Unretire", lambda: self.try_unretire_row(our_uuid))
             else:
                 # option when retired assets are visible, but we click on a non-retired asset
                 menu.addAction(
@@ -421,9 +440,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 pass  # set setchecked false by default on startup?
         except KeyError:
             box.setChecked(True)
-
-    def tester(self):  # ignore this!
-        print("here")
 
     def open_report_file_dialog(
         self,
@@ -569,7 +585,25 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if self.insert_status_bool.currentIndex() == 0:  # its active...
             self.insert_conditional_status_frame.setFixedWidth(0)
         else:
-            self.insert_conditional_status_frame.setFixedWidth(270)
+            self.insert_conditional_status_frame.setFixedWidth(240)
+
+    def hide_or_show_loan_conditional(self):
+        if self.insert_is_loaned_out_checkbox.isChecked():
+            self.insert_conditional_loan_frame.setFixedWidth(240)
+        else:
+            self.insert_conditional_loan_frame.setFixedWidth(0)
+            
+
+    def intune_import(self):
+        csv_val = (
+            True if self.reports_export_file_combobox.currentText() == "CSV" else False
+        )
+        # ensure there is a / at the end :)
+        select_directory = self.export_file_path_choice.text()
+        select_directory = select_directory if select_directory.endswith("/") is True else f"{select_directory}/"
+        time_stamp = str(datetime.now()).replace(":", "-")[:19]  # should always end in a /, need to validate elsewhere
+        intune_user_file = self.reports_utilities_import_intune_text.text()
+        import_intune(self, intune_user_file, select_directory, time_stamp, csv_val)
         
     def interface_handle_export(self):
         csv_val = (
@@ -578,7 +612,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # ensure there is a / at the end :)
         select_directory = self.export_file_path_choice.text()
         select_directory = select_directory if select_directory.endswith("/") is True else f"{select_directory}/"
-        print(f"DIR TO EXPORT: {select_directory.endswith("/")}(SHOULD HAVE A / ON THE END): {select_directory}")
         time_stamp = str(datetime.now()).replace(":", "-")[:19]  # should always end in a /, need to validate elsewhere
         if self.reports_export_export_active_radio.isChecked():
             export_active(self, csv_val, select_directory, time_stamp)
@@ -613,21 +646,20 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             export_date_range(self, csv_val, select_directory, time_stamp, from_date, until_date)
         elif self.reports_export_all_radio.isChecked():
             export_all(self, csv_val, select_directory, time_stamp)
-            
+        elif self.export_loaned_devices_radio.isChecked():
+            if self.export_export_loaned_device_range_radio.isChecked():
+                export_by_return_date(self, csv_val, select_directory, time_stamp, self.export_export_loaned_range_start_date.date().toPyDate(), self.export_export_loaned_range_end_date.date().toPyDate())
+            elif self.export_export_loaned_all_radio.isChecked():
+                export_all_return_date(self, csv_val, select_directory, time_stamp)
+            else:
+                self.display_message("Error!", "Please select a radio button under the 'export loaned devices' subsection [Daterange or All]")
         else:  # edge case where the user selects none of them
             self.display_message("Error!", "Please select one of the radio buttons!")
 
     def send_update_data_to_insert(self, index):
         # prepare everything for update_insert_page_from_obj
         # should be updated each time...
-        for x in range(15):
-            p = self.main_table.item(index, x)
-            if p:
-                print(index, p.text())
-            else:
-                print(index, "NONE" )
-        uuid = self.main_table.item(index, 13).text()
-        print(uuid)
+        uuid = self.main_table.item(index, 15).text()
         obj = fetch_from_uuid_to_update(self.connection, uuid)
         self.swap_to_window(1)
         self.update_insert_page_from_obj(obj)
@@ -655,24 +687,27 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_assigned_to_text.setText(inventory_obj.assignedto)
         if not inventory_obj.replacementdate or inventory_obj.replacementdate == "":
             inventory_obj.replacementdate = datetime.fromisoformat("2000-01-01")
-        print(inventory_obj.replacementdate, type(inventory_obj.replacementdate))
         self.insert_deployment_date_fmt.setDate(inventory_obj.deploymentdate)
         self.insert_replacement_date_fmt.setDate(
             inventory_obj.replacementdate
         )
         self.insert_notes_text.setText(inventory_obj.notes)
+        if inventory_obj.loandate: # if it isn't none, we can show the hidden menu
+            self.insert_is_loaned_out_checkbox.setChecked(True)
+            self.insert_date_loaned_date.setDate(inventory_obj.loandate)
+            self.insert_date_returned_date.setDate(inventory_obj.returndate)
         if inventory_obj.status == 1:
             # retired
             self.insert_status_bool.setCurrentIndex(1)
             # same as self.hide_or_show_insert_conditional()
             # but we skip an if statement!
             self.insert_conditional_status_frame.setFixedWidth(210)
+            self.insert_conditional_retirement_date_fmt.setDate(inventory_obj.retirementdate)
         else:
             # not retired
             self.insert_status_bool.setCurrentIndex(0)
         self.insert_active_uuid = inventory_obj.uniqueid
         # disable the fields that 'we dont want to edit'
-        print(inventory_obj.is_local)
         if inventory_obj.is_local:
             self.insert_is_local_checkbox.setChecked(True)
 
@@ -709,7 +744,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             "Deployment Date": self.checkbox_deploymentdate.isChecked(),
             "Replacement Date": self.checkbox_replacementdate.isChecked(),
             "Notes": self.checkbox_notes.isChecked(),
-            "Clouded or Local": self.checkbox_is_local.isChecked()
+            "Clouded or Local": self.checkbox_is_local.isChecked(),
+            "Loan Date": self.checkbox_date_loaned.isChecked(),
+            "Return Date": self.checkbox_date_to_return.isChecked()
         }
         new_config = {
         "checkboxes": to_write,
@@ -720,8 +757,11 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         "top_graph_type": self.analytics_field_combobox_top.currentText(),
         "top_graph_data": self.analytics_field_combobox_bottom.currentText(),
         "invisman_ip": self.settings_ip_text.text(),
-        "switch_view_on_insert": self.settings_switch_to_main_on_insert_checkbox.isChecked()
-            
+        "switch_view_on_insert": self.settings_switch_to_main_on_insert_checkbox.isChecked(),
+        "opt_in_backup": self.settings_enable_backups_checkbox.isChecked(),
+        "last_daily_backup": self.config["last_daily_backup"],
+        "last_weekly_backup": self.config["last_weekly_backup"],
+        "last_monthly_backup": self.config["last_monthly_backup"]  
         }
         write_to_config(new_config)
         # update new config!!
@@ -738,17 +778,19 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if retirement_bool:
             # this is sort of sloppy. idk
             self.main_table.setColumnCount(
-                15
+                17
             )  # set the column count to the size of the first data piece
             new_headers = self.default_columns.copy()
             new_headers.append("Retirement Date")
             self.main_table.setHorizontalHeaderLabels(new_headers)
         else:
             self.main_table.setColumnCount(
-                14
+                16
             )  # set the column count to the size of the first data piece
         for row, rowdata in enumerate(data):
             for col, value in enumerate(rowdata):
+                if value is None:
+                    value = "" # cleaner interface tbh
                 item = InvisManItem(str(value))
                 if col == 11:
                     if value == None: # now stored as null instead of empty string
@@ -871,8 +913,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     def check_data_and_insert(
         self,
     ):  # either inserts or updtes based on uuid field presence
+        if self.insert_is_loaned_out_checkbox.isChecked():
+            loan_date = self.insert_date_loaned_date.text()
+            return_date = self.insert_date_returned_date.text()
+        else:
+            loan_date, return_date = None, None
         if self.insert_active_uuid == "":
-
             obj = create_inventory_object(
                 self.insert_asset_type_combobox.currentText(),
                 self.insert_manufacturer_combobox.currentText(),
@@ -889,11 +935,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.insert_notes_text.toPlainText(),
                 self.insert_status_bool.currentText(),
                 self.insert_is_local_checkbox.isChecked(),
+                loan_date,
+                return_date
             )
             new_entry(self.connection, obj)
         else:
             # we are updating an existing entry! (since the uuid string was set)
-            print("EISITIGNG!")
             obj = InventoryObject(
                 self.insert_asset_type_combobox.currentText(),
                 self.insert_manufacturer_combobox.currentText(),
@@ -910,13 +957,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.insert_notes_text.toPlainText(),
                 self.insert_is_local_checkbox.isChecked(),
                 self.insert_status_bool.currentText(),
+                loan_date,
+                return_date,
                 self.insert_active_uuid
+                
             )
             update_full_obj(self.connection, obj)
         self.set_insert_data_to_default()
         if self.config["switch_view_on_insert"] is True:
             self.swap_to_window(0)
-        print("HIT!!!")
         # intentional choice here to not update the graphs, seems too expensive to call each time, and to see if data was even changed
         # from the current view.
         self.refresh_table()
@@ -953,6 +1002,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_asset_category_combobox.setDisabled(False)
         self.insert_deployment_date_fmt.setDisabled(False)
         self.insert_is_local_checkbox.setChecked(False)
+        self.insert_is_loaned_out_checkbox.setChecked(False)
+        self.insert_date_loaned_date.setDate(today)
+        self.insert_date_returned_date.setDate(today)
 
     def set_table_size_and_headers(self, headers: list[str]):  # only called on startup
         # kept sort of abigious since headers can be changed. if it was always all the headers it could be hardcoded
@@ -1074,6 +1126,16 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.insert_serial_is_unique_button.setEnabled(False)
             self.insert_serial_is_unique_button.setText("Unique")
 
+    def name_input_typed(self):
+        name_str = self.insert_name_text.text().lower()
+        da_list = fetch_all_name(self.connection)
+        if name_str == "":
+            self.insert_name_status_label.setText("Empty name")
+        elif name_str in da_list:
+            self.insert_name_status_label.setText("Name Exists")
+        else:
+            self.insert_name_status_label.setText("Name Unique")
+
     def model_input_typed(self):
         # tries to derive other information from the model
         # im not really sure if this should be hardcoded, or something that you can edit...?
@@ -1171,6 +1233,20 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                     self.extra_table.setItem(row_num, 7, item)
         self.extra_table.setSortingEnabled(True)
 
+    def handle_backup_callback(self, backup_state):
+        # backup_state can be: d, w, m, None
+        # this function receives a pysignal from db\backup.py denoting if anything was backed up, and we will update the cache for last backup
+        today = str(datetime.today().date())
+        if backup_state == "m": # monthly
+            self.config["last_monthly_backup"] = today
+        elif backup_state == "w": # weekly
+            self.config["last_weekly_backup"] = today
+        else: # we are returning a date, which is when the daily backup was taken
+            # replace the oldest date with today (oldest is backup_state, remember?). also list comph goated
+            x = [today if item == backup_state else item for item in self.config["last_daily_backup"]]
+            self.config["last_daily_backup"] = x
+                
+
     def intune_filedialog(self):
         filedia = QFileDialog(self)
         filedia.setFileMode(QFileDialog.FileMode.AnyFile)
@@ -1178,6 +1254,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         if path is not None and path != "":
             print(path[0].fileName())
             self.reports_utilities_intune_file_path.setText(path[0].toLocalFile())
+            
+    def intune_import_filedialog(self):
+        filedia = QFileDialog(self)
+        filedia.setFileMode(QFileDialog.FileMode.AnyFile)
+        path = filedia.getOpenFileUrl(self)
+        if path is not None and path != "":
+            print(path[0].fileName())
+            self.reports_utilities_import_intune_text.setText(path[0].toLocalFile())
 
     def refresh_table(self):
         # this will refresh the table from database
