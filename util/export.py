@@ -10,17 +10,19 @@ from openpyxl.formatting.rule import CellIsRule
 import csv
 import sqlite3
 import datetime
-from db.fetch import fetch_all, fetch_from_date_range
 from util.data_types import InventoryObject
 from db.fetch import (
+    fetch_all_for_backup,
+    fetch_from_date_range,
     fetch_active_assets,
-    fetch_all_enabled,
     fetch_obj_from_retired,
     fetch_obj_from_loc,
     fetch_retired_assets,
     fetch_changed_assets,
     fetch_from_date_range,
-    fetch_all_normal
+    fetch_all_normal,
+    fetch_by_loaned_date,
+    fetch_all_loaned
 )
 import datetime
 import dateutil.relativedelta
@@ -46,7 +48,9 @@ export_columns = [
     "Replacement Date",
     # retirement date would go here...
     "Notes",
-    "Clouded or Local"
+    "Clouded or Local",
+    "Date loaned",
+    "Date to return"
 ]
 
 
@@ -110,7 +114,7 @@ def write_iter_into_csv(columns, iterable, filename: str):
 
 def write_iter_into_excel(columns, iterable, filename: str):
     wb = openpyxl.Workbook()
-    letter_list = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o"]
+    letter_list = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q"]
     print(f'len of columns:{len(columns), columns}')
     # not entire sure why -1 is needed ngl...
     row_length_to_letter = letter_list[len(columns) -1]
@@ -205,13 +209,25 @@ def export_date_range(self, csv: bool, dir, time_stamp, start_date, end_date):
 
 def export_all(self, csv: bool, dir, time_stamp):
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
-    data = fetch_all_normal(self.connection)
+    data = fetch_all_for_backup(self.connection)
+    columns = export_columns[:-2] + ["Retirement Date", "Notes", "Local or Clouded", "uniqueid"]
     file = f'{dir}ALL-ASSETS_{time_stamp}{csv_or_xlsx_str}'
     if csv:
-        write_iter_into_csv(export_columns, data, file)
-    else:  # excel export :D
-        write_iter_into_excel(export_columns, data, file)
+        write_iter_into_csv(columns, data, file)
+    else:  
+        write_iter_into_excel(columns, data, file)
     open_explorer_at_file(self, file)
+
+def export_extra_intune_data(self, csv, dir, time_stamp, data): # data is of 'IntuneObj' type (util\intune_import.py)
+    csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
+    columns = ["Name", "Serial Number", "Manufacturer", "Model", "User", "Deployment Date", "Replacementdate"]
+    file = f'{dir}INTUNE_EXTRAS_{time_stamp}{csv_or_xlsx_str}'
+    if csv:
+        write_iter_into_csv(columns, data, file)
+    else:  
+        write_iter_into_excel(columns, data, file)
+    open_explorer_at_file(self, file)
+
 
 def compare_intune_and_invisman(self):
     intune_file = self.reports_utilities_intune_file_path.text()
@@ -383,3 +399,23 @@ def compare_ip_to_site_and_invisman(self):
     # so we will filter columns that don't have the "Endpoint Name" or "IP" column, we only want those ones...
     pass
 
+def export_by_return_date(self, csv: bool, dir, time_stamp, date_start, date_end):
+    csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
+    file = f"{dir}by_return_date_range{time_stamp}{csv_or_xlsx_str}"
+    data = fetch_by_loaned_date(self.connection, date_start, date_end)
+    if csv:
+        write_iter_into_csv(export_columns, data, file)
+    else:  # excel export :D
+        write_iter_into_excel(export_columns, data, file)
+    open_explorer_at_file(self, file)
+
+def export_all_return_date(self, csv: bool, dir, time_stamp):
+    csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
+    file = f"{dir}by_return_date{time_stamp}{csv_or_xlsx_str}"
+    data = fetch_all_loaned(self.connection)
+    if csv:
+        write_iter_into_csv(export_columns, data, file)
+    else:  # excel export :D
+        write_iter_into_excel(export_columns, data, file)
+    open_explorer_at_file(self, file)
+    

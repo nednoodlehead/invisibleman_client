@@ -23,7 +23,9 @@ class InventoryObject:
         notes: str,
         is_local: bool,
         status: bool,
-        uniqueid: str,
+        loandate: datetime.date | None,
+        returndate: datetime.date | None,
+        uniqueid: str
     ):
         self.assettype = assettype
         self.manufacturer = manufacturer
@@ -41,6 +43,8 @@ class InventoryObject:
         self.is_local = is_local
         self.status = status
         self.uniqueid = uniqueid  # uuid-4 for the device
+        self.loandate = loandate
+        self.returndate = returndate
 
     def __iter__(self):
         yield self.assettype
@@ -58,6 +62,8 @@ class InventoryObject:
         yield self.notes  # other notes about the ite
         yield self.is_local
         yield self.status
+        yield self.loandate
+        yield self.returndate
         yield self.uniqueid  # uuid-4 for the devic
 
     def __str__(self):
@@ -82,7 +88,9 @@ def create_inventory_object(
     retirementdate: datetime.date | None,
     notes: str,
     status: str,  # active | retired
-    is_local: bool
+    is_local: bool,
+    loandate: datetime.date | None,
+    returndate: datetime.date | None,
 ) -> InventoryObject:
     # with open(".\\volatile\\assetcategory.json") as f:  # what was the purpose of this ..?
     #     raw_json = json.load(f)
@@ -101,9 +109,11 @@ def create_inventory_object(
         replacementdate,
         retirementdate,
         notes,
+        is_local,
         False if status.lower() == "active" else True,
-        id,
-        is_local
+        loandate,
+        returndate,
+        id
     )
 
 
@@ -126,6 +136,8 @@ class TableObject:
         notes: str,
         is_local: bool,
         status: bool,
+        loandate: datetime.date | None,
+        returndate: datetime.date | None,
         uniqueid: str,  # not displayed, kept as hidden column
         
     ):
@@ -144,6 +156,8 @@ class TableObject:
         self.notes = notes
         self.is_local = is_local
         self.status = status
+        self.loandate = loandate
+        self.returndate = returndate
         self.uniqueid = uniqueid
 
     def __iter__(self):
@@ -160,6 +174,8 @@ class TableObject:
         yield self.replacementdate
         yield self.notes
         yield self.is_local
+        yield self.loandate
+        yield self.returndate
         # yield self.status <- this messed with right click -> 'update' pulling 'None'
         yield self.uniqueid
         # makes it so active assets have an empty cell under "retirement date"
@@ -167,7 +183,7 @@ class TableObject:
         yield "" if not self.retirementdate else self.retirementdate
 
     def __len__(self):
-        return 15
+        return 17
 
     def __str__(self):
         return f"table_Object: {self.name, self.assignedto} uuid: {self.uniqueid}"
