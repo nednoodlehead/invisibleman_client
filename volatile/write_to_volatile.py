@@ -13,7 +13,11 @@ authoriative_json = {
     "top_graph_type": "Line",
     "top_graph_data": "Manufacturer",
     "invisman_ip": "192.168.1.1",
-    "switch_view_on_insert": True
+    "switch_view_on_insert": True,
+    "opt_in_backup": False,
+    "last_daily_backup": ["2001-01-01", "2001-01-02", "2001-01-03"],
+    "last_weekly_backup": "2001-01-01",
+    "last_monthly_backup": "2001-01-01"
 }
 
 default_json = {
@@ -24,13 +28,15 @@ default_json = {
         "Model": True,
         "Cost": True,
         "Assigned To": True,
-        "Name": True,
+        "Device Name": True,
         "Asset Location": True,
         "Asset Category": True,
         "Deployment Date": True,
         "Replacement Date": True,
         "Notes": True,
-        "Clouded or local": True
+        "Clouded or local": True,
+        "Loan Date": True,
+        "Return Date": True
     },
     "dark_mode": True,
     "backup_path": "c:/",
@@ -39,7 +45,11 @@ default_json = {
     "top_graph_type": "Line",
     "top_graph_data": "Manufacturer",
     "invisman_ip": "192.168.1.1",
-    "switch_view_on_insert": True
+    "switch_view_on_insert": True,
+    "opt_in_backup": False, # if the user wants to consent to backups on their device
+    "last_daily_backup": ["2001-01-01", "2001-01-02", "2001-01-03"],
+    "last_weekly_backup": "2001-01-01",
+    "last_monthly_backup": "2001-01-01"
 }
 
 
@@ -64,13 +74,10 @@ def add_to_type_or_location(conn, new: str, type_or_loc: str):
 
 
 def read_from_config() -> dict:
-    """
-    "ham_menu_status" & "checkboxes"
-    """
     try:
         with open("./volatile/config.json", "r") as f:
             raw = json.load(f)
-    except FileNotFoundError:
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
         with open("./volatile.config.json", "w") as f:
             f.write(json.dumps(default_json, indent=4))
             return default_json
@@ -78,8 +85,6 @@ def read_from_config() -> dict:
         if key not in raw.keys():
             print(f"missing {key}, inserting...")
             raw[key] = val
-            
-        
     return raw
 
 
