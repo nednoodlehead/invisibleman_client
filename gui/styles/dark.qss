@@ -47,6 +47,10 @@ QFrame#reports_export_frame {
 	border: 1px solid white;
 	border-radius: 15px;
 }
+.divider {
+	border: 1px solid white;
+	border-radius: 15px;
+}
 
 QFrame#reports_utilities_frame {
 	border: 1px solid white;
