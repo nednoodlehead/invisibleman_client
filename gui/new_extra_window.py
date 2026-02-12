@@ -79,7 +79,6 @@ class ExtraWindow(QWidget):
                 self.uuid
             )  # notes are found here so when updating with new notes, the button returns the right data
             self.item_name_text.setText(to_change[0])
-            print(to_change)
             self.manufacturer_text.setText(to_change[1])
             self.amount_number.setValue(int(to_change[2]))
             self.low_amount_number.setValue(int(to_change[3]))
