@@ -444,6 +444,32 @@
                  <string>Is Local</string>
                 </property>
                </widget>
+               <widget class="QCheckBox" name="checkbox_date_loaned">
+                <property name="geometry">
+                 <rect>
+                  <x>670</x>
+                  <y>10</y>
+                  <width>91</width>
+                  <height>16</height>
+                 </rect>
+                </property>
+                <property name="text">
+                 <string>Date Loaned</string>
+                </property>
+               </widget>
+               <widget class="QCheckBox" name="checkbox_date_to_return">
+                <property name="geometry">
+                 <rect>
+                  <x>670</x>
+                  <y>30</y>
+                  <width>101</width>
+                  <height>17</height>
+                 </rect>
+                </property>
+                <property name="text">
+                 <string>Date to return</string>
+                </property>
+               </widget>
               </widget>
              </item>
             </layout>
@@ -634,9 +660,9 @@
              <property name="geometry">
               <rect>
                <x>140</x>
-               <y>400</y>
+               <y>394</y>
                <width>91</width>
-               <height>16</height>
+               <height>14</height>
               </rect>
              </property>
              <property name="text">
@@ -647,7 +673,7 @@
              <property name="geometry">
               <rect>
                <x>140</x>
-               <y>430</y>
+               <y>410</y>
                <width>110</width>
                <height>22</height>
               </rect>
@@ -657,7 +683,7 @@
              <property name="geometry">
               <rect>
                <x>140</x>
-               <y>470</y>
+               <y>450</y>
                <width>110</width>
                <height>22</height>
               </rect>
@@ -709,6 +735,9 @@
               </property>
               <property name="text">
                <string>Retirement Date</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
              </widget>
             </widget>
@@ -970,7 +999,7 @@
              <property name="geometry">
               <rect>
                <x>30</x>
-               <y>430</y>
+               <y>410</y>
                <width>101</width>
                <height>20</height>
               </rect>
@@ -995,7 +1024,7 @@
              <property name="geometry">
               <rect>
                <x>20</x>
-               <y>470</y>
+               <y>450</y>
                <width>111</width>
                <height>20</height>
               </rect>
@@ -1077,6 +1106,122 @@
              </property>
              <property name="text">
               <string/>
+             </property>
+            </widget>
+            <widget class="QLabel" name="insert_name_status_label">
+             <property name="geometry">
+              <rect>
+               <x>270</x>
+               <y>310</y>
+               <width>91</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Name is empty</string>
+             </property>
+            </widget>
+            <widget class="QFrame" name="insert_conditional_loan_frame">
+             <property name="geometry">
+              <rect>
+               <x>270</x>
+               <y>429</y>
+               <width>241</width>
+               <height>71</height>
+              </rect>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <widget class="QDateEdit" name="insert_date_returned_date">
+              <property name="geometry">
+               <rect>
+                <x>110</x>
+                <y>40</y>
+                <width>110</width>
+                <height>22</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QDateEdit" name="insert_date_loaned_date">
+              <property name="geometry">
+               <rect>
+                <x>110</x>
+                <y>10</y>
+                <width>110</width>
+                <height>22</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_18">
+              <property name="geometry">
+               <rect>
+                <x>30</x>
+                <y>10</y>
+                <width>71</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Date Loaned</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_19">
+              <property name="geometry">
+               <rect>
+                <x>30</x>
+                <y>40</y>
+                <width>71</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Date to return</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </widget>
+            <widget class="QCheckBox" name="insert_is_loaned_out_checkbox">
+             <property name="geometry">
+              <rect>
+               <x>140</x>
+               <y>490</y>
+               <width>16</width>
+               <height>17</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>CheckBox</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="insert_is_loaned_out_label">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>490</y>
+               <width>111</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="font">
+              <font>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Is loaned out</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </widget>
@@ -1437,7 +1582,7 @@
                <rect>
                 <x>0</x>
                 <y>60</y>
-                <width>341</width>
+                <width>350</width>
                 <height>2</height>
                </rect>
               </property>
@@ -1446,6 +1591,9 @@
               </property>
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
+              </property>
+              <property name="class" stdset="0">
+               <string>divider</string>
               </property>
              </widget>
              <widget class="QFrame" name="frame_3">
@@ -1453,8 +1601,8 @@
                <rect>
                 <x>0</x>
                 <y>130</y>
-                <width>341</width>
-                <height>2</height>
+                <width>350</width>
+                <height>1</height>
                </rect>
               </property>
               <property name="frameShape">
@@ -1462,15 +1610,18 @@
               </property>
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
+              </property>
+              <property name="class" stdset="0">
+               <string>divider</string>
               </property>
              </widget>
              <widget class="QFrame" name="frame_4">
               <property name="geometry">
                <rect>
-                <x>10</x>
+                <x>0</x>
                 <y>190</y>
-                <width>341</width>
-                <height>2</height>
+                <width>350</width>
+                <height>1</height>
                </rect>
               </property>
               <property name="frameShape">
@@ -1478,6 +1629,9 @@
               </property>
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
+              </property>
+              <property name="class" stdset="0">
+               <string>divider</string>
               </property>
              </widget>
              <widget class="QFrame" name="frame_5">
@@ -1485,8 +1639,8 @@
                <rect>
                 <x>0</x>
                 <y>250</y>
-                <width>341</width>
-                <height>2</height>
+                <width>350</width>
+                <height>1</height>
                </rect>
               </property>
               <property name="frameShape">
@@ -1494,6 +1648,9 @@
               </property>
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
+              </property>
+              <property name="class" stdset="0">
+               <string>divider</string>
               </property>
              </widget>
              <widget class="QComboBox" name="reports_export_location_combobox">
@@ -1550,7 +1707,7 @@
                <rect>
                 <x>0</x>
                 <y>320</y>
-                <width>341</width>
+                <width>350</width>
                 <height>2</height>
                </rect>
               </property>
@@ -1559,6 +1716,9 @@
               </property>
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
+              </property>
+              <property name="class" stdset="0">
+               <string>divider</string>
               </property>
              </widget>
              <widget class="QCheckBox" name="reports_export_include_overdue_checkbox">
@@ -1579,7 +1739,7 @@
                <rect>
                 <x>0</x>
                 <y>450</y>
-                <width>351</width>
+                <width>350</width>
                 <height>1</height>
                </rect>
               </property>
@@ -1588,6 +1748,9 @@
               </property>
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
+              </property>
+              <property name="class" stdset="0">
+               <string>divider</string>
               </property>
              </widget>
              <widget class="QRadioButton" name="reports_export_export_changed_radio">
@@ -1675,7 +1838,7 @@
                <bool>true</bool>
               </property>
              </widget>
-             <widget class="QCheckBox" name="checkBox">
+             <widget class="QCheckBox" name="reports_export_include_unknown_date_checkbox">
               <property name="geometry">
                <rect>
                 <x>90</x>
@@ -1691,8 +1854,8 @@
              <widget class="QRadioButton" name="reports_export_all_radio">
               <property name="geometry">
                <rect>
-                <x>20</x>
-                <y>470</y>
+                <x>10</x>
+                <y>570</y>
                 <width>121</width>
                 <height>17</height>
                </rect>
@@ -1700,6 +1863,124 @@
               <property name="text">
                <string>Export All (backup)</string>
               </property>
+             </widget>
+             <widget class="QFrame" name="frame_12">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>550</y>
+                <width>350</width>
+                <height>1</height>
+               </rect>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <property name="class" stdset="0">
+               <string>divider</string>
+              </property>
+             </widget>
+             <widget class="QRadioButton" name="export_loaned_devices_radio">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>460</y>
+                <width>131</width>
+                <height>17</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Export loaned devices</string>
+              </property>
+             </widget>
+             <widget class="QFrame" name="export_loaned_devices_subframe">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>480</y>
+                <width>321</width>
+                <height>61</height>
+               </rect>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <widget class="QDateEdit" name="export_export_loaned_range_start_date">
+               <property name="geometry">
+                <rect>
+                 <x>93</x>
+                 <y>8</y>
+                 <width>93</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <kerning>true</kerning>
+                </font>
+               </property>
+               <property name="calendarPopup">
+                <bool>true</bool>
+               </property>
+              </widget>
+              <widget class="QRadioButton" name="export_export_loaned_device_range_radio">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>10</y>
+                 <width>78</width>
+                 <height>17</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Date Range</string>
+               </property>
+              </widget>
+              <widget class="QRadioButton" name="export_export_loaned_all_radio">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>40</y>
+                 <width>82</width>
+                 <height>17</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>All</string>
+               </property>
+              </widget>
+              <widget class="QDateEdit" name="export_export_loaned_range_end_date">
+               <property name="geometry">
+                <rect>
+                 <x>220</x>
+                 <y>8</y>
+                 <width>94</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <property name="calendarPopup">
+                <bool>true</bool>
+               </property>
+              </widget>
+              <widget class="QLabel" name="label_20">
+               <property name="geometry">
+                <rect>
+                 <x>190</x>
+                 <y>10</y>
+                 <width>21</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Until</string>
+               </property>
+              </widget>
              </widget>
             </widget>
             <widget class="QFrame" name="reports_utilities_frame">
@@ -1731,6 +2012,9 @@
               </property>
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
+              </property>
+              <property name="class" stdset="0">
+               <string>divider</string>
               </property>
              </widget>
              <widget class="QLabel" name="label_14">
@@ -1778,6 +2062,9 @@
               </property>
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
+              </property>
+              <property name="class" stdset="0">
+               <string>divider</string>
               </property>
              </widget>
              <widget class="QPushButton" name="reports_utilities_compare_intune_file_dialog">
@@ -1854,6 +2141,9 @@
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
               </property>
+              <property name="class" stdset="0">
+               <string>divider</string>
+              </property>
              </widget>
              <widget class="QPushButton" name="reports_utilities_intune_run_button">
               <property name="geometry">
@@ -1868,7 +2158,7 @@
                <string>Run</string>
               </property>
              </widget>
-             <widget class="QPushButton" name="reports_utilities_bitdef_run_button">
+             <widget class="QPushButton" name="reports_utilities_ip_site_button">
               <property name="geometry">
                <rect>
                 <x>360</x>
@@ -1879,6 +2169,55 @@
               </property>
               <property name="text">
                <string>Run</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_17">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>180</y>
+                <width>111</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Import Intune</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="reports_utilities_import_intune_text">
+              <property name="geometry">
+               <rect>
+                <x>150</x>
+                <y>180</y>
+                <width>161</width>
+                <height>20</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="reports_utilities_import_intune_button">
+              <property name="geometry">
+               <rect>
+                <x>360</x>
+                <y>180</y>
+                <width>41</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Run</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="reports_utilities_import_intune_dialog">
+              <property name="geometry">
+               <rect>
+                <x>310</x>
+                <y>180</y>
+                <width>31</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>..</string>
               </property>
              </widget>
             </widget>
@@ -1952,6 +2291,11 @@
                <width>241</width>
                <height>191</height>
               </rect>
+             </property>
+             <property name="font">
+              <font>
+               <kerning>false</kerning>
+              </font>
              </property>
              <property name="text">
               <string/>
@@ -2122,7 +2466,7 @@
              <property name="geometry">
               <rect>
                <x>230</x>
-               <y>180</y>
+               <y>170</y>
                <width>21</width>
                <height>17</height>
               </rect>
@@ -2135,7 +2479,7 @@
              <property name="geometry">
               <rect>
                <x>80</x>
-               <y>180</y>
+               <y>170</y>
                <width>141</width>
                <height>16</height>
               </rect>
@@ -2270,6 +2614,32 @@
              </property>
              <property name="text">
               <string>Password: . . . . . . . . . . . . . . . Passphrase for the private key</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="settings_enable_backups_label">
+             <property name="geometry">
+              <rect>
+               <x>70</x>
+               <y>190</y>
+               <width>151</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Enable automatic local backups</string>
+             </property>
+            </widget>
+            <widget class="QCheckBox" name="settings_enable_backups_checkbox">
+             <property name="geometry">
+              <rect>
+               <x>230</x>
+               <y>190</y>
+               <width>16</width>
+               <height>17</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string/>
              </property>
             </widget>
            </widget>

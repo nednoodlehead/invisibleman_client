@@ -36,11 +36,13 @@ def backup_invisman(dir, conn, daily_backup, weekly_backup, monthly_backup):
     # sleep(60)
     # we will attempt each type of backup. if one succeds, we will not do another (what would be the point?)
     # starting with the monthly -> weekly -> daily
-    today = datetime.today()
+    today = datetime.today().date()
     monthly = datetime.strptime(monthly_backup, "%Y-%m-%d")
     weekly = datetime.strptime(weekly_backup, "%Y-%m-%d")
     dailies = [datetime.strptime(i, "%Y-%m-%d").date() for i in daily_backup]
     when_backedup = None # the receiving functions will check if none, otherwise set config[when_backedup] = datetime.today()
+    if today in dailies:
+        return
     delete_oldest_daily(dir, min(dailies))
     try:
         if monthly < (today - timedelta(weeks=4)): # 4 weeks is a month idc
