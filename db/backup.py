@@ -45,10 +45,10 @@ def backup_invisman(dir, conn, daily_backup, weekly_backup, monthly_backup):
         return
     delete_oldest_daily(dir, min(dailies))
     try:
-        if monthly < (today - timedelta(weeks=4)): # 4 weeks is a month idc
+        if monthly.date() < (today - timedelta(weeks=4)): # 4 weeks is a month idc
             make_and_write_backup(f"{dir}./invisman-monthly.csv", conn)
             when_backedup = "m"
-        elif weekly < (today - timedelta(days=7)):
+        elif weekly.date() < (today - timedelta(days=7)):
             make_and_write_backup(f"{dir}./invisman-weekly.csv", conn)
             when_backedup = "w"
         else:
