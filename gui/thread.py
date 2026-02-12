@@ -31,7 +31,11 @@ class PostgresListen(QThread):
         # yeah this should probably not be the name of the channel :sob:
         self.cursor.execute('LISTEN "new update just dropped";') # tbh i dont love the semicolons. also refresh_trigger is the name of the trigger we WILL make.
         while self.running:
-            self.connection.poll()
+            try:
+                self.connection.poll()
+            except psycopg2.InterfaceError:
+                # sometimes gets triggered when a manual close down of the app happens, just make this clean...
+                break
             if self.connection.notifies:
                 if self.countdown == 0:
                     self.notifier.emit("yadda yadaa")
