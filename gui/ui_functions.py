@@ -7,24 +7,23 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QMessageBox,
     QMenu,
-    QTableWidget,
     QCheckBox,
-    QAction,
-    QStyleFactory,
     QFileDialog,
+    QCalendarWidget
 )
 from PyQt5.QtCore import QDate, Qt, QDate, QFile, QTextStream, QRect, pyqtSignal, QThread
 from PyQt5.QtGui import QCursor, QPainter, QColor, QTextCharFormat
 from util.data_types import InventoryObject, TableObject, create_inventory_object
 from util.db_util import patch_dates
 from util.export import export_active, export_changed, export_retired, export_loc, export_replacementdate, export_date_range, export_by_return_date, export_all_return_date
-from db.fetch import fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial, fetch_all_extras, fetch_from_date_range, fetch_all_for_backup, fetch_all_name
+from db.fetch import (fetch_all, fetch_all_enabled_for_table, fetch_from_uuid_to_update, fetch_all_for_table, fetch_all_serial, fetch_by_serial,
+    fetch_all_extras, fetch_from_date_range, fetch_all_for_backup, fetch_all_name, fetch_by_year)
 from db.insert import new_entry
 from db.update import increase_extra_by_one, update_full_obj, delete_from_uuid, retire_from_uuid, unretire_from_uuid, decrease_extra_by_one, increase_extra_by_one
 from db.backup import BackupThread, backup_invisman
 from gui.notes_window import NotesWindow
 from gui.export_graph_window import ExportGraph
-from gui.settings import dark_light_mode_switch, set_dark
+from gui.settings import dark_light_mode_switch, set_dark, set_light
 from util.export import create_backup, compare_intune_and_invisman, compare_ip_to_site_and_invisman, export_all
 from volatile.write_to_volatile import write_to_config, read_from_config
 from data.visualization import DataCanvas
@@ -76,6 +75,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.new_extra_window = None
         self.insert_active_uuid = ""  # this is our variable for knowing if we are
         # editing an entry, or adding a new one. depends if it is empty string, or uuid4
+        self.today = QDate.currentDate() # try to save on calling this a thousand times lol
+        self.calendar_data = {} # this holds the data gathered from self.handle_and_refresh_analytics_calendars for one given year
         self.default_columns = [
             "Asset Type",
             "Manufacturer",
@@ -106,6 +107,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # https://stackoverflow.com/questions/6785481/how-to-implement-a-filter-option-in-qtablewidget
         # the concept is that QTableWidget has a built-in model, and a QTableView does not, so you can edit it
         # ui functions
+        self.calendarWidget.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
         self.filter_user_text.returnPressed.connect(self.handle_filter_request)
         if self.connection: # this is when the connection is made successfully!
             self.force_json_sync(self.connection)
@@ -120,6 +122,12 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 # thr.run = lambda:)
                 thr.send_res.connect(self.handle_backup_callback)
                 thr.start()
+        # initialize the buttons for the calendar
+        for count, button in enumerate([self.analytics_month_button_jan, self.analytics_month_button_feb, self.analytics_month_button_mar, self.analytics_month_button_apr, self.analytics_month_button_may,
+                        self.analytics_month_button_jun, self.analytics_month_button_jul, self.analytics_month_button_aug, self.analytics_month_button_sep, self.analytics_month_button_oct,
+                        self.analytics_month_button_nov, self.analytics_month_button_dec]):
+            # funny little *_ to ignore the pyqt5 boolean being passed through
+            button.clicked.connect(lambda *_, x=count: self.update_calendar_from_selected_month(x + 1)) 
         self.ham_button_insert.clicked.connect(lambda: self.swap_to_window(1))
         self.ham_button_view.clicked.connect(lambda: self.swap_to_window(0))
         self.ham_button_analytics.clicked.connect(lambda: self.swap_to_window(2))
@@ -129,9 +137,9 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_asset_category_combobox.currentIndexChanged.connect(
             self.update_replacement_date
         )
-        self.insert_conditional_retirement_date_fmt.setDate(QDate.currentDate())
-        self.insert_date_loaned_date.setDate(QDate.currentDate())
-        self.insert_date_returned_date.setDate(QDate.currentDate()) # just today i guess?
+        self.insert_conditional_retirement_date_fmt.setDate(self.today)
+        self.insert_date_loaned_date.setDate(self.today)
+        self.insert_date_returned_date.setDate(self.today) # just today i guess?
         self.insert_insert_button.clicked.connect(self.check_data_and_insert)
         self.insert_clear_selections_button.clicked.connect(
             self.set_insert_data_to_default
@@ -149,10 +157,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_deployment_date_fmt.setDisplayFormat(
             "yyyy-MM-dd"
         )  # thanks qt5 for randomly changing the default display format... commi #108
-        self.reports_export_by_date_from.setDate(QDate.currentDate())
-        self.reports_export_by_date_until.setDate(QDate.currentDate())
-        self.export_export_loaned_range_start_date.setDate(QDate.currentDate())
-        self.export_export_loaned_range_end_date.setDate(QDate.currentDate())
+        self.reports_export_by_date_from.setDate(self.today)
+        self.reports_export_by_date_until.setDate(self.today)
+        self.export_export_loaned_range_start_date.setDate(self.today)
+        self.export_export_loaned_range_end_date.setDate(self.today)
         self.export_file_dialog_button.clicked.connect(self.open_report_file_dialog)
         self.settings_file_dialog_button.clicked.connect(self.open_settings_file_dialog)
         self.insert_replacement_date_fmt.setDisplayFormat("yyyy-MM-dd")
@@ -166,9 +174,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.analytics_export_top_button.clicked.connect(
             lambda: self.export_graph(True)
         )
-        self.analytics_update_top_view_button.clicked.connect(
-            self.update_analytics_top_graph
-        )
         # allow us to reach settings
         self.settings_darkmode_checkbox.clicked.connect(
             lambda: dark_light_mode_switch(
@@ -180,11 +185,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.settings_darkmode_checkbox.setChecked(True)
             set_dark(self)
         else:
-            self.setStyleSheet(
-                "QFrame#reports_export_frame{border: 1px solid black;\nborder-radius: 15px;}"
-                "QFrame#reports_utilities_frame{border: 1px solid black;\nborder-radius: 15px;}"
-                
-            )
+            set_light(self)
         if self.config["opt_in_backup"]:
             self.settings_enable_backups_checkbox.setChecked(True)
         if self.config["auto_open_report_on_create"] is True:
@@ -231,8 +232,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.insert_status_bool.addItems(["Active", "Retired"])
         # thr possible? might be quicker to load "non-visible by defualt" content on sep thread
         # should we get the current date...? more effecticnt?
-        self.insert_deployment_date_fmt.setDate(QDate.currentDate())
-        self.insert_replacement_date_fmt.setDate(QDate.currentDate())
+        self.insert_deployment_date_fmt.setDate(self.today)
+        self.insert_replacement_date_fmt.setDate(self.today)
         self.insert_cost_spinbox.setMaximum(99999.99)
         # leave the insert_replacement_date_fmt for when the user selects the hardware type
         self.insert_asset_category_add_option.clicked.connect(
@@ -313,6 +314,10 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.analytics_field_combobox_top.currentText(),
             )
         )
+        self.analytics_year_positive.clicked.connect(lambda: self.handle_and_refresh_analytics_calendars(False))
+        self.analytics_year_negative.clicked.connect(lambda: self.handle_and_refresh_analytics_calendars(True))
+        self.analytics_year_input.setText(str(self.today.year()))
+        self.analytics_year_input.textChanged.connect(self.handle_analytics_text_change)
         self.calendarWidget.clicked[QDate].connect(self.on_calendar_click)
         # configure the serial input to update the button next to it
         self.insert_serial_text.textChanged.connect(self.serial_input_typed)
@@ -330,7 +335,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self.config["top_graph_data"], self.config["top_graph_type"]
             )
             self.analytics_field_combobox_top.setCurrentText(self.config["top_graph_data"])
-            self.update_calendar_colors_from_db()
+            self.handle_and_refresh_analytics_calendars()
             self.settings_update_button.clicked.connect(self.write_config_tell_user)
 
             # postgres thread...
@@ -377,7 +382,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         row = index.row()
         # item will be none if the retirment date row is not shown
         # NEW items need to also update this number below here so the retire / unretire works as expected
-        retirement_option = self.main_table.item(row, 14)
+        retirement_option = self.main_table.item(row, 15)
         menu.addAction(
             "Update",
             lambda: self.try_update_row(
@@ -483,21 +488,110 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         # add commas between numbers...
         # we removed this for now...
         # self.reports_asset_integer_label.setText(f"{total:,.2f}")
+    def change_button_color(self, button, r, g, b):
+        # more abstract functions for changing button colors to be different shades of red. used for the calendar buttons and the month buttons
+        button.setStyleSheet(f"""
+        QPushButton {{
+            background-color: rgb({r}, {g}, {b});
+        }}
+        QPushButton:hover {{
+            background-color: rgb({min(r+30, 255)}, {min(g+30, 255)}, {min(b+30, 255)});
+        }}
+        QPushButton:pressed {{
+            background-color: rgb({max(r-30, 0)}, {max(g-30, 0)}, {max(b-30, 0)});
+        }}
+        """)
 
-    def update_calendar_colors_from_db(self):
-        # should probably thread this...
-        # ok maybe there is some way to create a new cell type, then add that to the stylesheets,
-        # but i think this might require a hack and saw...
-        raw_data = fetch_all(self.connection)
-        mapping = {}
+    def update_month_colors(self):
+        # update the month colors based on the dictionary passed in (gotten from self.handle_and_refresh_analytics_calendars)
+        is_darkmode = self.settings_darkmode_checkbox.isChecked()
+        month_to_button_mapping = {
+        1: self.analytics_month_button_jan,
+        2: self.analytics_month_button_feb,
+        3: self.analytics_month_button_mar,
+        4: self.analytics_month_button_apr,
+        5: self.analytics_month_button_may,
+        6: self.analytics_month_button_jun,
+        7: self.analytics_month_button_jul,
+        8: self.analytics_month_button_aug,
+        9: self.analytics_month_button_sep,
+        10: self.analytics_month_button_oct,
+        11: self.analytics_month_button_nov,
+        12: self.analytics_month_button_dec
+        }
+        print("are we in darkmode:", is_darkmode)
+        for potential_month, button in month_to_button_mapping.items():
+            if potential_month not in self.calendar_data.keys():
+                if is_darkmode:
+                    self.change_button_color(button, 15, 15, 15)
+                else:
+                    self.change_button_color(button, 255, 255, 255)
+            else:
+                dates = self.calendar_data[potential_month]
+                if is_darkmode:
+                    red_val = len(dates) * 3
+                    r,g,b = min(25 + red_val, 255), max(25 - red_val, 0), max(25 - red_val, 0)
+                else: # light mode
+                    red_val = len(dates) * 3
+                    print("handling light mode??", red_val)
+                    r,g,b = 255, 255 - red_val, 255 - red_val
+                self.change_button_color(button, r, g, b)
+                    
+        
+    def handle_and_refresh_analytics_calendars(self, reduce_year=None):
+        # reduce_year is a bool, none or a specific year
+        # true = reduce the visible year by 1
+        # false = increase it by 1
+        # none = keep it the same
+        # when a new year is presented, we call the database to pull just: uuid, replacement_date where year in selected year
+        if reduce_year is None:
+            year = int(self.analytics_year_input.text())
+        elif reduce_year is False:
+            year = int(self.analytics_year_input.text()) + 1
+        elif reduce_year is True:
+            year = int(self.analytics_year_input.text()) - 1
+        elif isinstance(reduce_year, int):
+            year = reduce_year
+        else:
+            raise ValueError(f"HOW DID WE GET HERE? reduce_year should be one of the above values(none, bool, or specific year [eg. 2025]). found {reduce_year, type(reduce_year)} instead")
+        self.analytics_year_input.setText(str(year))
+        self.calendar_data = fetch_by_year(self.connection, year) # remember, this returns a dict!
+        # default month should be present month because the default date is present date!! 
+        # we should be calling self.update_calendar_colors_from_db
+        self.update_month_colors()
+            
+    def handle_analytics_text_change(self, new_text):
+        # this is called anytime the self.analyitcs_year_input changes, it will try to filter for actual years (2000-2100) and will only do something when
+        # the string inside matches that
+        try:
+            x = int(new_text)
+        except ValueError:
+            return
+        if x > 2000 and x < 2100:
+            self.handle_and_refresh_analytics_calendars(x)
+    
+    def update_calendar_from_selected_month(self, month_num: int):
+        # month_num is 1:12
+        try:
+            dates_in_month = self.calendar_data[month_num]
+        except KeyError:
+        # if there is nothing in that month...
+            return
+        try:
+            year_try = int(self.analytics_year_input.text())
+        except ValueError:
+            self.display_message("Error!", f"The year analytic's year is not valid: {self.analytics_year_input.text()}")
+            return
+        self.calendarWidget.setCurrentPage(year_try, month_num)
         dark = self.settings_darkmode_checkbox.isChecked()
         increment = 35 if dark else -35
+        mapping = {}
         # different colors for dark vs light mode..
         default_color = (70, 0, 0) if dark else (255, 200, 200)
-        for obj in raw_data:
+        for date in dates_in_month:
+            date = QDate.fromString(str(date), "yyyy-MM-dd") # turn datetime.date into string
             # i think that if a max color falls on a weekend, it will be hard to read...
             # TODO unnecessary type cast? probs a better functions to use from QDate
-            date = QDate.fromString(str(obj.replacementdate), "yyyy-MM-dd")
             if date not in mapping.keys():
                 mapping[date] = QColor(*default_color)
             else:
@@ -972,7 +1066,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
     def set_insert_data_to_default(
         self,
     ):  # reset the insert data. Called when clearing page (btn) or inserting / updating
-        today = QDate.currentDate()
+        today = self.today
         # order still persists from pre-revamp. doesnt matter!
         self.insert_serial_text.setText("")
         self.insert_manufacturer_combobox.setCurrentIndex(0)
@@ -1273,3 +1367,4 @@ class MainProgram(QMainWindow, Ui_MainWindow):
          # this will overwrite any filters / views
         if self.filter_user_text.text() != '': # if there is nothing to filter by, don't filter. shrimple as that :shrimp:
             self.handle_filter_request()
+

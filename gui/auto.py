@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'interfaceMRurhf.ui'
+## Form generated from reading UI file 'interfaceQYliIV.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -392,12 +392,9 @@ class Ui_MainWindow(object):
         self.analytics_field_combobox_bottom = QComboBox(self.stacked_analytics)
         self.analytics_field_combobox_bottom.setObjectName(u"analytics_field_combobox_bottom")
         self.analytics_field_combobox_bottom.setGeometry(QRect(100, 110, 111, 22))
-        self.analytics_update_top_view_button = QPushButton(self.stacked_analytics)
-        self.analytics_update_top_view_button.setObjectName(u"analytics_update_top_view_button")
-        self.analytics_update_top_view_button.setGeometry(QRect(120, 260, 75, 23))
         self.analytics_export_top_button = QPushButton(self.stacked_analytics)
         self.analytics_export_top_button.setObjectName(u"analytics_export_top_button")
-        self.analytics_export_top_button.setGeometry(QRect(120, 310, 75, 23))
+        self.analytics_export_top_button.setGeometry(QRect(100, 140, 75, 23))
         self.calendarWidget = QCalendarWidget(self.stacked_analytics)
         self.calendarWidget.setObjectName(u"calendarWidget")
         self.calendarWidget.setGeometry(QRect(610, 370, 441, 271))
@@ -448,18 +445,6 @@ class Ui_MainWindow(object):
         self.analytics_year_negative = QPushButton(self.stacked_analytics)
         self.analytics_year_negative.setObjectName(u"analytics_year_negative")
         self.analytics_year_negative.setGeometry(QRect(354, 370, 41, 23))
-        self.analytics_x_axis_text = QLineEdit(self.stacked_analytics)
-        self.analytics_x_axis_text.setObjectName(u"analytics_x_axis_text")
-        self.analytics_x_axis_text.setGeometry(QRect(100, 170, 113, 20))
-        self.analytics_x_axis_label = QLabel(self.stacked_analytics)
-        self.analytics_x_axis_label.setObjectName(u"analytics_x_axis_label")
-        self.analytics_x_axis_label.setGeometry(QRect(100, 150, 101, 16))
-        self.analytics_y_axis_label = QLabel(self.stacked_analytics)
-        self.analytics_y_axis_label.setObjectName(u"analytics_y_axis_label")
-        self.analytics_y_axis_label.setGeometry(QRect(100, 200, 101, 16))
-        self.analytics_y_axis_text = QLineEdit(self.stacked_analytics)
-        self.analytics_y_axis_text.setObjectName(u"analytics_y_axis_text")
-        self.analytics_y_axis_text.setGeometry(QRect(100, 220, 113, 20))
         self.stackedWidget.addWidget(self.stacked_analytics)
         self.stacked_reports = QWidget()
         self.stacked_reports.setObjectName(u"stacked_reports")
@@ -783,7 +768,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -845,7 +830,6 @@ class Ui_MainWindow(object):
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Date to return", None))
         self.insert_is_loaned_out_checkbox.setText(QCoreApplication.translate("MainWindow", u"CheckBox", None))
         self.insert_is_loaned_out_label.setText(QCoreApplication.translate("MainWindow", u"Is loaned out", None))
-        self.analytics_update_top_view_button.setText(QCoreApplication.translate("MainWindow", u"Upate View", None))
         self.analytics_export_top_button.setText(QCoreApplication.translate("MainWindow", u"Export graph", None))
         self.analytics_month_button_jan.setText(QCoreApplication.translate("MainWindow", u"January", None))
         self.analytics_month_button_feb.setText(QCoreApplication.translate("MainWindow", u"February", None))
@@ -861,8 +845,6 @@ class Ui_MainWindow(object):
         self.analytics_month_button_nov.setText(QCoreApplication.translate("MainWindow", u"November", None))
         self.analytics_year_positive.setText(QCoreApplication.translate("MainWindow", u"-->", None))
         self.analytics_year_negative.setText(QCoreApplication.translate("MainWindow", u"<---", None))
-        self.analytics_x_axis_label.setText(QCoreApplication.translate("MainWindow", u"X Axis Values", None))
-        self.analytics_y_axis_label.setText(QCoreApplication.translate("MainWindow", u"Y Axis Values", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Export", None))
         self.reports_line_1.setProperty("class", QCoreApplication.translate("MainWindow", u"divider", None))
         self.frame_3.setProperty("class", QCoreApplication.translate("MainWindow", u"divider", None))

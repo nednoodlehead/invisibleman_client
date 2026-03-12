@@ -249,3 +249,17 @@ def fetch_all_loaned(conn):
     cur.execute("Select assettype, manufacturer, serial, model, cost, assignedto, name, assetlocation, assetcategory, deploymentdate, replacementdate, notes, CASE WHEN is_local = true THEN 'Local' ELSE 'Clouded' END, loandate, returndate from main where returndate is not null");
     return [x for x in cur.fetchall()]
     
+
+def fetch_by_year(conn, year):
+    ret_dict = {} # will be a dict like: {1: [2025-01-01, 2025-01-29], 2: [2025-02-13, 2025-02-22]} and so on...
+    cur = conn.cursor()
+    cur.execute("select CAST(date_part('month', replacementdate) AS INTEGER), replacementdate from main where date_part('year', replacementdate) = %s", (year,))
+    for x in cur.fetchall():
+        if x[0] not in ret_dict.keys(): # if the month doesn't exist yet
+            ret_dict[x[0]] = [x[1]] 
+        else:
+            ret_dict[x[0]].append(x[1])
+    return ret_dict
+        
+        
+        

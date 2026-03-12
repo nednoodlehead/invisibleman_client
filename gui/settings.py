@@ -14,11 +14,11 @@ def dark_light_mode_switch(
     if is_dark:
         set_dark(self)
     else:
-        self.setStyleSheet(
-            "QFrame#reports_export_frame{border: 1px solid black;\nborder-radius: 15px;}"
-        )  # lol bye bye style sheet
+        set_light(self)
+        # additional style sheets... smh
         # resets it to default bte
-    self.update_calendar_colors_from_db()
+    # somewhat niche scneario updating the colors on the months when the color is switched..
+    self.update_month_colors()
 
 
 def set_dark(self):
@@ -26,3 +26,23 @@ def set_dark(self):
     file.open(QFile.ReadOnly | QFile.Text)
     stream = QTextStream(file)
     self.setStyleSheet(stream.readAll())
+
+def set_light(self):
+    # extra settings for being in light mode..
+    self.setStyleSheet(
+    """
+    QFrame#reports_export_frame {
+        border: 1px solid black;
+        border-radius: 15px;
+    }
+    QFrame#reports_utilities_frame {
+        border: 1px solid black;
+        border-radius: 15px;
+    }
+    QCalendarWidget QAbstractItemView:disabled {
+        color: transparent;
+    }
+    """
+    )  # lol bye bye style sheet
+    self.update_month_colors()
+

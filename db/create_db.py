@@ -60,3 +60,43 @@ So I'd rather recommend just copy pasting the stuff in. it is also how it is bei
 # def create_auditing_trigger_and_function(conn):
     # we don't need to audit the delete functions since there isn't any deleting operations in the database 
     
+
+"""
+create table audit (
+    id serial primary key,
+    uniqueid text REFERENCES main,
+    is_update_function boolean, -- true if it is an update operation, false if it is an insert. delete does not exist and will not be tracked
+    user text CURRENT_USER,
+    changed_at timestamp CURRENT_TIMESTAMP,
+    changed json,
+)
+
+create or replace function audit_trigger_func()
+returns trigger as $$
+declare
+changed_json JSON := '{}'::JSON;
+key TEXT;
+old_val JSON;
+new_val JSON;
+begin
+if TG_OP = 'UPDATE' THEN
+    FOR key in SELECT json_object_keys(to_json(NEW))
+    LOOP
+    old_val := to_json(OLD)->key;
+    new_val := to_json(NEW)->key;
+        IF old_val is DISTINCT FROM new_val THEN
+            SELECT json_build_object(key, json_build_array(old_val, new_val)) INTO changes_json;
+        END IF;
+    END LOOP; 
+    if changes_json != '{}'::JSON THEN
+    insert into audit (is_update_function, uniqueid) values (true, NEW.uniqueid)
+    RETURN NEW;
+ELSIF TG_OP = 'INSERT' THEN
+    insert into audit (is_update_function, uniqueid, changed) VALUES
+        (false, NEW.uniqueid, to_json(NEW))
+    RETURN NEW;
+ELSE
+    RETURN OLD;
+END IF;
+    
+"""

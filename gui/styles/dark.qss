@@ -28,6 +28,10 @@
 	border: 1px solid #5A5A5A;
 }
 
+QCalendarWidget QAbstractItemView:disabled {
+	color: transparent;
+}
+
 QWidget:disabled {
 	background: #29293d;
 }
