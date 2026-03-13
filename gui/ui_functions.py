@@ -519,7 +519,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         11: self.analytics_month_button_nov,
         12: self.analytics_month_button_dec
         }
-        print("are we in darkmode:", is_darkmode)
         for potential_month, button in month_to_button_mapping.items():
             if potential_month not in self.calendar_data.keys():
                 if is_darkmode:
