@@ -64,39 +64,48 @@ So I'd rather recommend just copy pasting the stuff in. it is also how it is bei
 """
 create table audit (
     id serial primary key,
-    uniqueid text REFERENCES main,
-    is_update_function boolean, -- true if it is an update operation, false if it is an insert. delete does not exist and will not be tracked
-    user text CURRENT_USER,
-    changed_at timestamp CURRENT_TIMESTAMP,
-    changed json,
-)
+    uniqueid text REFERENCES main(uniqueid),
+    is_update_function boolean,
+    username text DEFAULT CURRENT_USER,
+    changed_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    changed json
+);
 
 create or replace function audit_trigger_func()
 returns trigger as $$
 declare
-changed_json JSON := '{}'::JSON;
+changed_json JSONB := '{}'::JSONB;
 key TEXT;
-old_val JSON;
-new_val JSON;
+old_val JSONB;
+new_val JSONB;
 begin
 if TG_OP = 'UPDATE' THEN
-    FOR key in SELECT json_object_keys(to_json(NEW))
+    FOR key in SELECT jsonb_object_keys(to_jsonb(NEW))
     LOOP
-    old_val := to_json(OLD)->key;
-    new_val := to_json(NEW)->key;
+    old_val := to_jsonb(OLD)->key;
+    new_val := to_jsonb(NEW)->key;
         IF old_val is DISTINCT FROM new_val THEN
-            SELECT json_build_object(key, json_build_array(old_val, new_val)) INTO changes_json;
+            changed_json := changed_json || jsonb_build_object(key, jsonb_build_array(old_val, new_val))::JSONB;
         END IF;
     END LOOP; 
-    if changes_json != '{}'::JSON THEN
-    insert into audit (is_update_function, uniqueid) values (true, NEW.uniqueid)
+    if changed_json != '{}'::JSONB THEN
+        insert into audit (is_update_function, uniqueid, changed) values (true, NEW.uniqueid, changed_json);
+    END IF;
     RETURN NEW;
 ELSIF TG_OP = 'INSERT' THEN
     insert into audit (is_update_function, uniqueid, changed) VALUES
-        (false, NEW.uniqueid, to_json(NEW))
+        (false, NEW.uniqueid, to_json(NEW));
     RETURN NEW;
-ELSE
-    RETURN OLD;
 END IF;
+RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+grant insert on audit to <name>;
+grant update on audit_id_seq to <name>;
+
     
+create trigger audit_table_trigger after insert or update on main
+for each row
+execute function audit_trigger_func();
 """
