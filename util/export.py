@@ -4,12 +4,15 @@
 import os
 import shutil
 import openpyxl
+from openpyxl.styles import Font
 from openpyxl.worksheet.table import TABLESTYLES, Table, TableStyleInfo
 from openpyxl.styles import Color, PatternFill
 from openpyxl.formatting.rule import CellIsRule
 import csv
 import sqlite3
 import datetime
+
+from openpyxl.worksheet.worksheet import Worksheet
 from util.data_types import InventoryObject
 from db.fetch import (
     fetch_all_for_backup,
@@ -134,33 +137,89 @@ def write_iter_into_excel(columns, iterable, filename: str):
     active_ws.add_table(table)
     wb.save(filename)
 
-def write_changed_into_excel(columns, iterable, filename):
+def write_changed_into_excel(iterable, filename, month_str):
     # for this one, we want to do some conditional formatting based on some values that we get
     # doesn't really make sense imo to stuff this into the `write_iter_into_excel` functions
     # also dont need the `columms` since we are hardcoding this!
     wb = openpyxl.Workbook()
-    letter_list = ["a", "b", "c", "d", "e", "f"] # less is more or less
-    active_ws = wb.active
-    active_ws.append(columns)
-    retired_not_redeployed = []
+    active_ws: Worksheet = wb.active
+    retired_devices = []
     new = []
-    retired_and_redeployed = []
-    # for row in iterable:
-    #     if row[0] == '':
-    #         print(f'NEW: {row}')
-    #         new.append(row)
-    #     elif 
-    for col in letter_list:
-        active_ws.column_dimensions[col].width = 20
-    sty = TableStyleInfo(name="TableStyleDark1", showRowStripes=True)
-    table = Table(displayName="exported", ref=f'A1:F{len(iterable) +1}')
-    table.tableStyleInfo = sty
-    active_ws.add_table(table)
-    pattern_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-    rule = CellIsRule(operator="equal", formula=['"Retired"'], fill=pattern_fill)
-    active_ws.conditional_formatting.add(f'F2:F{len(iterable) +1}', rule)
+    diff_location = []
+    for obj in iterable:
+        # (old_name, new_name, old_location, new_location, editdate, is_active)
+        if obj[5] == 'Retired':
+            retired_devices.append(obj)
+        elif not obj[0]: # if it has no old name, it is a new device
+            new.append(obj)
+        elif obj[2] != obj[3]: # if there is a difference in location (and there was an old name [see above elif]), it is a changed asset
+            if obj in new:
+                # it is not necessarily the case that EVERY instance will show up here, for example, if a device is retired a few months prior
+                # then, later it is redeployed
+                new.remove(obj) # if we add a device, then it moves, it isn't a new device, so we remove it from the new table
+            diff_location.append(obj)
+    title_font = Font(name='Calibri', size=20, bold=True)
+    wb = openpyxl.Workbook()
+    active_ws: Worksheet = wb.active
+    # write the new table
+    active_ws["A1"] = "New Devices!"
+    active_ws["A1"].font = title_font
+    for count, iter in enumerate(new):
+        active_ws[f"A{count + 3}"] = iter[1]
+        active_ws[f"B{count + 3}"] = iter[3]
+    if new:
+        active_ws.column_dimensions["A"].width = 20
+        active_ws.column_dimensions["B"].width = 20
+        sty = TableStyleInfo(name="TableStyleDark8", showRowStripes=True)
+        # if new exists, count will exist, dw little bro
+        table = Table(displayName="exported", ref=f"A2:B{count + 3}")
+        table.tableStyleInfo = sty
+        active_ws.add_table(table)
+        active_ws["A2"] = "Device Name"
+        active_ws["B2"] = "Device Location"
+    else:
+        active_ws["A3"] = "There are no new devices"
+
+    # write the moved devices
+    active_ws["D1"] = "Devices that moved"
+    active_ws["D1"].font = title_font
+    for count, iter in enumerate(diff_location):
+        active_ws[f"D{count + 3}"] = iter[1]
+        active_ws[f"E{count + 3}"] = iter[2]
+        active_ws[f"F{count + 3}"] = iter[3]
+    if diff_location:
+        for col in ["D", "E", "F"]:
+            active_ws.column_dimensions[col].width = 20
+        sty = TableStyleInfo(name="TableStyleDark9", showRowStripes=True)
+        table = Table(displayName="moved", ref=f"D2:F{count + 3}")
+        table.tableStyleInfo = sty
+        active_ws.add_table(table)
+        active_ws["D2"] = "Device Name"
+        active_ws["E2"] = "Old Location"
+        active_ws["F2"] = "New Location"
+    else:
+        active_ws["D3"] = "There are no moved devices"
+
+    # write the retired devices, name and location. simple as that
+    active_ws["H1"] = "Retired Devices"
+    active_ws["H1"].font = title_font
+    for count, iter in enumerate(retired_devices):
+        active_ws[f"H{count + 3}"] = iter[1]
+        active_ws[f"I{count + 3}"] = iter[3]
+    if retired_devices:
+        sty = TableStyleInfo(name="TableStyleDark3", showRowStripes=True)
+        table = Table(displayName="retired", ref=f"H2:I{count + 3}")
+        table.tableStyleInfo = sty
+        active_ws.add_table(table)
+        active_ws.column_dimensions["H"].width = 20
+        active_ws.column_dimensions["I"].width = 20
+        active_ws["H2"] = "Device name"
+        active_ws["I2"] = "Device Location"
+    else:
+        active_ws["H3"] = "There are no retired devices"
+    active_ws["L1"] = f'{month_str}\'s device overview'
+    active_ws["L1"].font = title_font
     wb.save(filename)
-    
 
 
 # not really an 'export' file, but is only used here, an fits nowhere else really..
@@ -186,15 +245,20 @@ def create_backup(self):
     open_explorer_at_file(self, end_file)
 
 def export_changed(self, csv: bool, dir, time_stamp, month, year):
-    # we are going to export the entire `changed` table
+    # when we export the changed table, we create multiple tables for each 'type'
+    # 1. retired devices (blue table?)
+    # 2. devices that have changed (orange table?)
+    # 3. new devices (green-ish table?)
     csv_or_xlsx_str = ".csv" if csv is True else ".xlsx"
     data = fetch_changed_assets(self.connection, month, year)
+    month_str = self.months[month -1] # i guess we're over by one lol
     special_columns = ["Old Name", "New Name", "Old Location", "New Location", "Date Changed", "Retired?"]
     file = f'{dir}CHANGED_{time_stamp}{csv_or_xlsx_str}'
     if csv:
+        # we'll leave the csv output like this, but have a custom excel output
         write_iter_into_csv(special_columns, data, file)
-    else:  # excel export :D
-        write_changed_into_excel(special_columns, data, file)
+    else:
+        write_changed_into_excel(data, file, month_str)
     open_explorer_at_file(self, file)
 
 def export_date_range(self, csv: bool, dir, time_stamp, start_date, end_date):
@@ -316,7 +380,7 @@ def write_comparison_to_excel(self, export_dir, invis_only, intune_only, discrep
     full_file_path = f'{export_dir}/intune-comparison-{str(datetime.datetime.now()).replace(":", "-")[:19]}.xlsx'
     # does "export_dir" already have a slash at the end???
     workb = openpyxl.Workbook()
-    ws = workb.active
+    ws: Worksheet = workb.active
     ws["A1"] = "Exists in invisman ✅ Exists in intune ❌"
     ws["A2"] = "Name"
     ws["B2"] = "Serial"
