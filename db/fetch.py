@@ -195,7 +195,8 @@ def fetch_changed_assets(conn, month=None, year=None):
     cur.execute("""select old_name, new_name, old_location, new_location, edit_date, (CASE WHEN m.retirementdate is null then 'Active' else 'Retired' END) as is_retired
                  from changed
                  left join main as m on new_name = m.name
-                 where date_part('year', edit_date) = %s and date_part('month', edit_date) = %s;""", (year, month))
+                 where date_part('year', edit_date) = %s and date_part('month', edit_date) = %s order by edit_date;""", (year, month))
+    # need to sort by date, i thought it defaulted to doing this but it wasn't the case lol
     return cur.fetchall()
 
 def fetch_from_date_range(conn, date_start, date_end):
