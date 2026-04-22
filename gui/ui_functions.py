@@ -391,7 +391,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         )
         menu.addAction("Copy SN", lambda: self.copy_text(self.main_table.item(row, 2).text()))
         menu.addAction("Copy Name", lambda: self.copy_text(self.main_table.item(row, 6).text()))
-        our_uuid = self.main_table.item(row, 13).text()
+        our_uuid = self.main_table.item(row, 15).text()
         if retirement_option:
             if retirement_option.text() != "":
                 # option when retired assets are visible, but we click on a non-retired asset
