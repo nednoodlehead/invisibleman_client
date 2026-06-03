@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'interfacejElMUC.ui'
+## Form generated from reading UI file 'interfacewvXhrk.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -378,6 +378,9 @@ class Ui_MainWindow(object):
         self.insert_is_loaned_out_label.setGeometry(QRect(20, 490, 111, 16))
         self.insert_is_loaned_out_label.setFont(font)
         self.insert_is_loaned_out_label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.insert_open_bulk_insert_window = QPushButton(self.stacked_add_to_db_page)
+        self.insert_open_bulk_insert_window.setObjectName(u"insert_open_bulk_insert_window")
+        self.insert_open_bulk_insert_window.setGeometry(QRect(1010, 30, 101, 21))
         self.stackedWidget.addWidget(self.stacked_add_to_db_page)
         self.stacked_analytics = QWidget()
         self.stacked_analytics.setObjectName(u"stacked_analytics")
@@ -830,6 +833,7 @@ class Ui_MainWindow(object):
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Date to return", None))
         self.insert_is_loaned_out_checkbox.setText(QCoreApplication.translate("MainWindow", u"CheckBox", None))
         self.insert_is_loaned_out_label.setText(QCoreApplication.translate("MainWindow", u"Is loaned out", None))
+        self.insert_open_bulk_insert_window.setText(QCoreApplication.translate("MainWindow", u"Bulk Insert", None))
         self.analytics_export_top_button.setText(QCoreApplication.translate("MainWindow", u"Export graph", None))
         self.analytics_month_button_jan.setText(QCoreApplication.translate("MainWindow", u"January", None))
         self.analytics_month_button_feb.setText(QCoreApplication.translate("MainWindow", u"February", None))

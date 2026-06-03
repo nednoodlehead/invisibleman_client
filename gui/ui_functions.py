@@ -22,6 +22,7 @@ from db.insert import new_entry
 from db.update import increase_extra_by_one, update_full_obj, delete_from_uuid, retire_from_uuid, unretire_from_uuid, decrease_extra_by_one, increase_extra_by_one
 from db.backup import BackupThread, backup_invisman
 from gui.notes_window import NotesWindow
+from gui.bulk_insert_window import BulkWindow
 from gui.export_graph_window import ExportGraph
 from gui.settings import dark_light_mode_switch, set_dark, set_light
 from util.export import create_backup, compare_intune_and_invisman, compare_ip_to_site_and_invisman, export_all
@@ -73,6 +74,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         self.active_json_window = None
         self.active_export_graph_window = None
         self.new_extra_window = None
+        self.new_bulk_window = None
         self.insert_active_uuid = ""  # this is our variable for knowing if we are
         # editing an entry, or adding a new one. depends if it is empty string, or uuid4
         self.today = QDate.currentDate() # try to save on calling this a thousand times lol
@@ -180,6 +182,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
                 self, self.settings_darkmode_checkbox.isChecked()
             )
         )
+        self.insert_open_bulk_insert_window.clicked.connect(self.display_bulk_insert_window)
         self.settings_switch_to_main_on_insert_checkbox.setChecked(self.config["switch_view_on_insert"])
         if self.config["dark_mode"] is True:
             self.settings_darkmode_checkbox.setChecked(True)
@@ -190,6 +193,7 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.settings_enable_backups_checkbox.setChecked(True)
         if self.config["auto_open_report_on_create"] is True:
             self.settings_report_auto_open_checkbox.setChecked(True)
+        # populate the bulk profiles from config
         self.settings_backup_dir_text.setText(self.config["backup_path"])
         self.settings_ip_text.setText(self.config["invisman_ip"])
         # opens with height == 250, so no need to `else` set that..
@@ -218,15 +222,15 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         for count, checkbox in enumerate(self.insert_widgets):
             self.handle_checkboxes_and_columns(count, checkbox)
         # populating combo boxes. "" is an empty default value
-        cat, typ, loc, manu = self.fetch_all_asset_types()
+        self.categories, self.asset_types, self.locations, self.manufacturers = self.fetch_all_asset_types()
         self.insert_asset_category_combobox.addItem("")
         self.insert_asset_type_combobox.addItem("")
         self.insert_asset_location_combobox.addItem("")
         self.insert_manufacturer_combobox.addItem("")
-        self.insert_asset_category_combobox.addItems(cat)
-        self.insert_asset_type_combobox.addItems(typ)
-        self.insert_asset_location_combobox.addItems(loc)
-        self.insert_manufacturer_combobox.addItems(manu)
+        self.insert_asset_category_combobox.addItems(self.categories)
+        self.insert_asset_type_combobox.addItems(self.asset_types)
+        self.insert_asset_location_combobox.addItems(self.locations)
+        self.insert_manufacturer_combobox.addItems(self.manufacturers)
         self.extra_add_new_button.clicked.connect(self.display_extra_window)
         # true = retired, false = in use
         self.insert_status_bool.addItems(["Active", "Retired"])
@@ -853,7 +857,8 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         "opt_in_backup": self.settings_enable_backups_checkbox.isChecked(),
         "last_daily_backup": self.config["last_daily_backup"],
         "last_weekly_backup": self.config["last_weekly_backup"],
-        "last_monthly_backup": self.config["last_monthly_backup"]  
+        "last_monthly_backup": self.config["last_monthly_backup"],
+        "bulk_presets": self.config["bulk_presets"]
         }
         write_to_config(new_config)
         # update new config!!
@@ -966,6 +971,14 @@ class MainProgram(QMainWindow, Ui_MainWindow):
         position.setX(position.x() + 250)
         position.setY(position.y() + 250)
         self.new_extra_window.move(position)
+
+    def display_bulk_insert_window(self):
+        self.new_bulk_window = BulkWindow(self)
+        self.new_bulk_window.show()
+        position = self.pos()
+        position.setX(position.x() + 250)
+        position.setY(position.y() + 250)
+        self.new_bulk_window.move(position)
         
 
     def export_graph(self, top: bool):
@@ -1249,10 +1262,6 @@ class MainProgram(QMainWindow, Ui_MainWindow):
             self.insert_asset_category_combobox.setCurrentText("User Hardware")
             # we could do cost as well if it 
 
-    # def asset_type_derive(self):
-    #     # from just the asset type, the asset category is derived
-    #     asset_type = self.insert_asset_type_combobox.currentText()
-    #     if asset_type == "Software"
         
     def pull_unique_uuid_data(self):
         # this happens when the user clicks the button next to "serial #" on the add page when
