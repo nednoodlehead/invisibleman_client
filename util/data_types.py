@@ -45,6 +45,10 @@ class InventoryObject:
         self.uniqueid = uniqueid  # uuid-4 for the device
         self.loandate = loandate
         self.returndate = returndate
+        
+    @staticmethod
+    def init_empty():
+        return InventoryObject("", "", "", "", 0.0, "", "", "", "", datetime.date.today(), datetime.date.today(), datetime.date.today(), "", False, False, datetime.date.today(), None, str(uuid4()))
 
     def __iter__(self):
         yield self.assettype
