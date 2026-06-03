@@ -153,7 +153,7 @@
             </sizepolicy>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>1</number>
            </property>
            <widget class="QWidget" name="stacked_view_db_page">
             <property name="sizePolicy">
@@ -1222,6 +1222,19 @@
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="insert_open_bulk_insert_window">
+             <property name="geometry">
+              <rect>
+               <x>1010</x>
+               <y>30</y>
+               <width>101</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Bulk Insert</string>
              </property>
             </widget>
            </widget>
