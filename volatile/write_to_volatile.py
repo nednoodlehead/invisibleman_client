@@ -17,7 +17,8 @@ authoriative_json = {
     "opt_in_backup": False,
     "last_daily_backup": ["2001-01-01", "2001-01-02", "2001-01-03"],
     "last_weekly_backup": "2001-01-01",
-    "last_monthly_backup": "2001-01-01"
+    "last_monthly_backup": "2001-01-01",
+    "bulk_presets": []
 }
 
 default_json = {
@@ -49,7 +50,8 @@ default_json = {
     "opt_in_backup": False, # if the user wants to consent to backups on their device
     "last_daily_backup": ["2001-01-01", "2001-01-02", "2001-01-03"],
     "last_weekly_backup": "2001-01-01",
-    "last_monthly_backup": "2001-01-01"
+    "last_monthly_backup": "2001-01-01",
+    "bulk_presets": []
 }
 
 
